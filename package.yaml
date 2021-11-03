@@ -1,0 +1,89 @@
+name:                sgm-api
+version:             0.1.0.0
+github:              "githubuser/sgm-api"
+license:             BSD3
+author:              "Author name here"
+maintainer:          "example@example.com"
+copyright:           "2021 Author name here"
+
+extra-source-files:
+- README.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         SGM-API
+
+dependencies:
+- base >= 4.7 && < 5
+- aeson
+- bytestring
+- directory
+- mtl
+- servant-server
+- servant-errors
+- time
+- text
+- uuid
+- wai
+- warp
+
+default-extensions:
+- DataKinds
+- DefaultSignatures
+- DeriveAnyClass
+- DeriveGeneric
+- DerivingStrategies
+- DeriveDataTypeable
+- EmptyDataDecls
+- FlexibleContexts
+- FlexibleInstances
+- GeneralizedNewtypeDeriving
+- GADTs
+- MultiParamTypeClasses
+- OverloadedLabels
+- OverloadedStrings
+- RankNTypes
+- ScopedTypeVariables
+- StandaloneDeriving
+- TemplateHaskell
+- TypeApplications
+- TypeFamilies
+- TypeOperators
+- UndecidableInstances
+- QuasiQuotes
+
+library:
+  source-dirs: src
+
+executables:
+  sgm-api-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - base
+    - sgm-api
+
+tests:
+  sgm-api-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - base
+    - sgm-api
+    - hspec
+    - hspec-wai
+    - hspec-wai-json
+    - aeson

@@ -1,0 +1,36 @@
+version: '3.5'
+services:
+    sgm-api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - ..:/sgm-api:cached
+        # Overrides default command so things don't shut down after the process ends.
+        command: sleep infinity
+        networks:
+            - sgm-api-gateway
+            - sgm-api-db
+
+    postgres:
+        image: postgres:10
+        container_name: sgm-api-postgres
+        environment:
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: sgm-api
+        networks:
+            - sgm-api-db
+        ports:
+            - 5432:5432
+
+networks:
+    sgm-api-gateway:
+        driver: bridge
+        name: sgm-api-gateway
+    sgm-api-db:
+        driver: bridge
+        name: sgm-api-db
+
+secrets:
+    git_ssh_key:
+        file: ~/.ssh/git_rsa

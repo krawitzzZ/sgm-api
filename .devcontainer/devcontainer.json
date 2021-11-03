@@ -1,0 +1,45 @@
+{
+  "name": "sgm-api",
+  "service": "sgm-api",
+  "workspaceFolder": "/sgm-api",
+  "dockerComposeFile": "docker-compose.yml",
+  // Set *default* container specific settings.json values on container create.
+  "settings": {
+    "files.associations": {
+      "*.hs": "haskell"
+    },
+    "[haskell]": {
+      "editor.defaultFormatter": "MaxGabriel.brittany",
+    },
+    "brittany.keepCRLF": false,
+    "brittany.stackEnable": true,
+    "brittany.showErrorNotification": false,
+    "terminal.integrated.allowChords": false,
+    "terminal.integrated.defaultProfile.linux": "zsh"
+  },
+  // Add the IDs of extensions you want installed when the container is created.
+  "extensions": [
+    "haskell.haskell",
+    "kahole.magit",
+    "codezombiech.gitignore",
+    "maxgabriel.brittany",
+    "ms-azuretools.vscode-docker",
+    "github.copilot",
+    "yzhang.markdown-all-in-one",
+    "christian-kohler.path-intellisense",
+    "lunaryorn.hlint",
+    "fayras.simple-new-file",
+    "jcanero.hoogle-vscode",
+    "s0kil.vscode-hsx",
+  ],
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [
+    5432,
+    3009,
+    8080
+  ],
+  // Comment out connect as root instead. To add a non-root user, see: https://aka.ms/vscode-remote/containers/non-root.
+  "remoteUser": "sgm-api",
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "stack install data-tree-print brittany hlint hoogle",
+}
