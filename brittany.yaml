@@ -1,0 +1,94 @@
+conf_errorHandling:
+  econf_Werror: false
+  econf_omit_output_valid_check: false
+  econf_ExactPrintFallback: ExactPrintFallbackModeInline
+  econf_produceOutputOnErrors: false
+conf_forward:
+  options_ghc:
+    - -XBangPatterns
+    - -XBinaryLiterals
+    - -XConstraintKinds
+    - -XDataKinds
+    - -XDefaultSignatures
+    - -XDeriveDataTypeable
+    - -XDeriveFoldable
+    - -XDeriveFunctor
+    - -XDeriveGeneric
+    - -XDeriveTraversable
+    - -XDoAndIfThenElse
+    - -XEmptyDataDecls
+    - -XExistentialQuantification
+    - -XExplicitNamespaces
+    - -XFlexibleContexts
+    - -XFlexibleInstances
+    - -XFunctionalDependencies
+    - -XGADTs
+    - -XGeneralizedNewtypeDeriving
+    - -XInstanceSigs
+    - -XKindSignatures
+    - -XLambdaCase
+    - -XMultiParamTypeClasses
+    - -XMultiWayIf
+    - -XNamedFieldPuns
+    - -XNoImplicitPrelude
+    - -XOverloadedStrings
+    - -XPartialTypeSignatures
+    - -XPatternGuards
+    - -XPolyKinds
+    - -XRankNTypes
+    - -XRecordWildCards
+    - -XScopedTypeVariables
+    - -XStandaloneDeriving
+    - -XTupleSections
+    - -XTypeFamilies
+    - -XTypeSynonymInstances
+    - -XViewPatterns
+    - -XDeriveAnyClass
+    - -XDerivingStrategies
+    - -XOverloadedLabels
+    - -XTemplateHaskell
+    - -XTypeApplications
+    - -XTypeOperators
+    - -XUndecidableInstances
+    - -XQuasiQuotes
+conf_debug:
+  dconf_dump_bridoc_raw: false
+  dconf_dump_bridoc_simpl_floating: false
+  dconf_dump_annotations: false
+  dconf_dump_bridoc_final: false
+  dconf_dump_bridoc_simpl_par: false
+  dconf_roundtrip_exactprint_only: false
+  dconf_dump_ast_full: false
+  dconf_dump_bridoc_simpl_alt: false
+  dconf_dump_bridoc_simpl_columns: false
+  dconf_dump_ast_unknown: false
+  dconf_dump_bridoc_simpl_indent: false
+  dconf_dump_config: false
+conf_version: 1
+conf_preprocessor:
+  ppconf_CPPMode: CPPModeAbort
+  ppconf_hackAroundIncludes: false
+conf_roundtrip_exactprint_only: false
+conf_obfuscate: false
+conf_disable_formatting: false
+conf_layout:
+  lconfig_allowSingleLineExportList: false
+  lconfig_columnAlignMode:
+    contents: 0.7
+    tag: ColumnAlignModeMajority
+  lconfig_experimentalSemicolonNewlines: false
+  lconfig_hangingTypeSignature: false
+  lconfig_indentPolicy: IndentPolicyFree
+  lconfig_indentListSpecial: true
+  lconfig_reformatModulePreamble: true
+  lconfig_alignmentLimit: 40
+  lconfig_indentAmount: 2
+  lconfig_altChooser:
+    contents: 3
+    tag: AltChooserBoundedSearch
+  lconfig_cols: 100
+  lconfig_importColumn: 60
+  lconfig_importAsColumn: 60
+  lconfig_indentWhereSpecial: true
+  lconfig_allowHangingQuasiQuotes: true
+  lconfig_alignmentBreakOnMultiline: true

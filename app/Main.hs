@@ -1,6 +1,14 @@
 module Main where
 
-import           Lib                            ( startApp )
+import           Configuration                            ( loadEnv
+                                                          , mkAppEnv
+                                                          )
+import           RIO                                      ( (>>)
+                                                          , (>>=)
+                                                          , IO
+                                                          )
+import           Server                                   ( start )
+
 
 main :: IO ()
-main = startApp
+main = loadEnv >> mkAppEnv "0.1.0.0" >>= start
