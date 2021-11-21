@@ -20,23 +20,24 @@ description:         SGM-API
 
 dependencies:
 - base >= 4.7 && < 5
-- rio == 0.1.21.0
-- aeson == 1.5.6.0
-- bytestring == 0.10.12.0
-- data-default == 0.7.1.1
-- directory == 1.3.6.0
-- dotenv == 0.8.0.7
-- fast-logger == 3.0.5
-- http-api-data == 0.4.2
-- mtl == 2.2.2
-- safe-exceptions == 0.1.7.2
-- servant-server == 0.18.3
-- servant-errors == 0.1.6.0
-- string-conversions == 0.4.0.1
-- uuid == 1.3.15
-- wai == 3.2.3
-- wai-extra == 3.1.7
-- warp == 3.3.17
+- rio
+- aeson
+# - beam-core
+- bytestring
+- data-default
+- directory
+- dotenv
+- fast-logger
+- http-api-data
+- mtl
+- safe-exceptions
+- servant-server
+- servant-errors
+- string-conversions
+- uuid
+- wai
+- wai-extra
+- warp
 
 ghc-options:
 - -Wall
@@ -123,7 +124,7 @@ tests:
     dependencies:
     - base
     - sgm-api
-    - hspec == 2.7.10
-    - hspec-wai == 0.11.0
-    - hspec-wai-json == 0.11.0
-    - aeson == 1.5.6.0
+    - hspec
+    - hspec-wai
+    - hspec-wai-json
+    - aeson
