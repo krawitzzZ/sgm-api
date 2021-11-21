@@ -22,10 +22,13 @@ dependencies:
 - base >= 4.7 && < 5
 - rio
 - aeson
-# - beam-core
+- beam-core
+- beam-migrate
+- beam-postgres
 - bytestring
 - data-default
 - directory
+- dlist
 - dotenv
 - fast-logger
 - http-api-data

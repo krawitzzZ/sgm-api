@@ -113,6 +113,9 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         manpages \
         manpages-dev \
         sqlite3 \
+        libpq-dev \
+        postgresql \
+        postgresql-contrib \
         init-system-helpers"
 
     # Needed for adding manpages-posix and manpages-posix-dev which are non-free packages in Debian

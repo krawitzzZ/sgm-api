@@ -3,7 +3,53 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: dlist-0.8.0.8@sha256:90ca348bffdc62d7070bcf0e97c728f8d01b24fbc7ea08d2909157d0da76534c,2066
+    pantry-tree:
+      size: 426
+      sha256: 1b5b9142a932f15c77f758f92f90bea6c805c42d4c62f7a697e8e4f6cf1ad6e6
+  original:
+    hackage: dlist-0.8.0.8
+- completed:
+    subdir: beam-core
+    name: beam-core
+    version: 0.9.1.0
+    git: https://github.com/haskell-beam/beam.git
+    pantry-tree:
+      size: 2704
+      sha256: 7137d411ff870f233e682f9889e77e509bb3d3090e7e68e33878fbb34b0b1f8b
+    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+  original:
+    subdir: beam-core
+    git: https://github.com/haskell-beam/beam.git
+    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+- completed:
+    subdir: beam-migrate
+    name: beam-migrate
+    version: 0.5.1.0
+    git: https://github.com/haskell-beam/beam.git
+    pantry-tree:
+      size: 1826
+      sha256: d12ac342750c91c6b864ea892616a8aca5a04fba2c457b2a8e5a28a2893fddba
+    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+  original:
+    subdir: beam-migrate
+    git: https://github.com/haskell-beam/beam.git
+    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+- completed:
+    subdir: beam-postgres
+    name: beam-postgres
+    version: 0.5.1.0
+    git: https://github.com/haskell-beam/beam.git
+    pantry-tree:
+      size: 2596
+      sha256: df9e520e6290071a517a1e96d4762360e8451cc756d012867d66b5bda99f83f3
+    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+  original:
+    subdir: beam-postgres
+    git: https://github.com/haskell-beam/beam.git
+    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
 snapshots:
 - completed:
     size: 586292
