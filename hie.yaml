@@ -1,8 +1,10 @@
 cradle:
   stack:
-    - path: ./src/
-      component: "sgm-api:lib"
-    - path: ./test/
-      component: "sgm-api:test:sgm-api-test"
-    - path: ./app/
-      component: "sgm-api:exe:sgm-api-exe"
+    # - path: ./src/
+    #   component: "sgm-api:lib"
+    # - path: ./app/
+    #   component: "sgm-api:exe:sgm-api-exe"
+    # - path: ./test/
+    #   component: "sgm-api:test:sgm-api-test"
+
+# uncomment above for working with tests. HIE doesn't understand what's inside test folder :(

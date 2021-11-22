@@ -1,38 +1,26 @@
 module Domain.App
   ( AppM
-  , Config(..)
-  , HasConfig(..)
   , AppEnv(..)
   , HasAppEnv(..)
   ) where
 
+import           Domain.Config                            ( Config(..)
+                                                          , HasConfig(..)
+                                                          )
 import           Domain.Logger                            ( HasLogger(..)
-                                                          , LogLevel(..)
                                                           , Logger(..)
                                                           )
 import           Domain.User                              ( HasUserRepository(..)
                                                           , UserRepository(..)
                                                           )
-import           RIO                                      ( Int
-                                                          , ReaderT
-                                                          , Text
+import           RIO                                      ( ReaderT
                                                           , id
                                                           )
 import           Servant                                  ( Handler )
 
 
+-- TODO Servant dependency should be removed
 type AppM = ReaderT AppEnv Handler
-
-data Config = Config
-  { configPort           :: !Int
-  , configNetworkTimeout :: !Int
-  , configVersion        :: !Text
-  , configLogLevel       :: !LogLevel
-  }
-class HasConfig env where
-  getConfig :: env -> Config
-instance HasConfig Config where
-  getConfig = id
 
 data AppEnv = AppEnv
   { appConfig         :: !Config

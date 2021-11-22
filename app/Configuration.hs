@@ -7,50 +7,44 @@ import           Configuration.Dotenv                     ( defaultConfig
                                                           , defaultValidatorMap
                                                           , loadSafeFile
                                                           )
-import           Domain.App                               ( AppEnv(..)
-                                                          , Config(..)
-                                                          )
-import           Domain.Logger                            ( LogLevel(..)
-                                                          , Logger(..)
-                                                          )
+import           Domain.App                               ( AppEnv(..) )
+import           Domain.Config                            ( Config(..) )
+import           Domain.Logger                            ( Logger(..) )
+import           Domain.Logger.LogLevel                   ( LogLevel(..) )
 import           Domain.User                              ( UserRepository(..) )
+import           Infra.Logger.StdErr                      ( mkLogFunc )
 import qualified Infra.UserRepository                    as UR
 import           RIO                                      ( ($)
-                                                          , (.)
                                                           , (<$>)
                                                           , (<*>)
+                                                          , (>>=)
+                                                          , Maybe(..)
                                                           , MonadIO
-                                                          , Text
-                                                          , liftIO
                                                           , return
                                                           , void
                                                           )
-import           System.Log.FastLogger                    ( defaultBufSize
-                                                          , newStderrLoggerSet
-                                                          , pushLogStrLn
-                                                          , toLogStr
+import           Utils                                    ( readEnvDefault
+                                                          , readEnvText
                                                           )
-import           Utils                                    ( readEnv )
 
 
 loadEnv :: MonadIO m => m ()
 loadEnv = void $ loadSafeFile defaultValidatorMap "env.schema.yaml" defaultConfig
 
-mkAppEnv :: MonadIO m => Text -> m AppEnv
-mkAppEnv version = AppEnv <$> mkAppConfig version <*> mkAppLogger <*> mkUserRepository
+mkAppEnv :: MonadIO m => m AppEnv
+mkAppEnv = AppEnv <$> mkAppConfig <*> mkAppLogger <*> mkUserRepository
 
-mkAppConfig :: MonadIO m => Text -> m Config
-mkAppConfig version =
+mkAppConfig :: MonadIO m => m Config
+mkAppConfig =
   Config
-    <$> readEnv "PORT"           8080
-    <*> readEnv "SERVER_TIMEOUT" 20
-    <*> return version
-    <*> readEnv "LOG_LEVEL" Debug
+    <$> readEnvDefault "PORT" 8080
+    <*> readEnvText "DB_URL"
+    <*> readEnvDefault "SERVER_TIMEOUT" 20
+    <*> readEnvDefault "LOG_LEVEL"      Info
 
 mkAppLogger :: MonadIO m => m Logger
-mkAppLogger = do
-  stdErrLogger <- liftIO $ newStderrLoggerSet defaultBufSize
-  return Logger { logMsg = pushLogStrLn stdErrLogger . toLogStr }
+mkAppLogger = mkLogFunc >>= \logToStdErr ->
+  return Logger { logMsg = logToStdErr, lContext = "Default", lError = Nothing }
 
 mkUserRepository :: (MonadIO m) => m UserRepository
 mkUserRepository = return UserRepository { findOne   = UR.findOne

@@ -1,55 +1,78 @@
 module Domain.Logger
-  ( LogLevel(..)
-  , LogMessage(..)
-  , Logger(..)
+  ( Logger(..)
   , HasLogger(..)
+  , logDebug
+  , logInfo
+  , logWarn
+  , logError
   ) where
 
-import           Data.Aeson                               ( FromJSON(..)
-                                                          , ToJSON(..)
-                                                          , defaultOptions
-                                                          , encode
-                                                          , genericToEncoding
+import           Data.String.Conversions                  ( cs )
+import           Domain.Config                            ( Config(..)
+                                                          , HasConfig(..)
                                                           )
-import           RIO                                      ( (.)
-                                                          , Bounded
-                                                          , Enum
-                                                          , Eq
-                                                          , Generic
+import           Domain.Logger.Class                      ( IsLogger(..) )
+import           Domain.Logger.LogLevel                   ( LogLevel(..) )
+import           Domain.Logger.LogMessage                 ( LogMessage(..) )
+import           RIO                                      ( ($)
+                                                          , (.)
+                                                          , (<$>)
+                                                          , (>=)
                                                           , IO
-                                                          , Ord
-                                                          , Read
+                                                          , Maybe(..)
+                                                          , MonadIO
+                                                          , MonadReader
                                                           , Show
                                                           , Text
+                                                          , asks
                                                           , id
+                                                          , liftIO
+                                                          , show
+                                                          , when
                                                           )
-import           RIO.Time                                 ( UTCTime )
-import           System.Log.FastLogger                    ( ToLogStr(..) )
+import           RIO.Time                                 ( getCurrentTime )
 
 
-data LogLevel = Debug | Info | Warn | Error deriving (Eq, Ord, Show, Read, Enum, Bounded, Generic)
-instance FromJSON LogLevel
-instance ToJSON LogLevel where
-
-data LogMessage = LogMessage
-  { time    :: !UTCTime
-  , level   :: !LogLevel
-  , message :: !Text
-  , context :: !Text
-  , version :: !Text
+data Logger = Logger
+  { lContext :: !Text
+  , lError   :: !(Maybe Text)
+  , logMsg   :: !(LogMessage -> IO ())
   }
-  deriving (Eq, Show, Generic)
-instance FromJSON LogMessage
-instance ToJSON LogMessage where
-  toEncoding = genericToEncoding defaultOptions
-instance ToLogStr LogMessage where
-  toLogStr = toLogStr . encode
-
-newtype Logger = Logger { logMsg :: LogMessage -> IO () }
 class HasLogger env where
   {-# MINIMAL getLogger #-}
-  getLogger  :: env -> Logger
+  getLogger :: env -> Logger
   getLogFunc :: env -> LogMessage -> IO ()
-  getLogFunc env = logMsg (getLogger env)
+  getLogFunc  = logMsg . getLogger
 instance HasLogger Logger where
   getLogger = id
+instance IsLogger Logger where
+  log logger = logMsg logger
+  withError err logger = logger { lError = justError err }
+  withContext lContext logger = logger { lContext }
+  withErrorAndContext err lContext logger = logger { lContext, lError = justError err }
+
+logDebug :: (MonadIO m, MonadReader env m, HasConfig env) => Logger -> Text -> m ()
+logDebug = logGeneral Debug
+
+logInfo :: (MonadIO m, MonadReader env m, HasConfig env) => Logger -> Text -> m ()
+logInfo = logGeneral Info
+
+logWarn :: (MonadIO m, MonadReader env m, HasConfig env) => Logger -> Text -> m ()
+logWarn = logGeneral Warn
+
+logError :: (MonadIO m, MonadReader env m, HasConfig env) => Logger -> Text -> m ()
+logError = logGeneral Error
+
+logGeneral :: (MonadIO m, MonadReader env m, HasConfig env) => LogLevel -> Logger -> Text -> m ()
+logGeneral level logger message = do
+  appLogLevel <- asks $ configLogLevel . getConfig
+  when (level >= appLogLevel) $ do
+    time <- getCurrentTime
+    let error      = cs . show <$> lError logger
+    let context    = lContext logger
+    let logMessage = logMsg logger
+    let msg        = LogMessage { time, level, message, error, context }
+    liftIO $ logMessage msg
+
+justError :: Show e => e -> Maybe Text
+justError = Just . cs . show

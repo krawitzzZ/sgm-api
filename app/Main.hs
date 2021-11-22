@@ -11,4 +11,4 @@ import           Server                                   ( start )
 
 
 main :: IO ()
-main = loadEnv >> mkAppEnv "0.1.0.0" >>= start
+main = loadEnv >> mkAppEnv >>= start

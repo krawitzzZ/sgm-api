@@ -7,13 +7,11 @@ import           Api                                      ( SGMApi
                                                           )
 import           Data.Default                             ( def )
 import           Data.String.Conversions                  ( cs )
-import           Domain.App                               ( AppEnv(..)
-                                                          , Config(..)
-                                                          )
-import           Domain.Logger                            ( HasLogger(..)
-                                                          , LogLevel(..)
-                                                          , LogMessage(..)
-                                                          )
+import           Domain.App                               ( AppEnv(..) )
+import           Domain.Config                            ( Config(..) )
+import           Domain.Logger                            ( HasLogger(..) )
+import           Domain.Logger.LogLevel                   ( LogLevel(..) )
+import           Domain.Logger.LogMessage                 ( LogMessage(..) )
 import           Network.Wai                              ( Application
                                                           , Middleware
                                                           , rawPathInfo
@@ -34,6 +32,7 @@ import           RIO                                      ( ($)
                                                           , (.)
                                                           , (<>)
                                                           , IO
+                                                          , Maybe(..)
                                                           , runReaderT
                                                           , show
                                                           )
@@ -59,14 +58,14 @@ start env = do
   let port           = configPort config
   let timeout        = configNetworkTimeout config
   let logInitMessage = getLogFunc env
-  let initMsg = LogMessage { time
-                           , level   = Info
-                           , message = pack $ "Starting SGM API on port " <> show port
-                           , context = "Server->start"
-                           , version = configVersion config
-                           }
+  let initMessage = LogMessage { time
+                               , level   = Info
+                               , message = pack $ "Starting SGM API on port " <> show port
+                               , error   = Nothing
+                               , context = "Server->start"
+                               }
 
-  logInitMessage initMsg
+  logInitMessage initMessage
 
   let settings = setPort port . setTimeout timeout $ defaultSettings
   runSettings settings . requestLoggerMw . errorMwDefJson . mkApp $ env

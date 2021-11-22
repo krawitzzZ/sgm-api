@@ -66,23 +66,20 @@ createNewUser userInfo = do
 
 findUser :: Id -> AppM User
 findUser userId = do
-  tryCatch "Api.User->findUser" handleNotFound $ getUser userId
-  where handleNotFound = throwNotFound userId
+  tryCatch "Api.User->findUser" (getUser userId) handleNotFound
+  where handleNotFound = throwNotFound
 
 updateUserInfo :: Id -> User -> AppM User
 updateUserInfo userId userInfo = do
-  tryCatch "Api.User->updateUserInfo" handleNotFound $ updateUser userId userInfo
+  tryCatch "Api.User->updateUserInfo" (updateUser userId userInfo) handleNotFound
   return userInfo
-  where handleNotFound = throwNotFound userId
+  where handleNotFound = throwNotFound
 
 removeUser :: Id -> AppM NoContent
 removeUser userId = do
-  tryCatch "Api.User->removeUser" handleNotFound $ deleteUser userId
+  tryCatch "Api.User->removeUser" (deleteUser userId) handleNotFound
   return NoContent
-  where handleNotFound = throwNotFound userId
+  where handleNotFound = throwNotFound
 
-throwNotFound :: Id -> (NotFound -> AppM a)
-throwNotFound userId = handle
- where
-  handle (NotFound _) =
-    throwError err404 { errBody = cs $ "User with id " <> userId <> " not found: " }
+throwNotFound :: (NotFound -> AppM a)
+throwNotFound _ = throwError err404

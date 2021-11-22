@@ -1,6 +1,7 @@
 module Utils
   ( jsonOptions
-  , readEnv
+  , readEnvDefault
+  , readEnvText
   ) where
 
 import           Data.Aeson                               ( Options(..)
@@ -9,14 +10,17 @@ import           Data.Aeson                               ( Options(..)
 import           Data.String.Conversions                  ( cs )
 import           RIO                                      ( ($)
                                                           , (.)
+                                                          , (<>)
                                                           , (>>>)
-                                                          , Foldable(length)
+                                                          , Maybe(..)
                                                           , MonadIO(..)
                                                           , Read
                                                           , String
                                                           , Text
                                                           , drop
+                                                          , error
                                                           , fromMaybe
+                                                          , length
                                                           , maybe
                                                           , readMaybe
                                                           , return
@@ -32,8 +36,14 @@ jsonOptions prefix = defaultOptions { fieldLabelModifier = dropPrefix >>> firstT
   firstToLower (c : rest) = toLower c : rest
   dropPrefix = drop $ length prefix
 
-readEnv :: (MonadIO m, Read a) => Text -> a -> m a
-readEnv key defaultValue = do
+readEnvDefault :: (MonadIO m, Read a) => Text -> a -> m a
+readEnvDefault key defaultValue = do
   envValue <- liftIO $ lookupEnv $ cs key
-  let result = maybe defaultValue (fromMaybe defaultValue . readMaybe) envValue
-  return result
+  return $ maybe defaultValue (fromMaybe defaultValue . readMaybe) envValue
+
+readEnvText :: (MonadIO m) => Text -> m Text
+readEnvText key = do
+  envValue <- liftIO $ lookupEnv $ cs key
+  case envValue of
+    Nothing    -> error $ "Environment variable " <> cs key <> " is required"
+    Just value -> return $ cs value

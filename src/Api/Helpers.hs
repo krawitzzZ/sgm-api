@@ -9,13 +9,16 @@ import           Control.Exception.Safe                   ( Exception
                                                           , SomeException(..)
                                                           , catches
                                                           )
-import           Data.String.Conversions                  ( cs )
 import           Domain.App                               ( AppM )
-import           Infra.Logger                             ( logWarn )
+import           Domain.Logger                            ( HasLogger(..)
+                                                          , logWarn
+                                                          )
+import           Domain.Logger.Class                      ( IsLogger(..) )
 import           RIO                                      ( ($)
                                                           , (<>)
+                                                          , (>>>)
                                                           , Text
-                                                          , show
+                                                          , asks
                                                           )
 import           Servant                                  ( err500
                                                           , errBody
@@ -23,16 +26,17 @@ import           Servant                                  ( err500
                                                           )
 
 
-tryCatch :: (Exception e) => Text -> (e -> AppM a) -> AppM a -> AppM a
-tryCatch ctx handler action = catches action [Handler handler, catchInternalError ctx]
+tryCatch :: (Exception e) => Text -> AppM a -> (e -> AppM a) -> AppM a
+tryCatch ctx action handler = catches action [Handler handler, catchInternalError ctx]
 
 tryCatchAny :: Text -> AppM a -> AppM a
 tryCatchAny ctx action = catches action [catchInternalError ctx]
 
-tryCatches :: Text -> [Handler AppM a] -> AppM a -> AppM a
-tryCatches ctx handlers action = catches action (handlers <> [catchInternalError ctx])
+tryCatches :: Text -> AppM a -> [Handler AppM a] -> AppM a
+tryCatches ctx action handlers = catches action (handlers <> [catchInternalError ctx])
 
 catchInternalError :: Text -> Handler AppM a
 catchInternalError ctx = Handler $ \(SomeException e) -> do
-  logWarn ctx (cs $ "Unexcpected error occurred: " <> show e)
+  logger <- asks $ getLogger >>> withErrorAndContext e ctx
+  logWarn logger "Unexcpected error occurred"
   throwError err500 { errBody = "Internal server error" }
