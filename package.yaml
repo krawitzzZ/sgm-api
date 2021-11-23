@@ -24,6 +24,7 @@ dependencies:
 - aeson
 - beam-core
 - beam-migrate
+# - beam-migrate-cli
 - beam-postgres
 - bytestring
 - data-default
