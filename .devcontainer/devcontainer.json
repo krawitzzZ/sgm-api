@@ -31,6 +31,8 @@
     "fayras.simple-new-file",
     "jcanero.hoogle-vscode",
     "s0kil.vscode-hsx",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg"
   ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [
