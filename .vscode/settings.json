@@ -1,0 +1,14 @@
+{
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "server": "postgres",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "sgm-api",
+      "database": "sgm-api",
+      "username": "postgres",
+      "password": "password"
+    }
+  ]
+}
