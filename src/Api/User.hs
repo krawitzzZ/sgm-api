@@ -12,7 +12,6 @@ import           App.User                                 ( createUser
                                                           , getUsers
                                                           , updateUser
                                                           )
-import           Data.String.Conversions                  ( cs )
 import           Domain.Api                               ( ApiVersion(..) )
 import           Domain.App                               ( AppM )
 import           Domain.Exception                         ( NotFound(..) )
@@ -20,7 +19,6 @@ import           Domain.User                              ( Id
                                                           , User(..)
                                                           )
 import           RIO                                      ( ($)
-                                                          , (<>)
                                                           , return
                                                           , void
                                                           )
@@ -36,7 +34,6 @@ import           Servant                                  ( type (:<|>)(..)
                                                           , ReqBody
                                                           , ServerT
                                                           , err404
-                                                          , errBody
                                                           , throwError
                                                           )
 

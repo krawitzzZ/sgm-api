@@ -11,35 +11,27 @@ import           Domain.User                              ( HasUserRepository(..
                                                           , User(..)
                                                           , UserRepository(..)
                                                           )
-import           RIO                                      ( ($)
+import           RIO                                      ( (.)
+                                                          , (>>=)
                                                           , MonadIO
                                                           , MonadReader
                                                           , asks
+                                                          , flip
                                                           , liftIO
                                                           )
 
 
 getUsers :: (MonadIO m, MonadReader env m, HasUserRepository env) => m [User]
-getUsers = do
-  UserRepository { get } <- asks getUserRepository
-  liftIO get
+getUsers = asks getUserRepository >>= liftIO . get
 
 createUser :: (MonadIO m, MonadReader env m, HasUserRepository env) => User -> m ()
-createUser user = do
-  UserRepository { upsertOne } <- asks getUserRepository
-  liftIO $ upsertOne user
+createUser user = asks getUserRepository >>= liftIO . flip upsertOne user
 
 getUser :: (MonadIO m, MonadReader env m, HasUserRepository env) => Id -> m User
-getUser userId = do
-  UserRepository { findOne } <- asks getUserRepository
-  liftIO $ findOne userId
+getUser userId = asks getUserRepository >>= liftIO . flip findOne userId
 
 updateUser :: (MonadIO m, MonadReader env m, HasUserRepository env) => Id -> User -> m ()
-updateUser _ user = do
-  UserRepository { upsertOne } <- asks getUserRepository
-  liftIO $ upsertOne user
+updateUser _ user = asks getUserRepository >>= liftIO . flip upsertOne user
 
 deleteUser :: (MonadIO m, MonadReader env m, HasUserRepository env) => Id -> m ()
-deleteUser userId = do
-  UserRepository { deleteOne } <- asks getUserRepository
-  liftIO $ deleteOne userId
+deleteUser userId = asks getUserRepository >>= liftIO . flip deleteOne userId
