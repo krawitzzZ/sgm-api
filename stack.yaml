@@ -48,7 +48,6 @@ extra-deps:
     subdirs:
       - beam-core
       - beam-migrate
-      # - beam-migrate-cli
       - beam-postgres
 
 

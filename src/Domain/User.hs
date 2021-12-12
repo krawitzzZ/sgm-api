@@ -7,8 +7,9 @@ module Domain.User
 
 import           Data.Aeson                               ( FromJSON(..)
                                                           , ToJSON(..)
+                                                          , genericParseJSON
+                                                          , genericToJSON
                                                           )
-import qualified Data.Aeson                              as JSON
 import           RIO                                      ( ($)
                                                           , Eq
                                                           , Generic
@@ -31,9 +32,9 @@ data User = User
   }
   deriving (Eq, Show, Generic)
 instance FromJSON User where
-  parseJSON = JSON.genericParseJSON $ jsonOptions "user"
+  parseJSON = genericParseJSON $ jsonOptions "user"
 instance ToJSON User where
-  toJSON = JSON.genericToJSON $ jsonOptions "user"
+  toJSON = genericToJSON $ jsonOptions "user"
 
 data UserRepository = UserRepository
   { findOne   :: !(Id ->  IO User)

@@ -21,17 +21,17 @@ import           RIO                                      ( (.)
                                                           )
 
 
-getUsers :: (MonadIO m, MonadReader env m, HasUserRepository env) => m [User]
+getUsers :: (MonadReader env m, HasUserRepository env, MonadIO m) => m [User]
 getUsers = asks getUserRepository >>= liftIO . get
 
-createUser :: (MonadIO m, MonadReader env m, HasUserRepository env) => User -> m ()
+createUser :: (MonadReader env m, HasUserRepository env, MonadIO m) => User -> m ()
 createUser user = asks getUserRepository >>= liftIO . flip upsertOne user
 
-getUser :: (MonadIO m, MonadReader env m, HasUserRepository env) => Id -> m User
+getUser :: (MonadReader env m, HasUserRepository env, MonadIO m) => Id -> m User
 getUser userId = asks getUserRepository >>= liftIO . flip findOne userId
 
-updateUser :: (MonadIO m, MonadReader env m, HasUserRepository env) => Id -> User -> m ()
+updateUser :: (MonadReader env m, HasUserRepository env, MonadIO m) => Id -> User -> m ()
 updateUser _ user = asks getUserRepository >>= liftIO . flip upsertOne user
 
-deleteUser :: (MonadIO m, MonadReader env m, HasUserRepository env) => Id -> m ()
+deleteUser :: (MonadReader env m, HasUserRepository env, MonadIO m) => Id -> m ()
 deleteUser userId = asks getUserRepository >>= liftIO . flip deleteOne userId

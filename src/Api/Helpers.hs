@@ -4,39 +4,31 @@ module Api.Helpers
   , tryCatchAny
   ) where
 
+import           Api.Exception                            ( ApiException(..) )
 import           Control.Exception.Safe                   ( Exception
                                                           , Handler(..)
+                                                          , MonadCatch
+                                                          , MonadThrow
                                                           , SomeException(..)
                                                           , catches
+                                                          , throwM
                                                           )
-import           Domain.App                               ( AppM )
-import           Domain.Logger                            ( HasLogger(..)
-                                                          , logWarn
-                                                          )
-import           Domain.Logger.Class                      ( IsLogger(..) )
+import           Domain.Logger.Class                      ( MonadLogger(..) )
 import           RIO                                      ( ($)
                                                           , (<>)
-                                                          , (>>>)
-                                                          , Text
-                                                          , asks
-                                                          )
-import           Servant                                  ( err500
-                                                          , errBody
-                                                          , throwError
                                                           )
 
 
-tryCatch :: (Exception e) => Text -> AppM a -> (e -> AppM a) -> AppM a
-tryCatch ctx action handler = catches action [Handler handler, catchInternalError ctx]
+tryCatch :: (MonadLogger m, MonadCatch m, Exception e) => m a -> (e -> m a) -> m a
+tryCatch action handler = catches action [Handler handler, catchSomeException]
 
-tryCatchAny :: Text -> AppM a -> AppM a
-tryCatchAny ctx action = catches action [catchInternalError ctx]
+tryCatches :: (MonadLogger m, MonadCatch m) => m a -> [Handler m a] -> m a
+tryCatches action handlers = catches action (handlers <> [catchSomeException])
 
-tryCatches :: Text -> AppM a -> [Handler AppM a] -> AppM a
-tryCatches ctx action handlers = catches action (handlers <> [catchInternalError ctx])
+tryCatchAny :: (MonadLogger m, MonadCatch m) => m a -> m a
+tryCatchAny action = catches action [catchSomeException]
 
-catchInternalError :: Text -> Handler AppM a
-catchInternalError ctx = Handler $ \(SomeException e) -> do
-  logger <- asks $ getLogger >>> withErrorAndContext e ctx
-  logWarn logger "Unexcpected error occurred"
-  throwError err500 { errBody = "Internal server error" }
+catchSomeException :: (MonadLogger m, MonadThrow m) => Handler m a
+catchSomeException = Handler $ \(SomeException e) -> do
+  withError e $ logWarn "Unexpected exception occurred"
+  throwM InternalError

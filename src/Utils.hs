@@ -1,5 +1,6 @@
 module Utils
-  ( jsonOptions
+  ( toText
+  , jsonOptions
   , readEnvDefault
   , readEnvText
   ) where
@@ -15,6 +16,7 @@ import           RIO                                      ( ($)
                                                           , Maybe(..)
                                                           , MonadIO(..)
                                                           , Read
+                                                          , Show
                                                           , String
                                                           , Text
                                                           , drop
@@ -24,10 +26,14 @@ import           RIO                                      ( ($)
                                                           , maybe
                                                           , readMaybe
                                                           , return
+                                                          , show
                                                           )
 import           RIO.Char                                 ( toLower )
 import           System.Environment                       ( lookupEnv )
 
+
+toText :: (Show s) => s -> Text
+toText = cs . show
 
 jsonOptions :: String -> Options
 jsonOptions prefix = defaultOptions { fieldLabelModifier = dropPrefix >>> firstToLower }

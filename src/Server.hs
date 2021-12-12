@@ -6,10 +6,13 @@ import           Api                                      ( SGMApi
                                                           , server
                                                           )
 import           Data.Default                             ( def )
+import           Data.Map.Strict                          ( empty )
 import           Data.String.Conversions                  ( cs )
-import           Domain.App                               ( AppEnv(..) )
+import           Di.Core                                  ( log )
+import           Domain.App                               ( runAppT )
 import           Domain.Config                            ( Config(..) )
-import           Domain.Logger                            ( HasLogger(..) )
+import           Domain.Env                               ( Env(..) )
+import           Domain.Logger                            ( Logger(..) )
 import           Domain.Logger.LogLevel                   ( LogLevel(..) )
 import           Domain.Logger.LogMessage                 ( LogMessage(..) )
 import           Network.Wai                              ( Application
@@ -33,11 +36,9 @@ import           RIO                                      ( ($)
                                                           , (<>)
                                                           , IO
                                                           , Maybe(..)
-                                                          , runReaderT
+                                                          , liftIO
                                                           , show
                                                           )
-import           RIO.Text                                 ( pack )
-import           RIO.Time                                 ( getCurrentTime )
 import           Servant                                  ( Context(..)
                                                           , ErrorFormatters(..)
                                                           , NotFoundErrorFormatter
@@ -50,22 +51,19 @@ import           Servant                                  ( Context(..)
                                                           )
 
 
-start :: AppEnv -> IO ()
+start :: Env -> IO ()
 start env = do
-  time            <- getCurrentTime
   requestLoggerMw <- mkJSONRequestLoggerMiddleware
-  let config         = appConfig env
-  let port           = configPort config
-  let timeout        = configNetworkTimeout config
-  let logInitMessage = getLogFunc env
-  let initMessage = LogMessage { time
-                               , level   = Info
-                               , message = pack $ "Starting SGM API on port " <> show port
-                               , error   = Nothing
-                               , context = "Server->start"
+  let config  = envConfig env
+  let port    = configPort config
+  let timeout = configNetworkTimeout config
+  let di      = loggerDi . envLogger $ env
+  let initMessage = LogMessage { lmMessage = cs $ "Starting SGM API on port " <> show port
+                               , lmError   = Nothing
+                               , lmFields  = empty
                                }
 
-  logInitMessage initMessage
+  log di Info initMessage
 
   let settings = setPort port . setTimeout timeout $ defaultSettings
   runSettings settings . requestLoggerMw . errorMwDefJson . mkApp $ env
@@ -73,9 +71,9 @@ start env = do
 api :: Proxy SGMApi
 api = Proxy :: Proxy SGMApi
 
-mkApp :: AppEnv -> Application
+mkApp :: Env -> Application
 mkApp env = serveWithContext api (customFormatters :. EmptyContext)
-  $ hoistServer api (`runReaderT` env) server
+  $ hoistServer api (liftIO . runAppT env) server
 
 notFoundFormatter :: NotFoundErrorFormatter
 notFoundFormatter req = err404 { errBody = cs $ "Not found path: " <> rawPathInfo req }

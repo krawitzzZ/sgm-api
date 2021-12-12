@@ -1,16 +1,19 @@
 module Domain.Logger.Class
-  ( IsLogger(..)
+  ( MonadLogger(..)
   ) where
 
-import           Domain.Logger.LogMessage                 ( LogMessage(..) )
-import           RIO                                      ( IO
-                                                          , Show
+import           Domain.Logger.LogMessage                 ( LogPath )
+import           RIO                                      ( Show
                                                           , Text
                                                           )
 
 
-class IsLogger logger where
-  log :: logger -> LogMessage -> IO ()
-  withError :: (Show e) => e -> logger -> logger
-  withContext :: Text -> logger -> logger
-  withErrorAndContext :: (Show e) => e -> Text -> logger -> logger
+class MonadLogger m where
+  logDebug :: Text -> m ()
+  logInfo :: Text -> m ()
+  logWarn :: Text -> m ()
+  logError :: Text -> m ()
+  withContext :: LogPath -> m a -> m a
+  withError :: Show err => err -> m a -> m a
+  withField :: Show s => (s, s) -> m a -> m a
+  withFields :: Show s => [(s, s)] -> m a -> m a

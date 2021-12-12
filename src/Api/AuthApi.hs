@@ -1,11 +1,12 @@
-module Api.Auth
+module Api.AuthApi
   ( authServer
   , AuthApi
   ) where
 
 import           Domain.Api                               ( ApiVersion(..) )
-import           Domain.App                               ( AppM )
-import           RIO                                      ( return )
+import           RIO                                      ( Monad
+                                                          , return
+                                                          )
 import           Servant                                  ( type (:<|>)((:<|>))
                                                           , type (:>)
                                                           , JSON
@@ -21,14 +22,14 @@ type Signup = "signup" :> Post '[JSON] NoContent
 -- brittany-disable-next-binding
 type AuthApi = Login :<|> Signup
 
-authServer :: ApiVersion -> ServerT AuthApi AppM
+authServer :: Monad m => ApiVersion -> ServerT AuthApi m
 authServer V1 = authV1Server
 
-authV1Server :: ServerT AuthApi AppM
+authV1Server :: Monad m => ServerT AuthApi m
 authV1Server = login :<|> signup
 
-login :: AppM NoContent
+login :: Monad m => m NoContent
 login = return NoContent
 
-signup :: AppM NoContent
+signup :: Monad m => m NoContent
 signup = return NoContent

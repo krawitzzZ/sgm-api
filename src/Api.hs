@@ -3,14 +3,19 @@ module Api
   , SGMApi
   ) where
 
-import           Api.Auth                                 ( AuthApi
+import           Api.AuthApi                              ( AuthApi
                                                           , authServer
                                                           )
-import           Api.User                                 ( UserApi
+import           Api.UserApi                              ( UserApi
                                                           , userServer
                                                           )
+import           Control.Exception.Safe                   ( MonadCatch )
 import           Domain.Api                               ( ApiVersion )
-import           Domain.App                               ( AppM )
+import           Domain.Logger.Class                      ( MonadLogger )
+import           Domain.User                              ( HasUserRepository )
+import           RIO                                      ( MonadIO
+                                                          , MonadReader
+                                                          )
 import           Servant                                  ( type (:<|>)((:<|>))
                                                           , type (:>)
                                                           , Capture
@@ -25,5 +30,7 @@ type SGMApi = "api" :> Capture "version" ApiVersion :>
     "auth" :> AuthApi
   )
 
-server :: ServerT SGMApi AppM
+server
+  :: (HasUserRepository env, MonadReader env m, MonadCatch m, MonadIO m, MonadLogger m)
+  => ServerT SGMApi m
 server apiVersion = userServer apiVersion :<|> authServer apiVersion

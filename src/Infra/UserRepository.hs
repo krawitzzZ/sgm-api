@@ -7,7 +7,7 @@ module Infra.UserRepository
   ) where
 
 import           Control.Exception.Safe                   ( throwM )
-import           Domain.Exception                         ( NotFound(NotFound) )
+import           Domain.Exception                         ( DomainException(..) )
 import           Domain.User                              ( Id
                                                           , User(..)
                                                           )
