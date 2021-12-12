@@ -8,16 +8,12 @@ import           Domain.Config                            ( Config(..)
                                                           , HasConfig(..)
                                                           )
 import           Domain.Logger                            ( Logger(..) )
-import           Domain.User                              ( HasUserRepository(..)
-                                                          , UserRepository(..)
-                                                          )
 import           RIO                                      ( id )
 
 
 data Env = Env
-  { envConfig         :: !Config
-  , envLogger         :: !Logger
-  , envUserRepository :: !UserRepository
+  { envConfig :: !Config
+  , envLogger :: !Logger
   }
 
 class HasEnv env where
@@ -28,9 +24,6 @@ instance HasEnv Env where
 
 instance HasConfig Env where
   getConfig = envConfig
-
-instance HasUserRepository Env where
-  getUserRepository = envUserRepository
 
 setEnvLogger :: Logger -> Env -> Env
 setEnvLogger logger env = env { envLogger = logger }

@@ -1,43 +1,61 @@
 module Infra.UserRepository
   ( get
   , findOne
-  , saveOne
+  , createUser
   , upsertOne
   , deleteOne
   ) where
 
-import           Control.Exception.Safe                   ( throwM )
+import           Control.Exception.Safe                   ( MonadThrow
+                                                          , throwM
+                                                          )
 import           Domain.Exception                         ( DomainException(..) )
 import           Domain.User                              ( Id
                                                           , User(..)
+                                                          , UserData(..)
                                                           )
 import           RIO                                      ( ($)
                                                           , (.)
                                                           , (<>)
                                                           , (==)
-                                                          , IO
+                                                          , Eq
+                                                          , Exception
                                                           , Maybe(..)
+                                                          , Monad
+                                                          , Show
+                                                          , fromMaybe
                                                           , return
                                                           )
 import           RIO.List                                 ( find )
 
 
-get :: IO [User]
+get :: Monad m => m [User]
 get = return users
 
-findOne :: Id -> IO User
+findOne :: (MonadThrow m) => Id -> m User
 findOne id = case maybeUser of
   Just user -> return user
   Nothing   -> throwM . NotFound $ "User with id " <> id <> " not found"
   where maybeUser = find (\User { userId } -> userId == id) users
 
-saveOne :: User -> IO ()
-saveOne _ = return ()
+createUser :: MonadThrow m => UserData -> m User
+createUser (UserData _ _ (Just "test@test.test") _) = throwM DatabaseNotFound
+createUser (UserData fname lname email pass) = return $ User "123" name surname mail password
+ where
+  name     = fromMaybe "name" fname
+  surname  = fromMaybe "surname" lname
+  mail     = fromMaybe "mail" email
+  password = fromMaybe "*********" pass
 
-upsertOne :: User -> IO ()
-upsertOne _ = return ()
+upsertOne :: Monad m => Id -> UserData -> m User
+upsertOne id (UserData fname lname email pass) = return $ User id name surname mail password
+ where
+  name     = fromMaybe "name" fname
+  surname  = fromMaybe "surname" lname
+  mail     = fromMaybe "mail@mail.com" email
+  password = fromMaybe "*********" pass
 
-deleteOne :: Id -> IO ()
+deleteOne :: Monad m => Id -> m ()
 deleteOne _ = return ()
 
 
@@ -57,3 +75,7 @@ users =
          , userPassword  = "*********"
          }
   ]
+
+data DatabaseException = DatabaseNotFound
+  deriving (Show, Eq)
+instance Exception DatabaseException

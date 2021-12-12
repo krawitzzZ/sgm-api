@@ -23,6 +23,8 @@ import           Domain.Logger.LogLevel                   ( LogLevel(..) )
 import           Domain.Logger.LogMessage                 ( LogMessage
                                                           , LogPath
                                                           )
+import           Domain.User                              ( UserRepository(..) )
+import qualified Infra.UserRepository                    as UR
 import           RIO                                      ( ($)
                                                           , (.)
                                                           , (<&>)
@@ -58,6 +60,12 @@ newtype AppT m a = AppT { unAppT :: ReaderT Env (Di.DiT LogLevel LogPath LogMess
                    , MonadCatch
                    )
 
+runAppT :: (HasEnv e, MonadIO m) => e -> AppT m a -> m a
+runAppT env =
+  let appEnv              = getEnv env
+      Logger { loggerDi } = envLogger appEnv
+  in  Di.runDiT loggerDi . flip runReaderT appEnv . unAppT
+
 instance MonadTrans AppT where
   lift = AppT . lift . lift
 
@@ -79,8 +87,9 @@ instance Monad m => MonadLogger (AppT m) where
     let fields' = loggerFields logger <> fromList (map (bimap toText toText) fields)
     local (setEnvLogger logger { loggerFields = fields' }) action
 
-runAppT :: (HasEnv e, MonadIO m) => e -> AppT m a -> m a
-runAppT env =
-  let appEnv              = getEnv env
-      Logger { loggerDi } = envLogger appEnv
-  in  Di.runDiT loggerDi . flip runReaderT appEnv . unAppT
+instance MonadThrow m => UserRepository (AppT m) where
+  getUserById = UR.findOne
+  getAllUsers = UR.get
+  createUser  = UR.createUser
+  updateUser  = UR.upsertOne
+  deleteUser  = UR.deleteOne

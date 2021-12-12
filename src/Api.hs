@@ -12,10 +12,7 @@ import           Api.UserApi                              ( UserApi
 import           Control.Exception.Safe                   ( MonadCatch )
 import           Domain.Api                               ( ApiVersion )
 import           Domain.Logger.Class                      ( MonadLogger )
-import           Domain.User                              ( HasUserRepository )
-import           RIO                                      ( MonadIO
-                                                          , MonadReader
-                                                          )
+import           Domain.User                              ( UserRepository )
 import           Servant                                  ( type (:<|>)((:<|>))
                                                           , type (:>)
                                                           , Capture
@@ -30,7 +27,5 @@ type SGMApi = "api" :> Capture "version" ApiVersion :>
     "auth" :> AuthApi
   )
 
-server
-  :: (HasUserRepository env, MonadReader env m, MonadCatch m, MonadIO m, MonadLogger m)
-  => ServerT SGMApi m
+server :: (UserRepository m, MonadCatch m, MonadLogger m) => ServerT SGMApi m
 server apiVersion = userServer apiVersion :<|> authServer apiVersion

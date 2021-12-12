@@ -9,7 +9,7 @@ import           Api.Helpers                              ( tryCatch
                                                           )
 import           App.User                                 ( createUser
                                                           , deleteUser
-                                                          , getUser
+                                                          , getUserById
                                                           , getUsers
                                                           , updateUser
                                                           )
@@ -21,17 +21,15 @@ import           Domain.Api                               ( ApiVersion(..) )
 import           Domain.Exception                         ( DomainException(..) )
 import           Domain.Logger.Class                      ( MonadLogger(..) )
 import           Domain.Logger.LogMessage                 ( LogPath )
-import           Domain.User                              ( HasUserRepository
-                                                          , Id
+import           Domain.User                              ( Id
                                                           , User(..)
+                                                          , UserData(..)
+                                                          , UserRepository
                                                           )
 import           RIO                                      ( ($)
-                                                          , (.)
                                                           , (<>)
-                                                          , MonadIO
-                                                          , MonadReader(..)
+                                                          , (>>>)
                                                           , return
-                                                          , void
                                                           )
 import           Servant                                  ( type (:<|>)(..)
                                                           , type (:>)
@@ -49,75 +47,45 @@ import           Servant.Exception.Server                 ( Throws )
 
 
 type GetUsers = Get '[JSON] [User]
-type CreateUser = ReqBody '[JSON] User :> Post '[JSON] User
+type CreateUser = ReqBody '[JSON] UserData :> Post '[JSON] User
 type GetUser = Capture "id" Id :> Get '[JSON] User
-type UpdateUser = Capture "id" Id :> ReqBody '[JSON] User :> Put '[JSON] User
+type UpdateUser = Capture "id" Id :> ReqBody '[JSON] UserData :> Put '[JSON] User
 type DeleteUser = Capture "id" Id :> Delete '[JSON] NoContent
 
 -- brittany-disable-next-binding
 type UserApi = Throws HttpException.ApiException :> (GetUsers :<|> CreateUser :<|> GetUser :<|> UpdateUser :<|> DeleteUser)
 
-userServer
-  :: (HasUserRepository env, MonadReader env m, MonadCatch m, MonadIO m, MonadLogger m)
-  => ApiVersion
-  -> ServerT UserApi m
+userServer :: (UserRepository m, MonadCatch m, MonadLogger m) => ApiVersion -> ServerT UserApi m
 userServer V1 = userV1Server
 
-userV1Server
-  :: (HasUserRepository env, MonadReader env m, MonadCatch m, MonadIO m, MonadLogger m)
-  => ServerT UserApi m
+userV1Server :: (UserRepository m, MonadCatch m, MonadLogger m) => ServerT UserApi m
 userV1Server = findUsers :<|> createNewUser :<|> findUser :<|> updateUserInfo :<|> removeUser
 
-mkContext :: LogPath -> LogPath
-mkContext = ("Api.UserApi->" <>)
 
-findUsers
-  :: (HasUserRepository env, MonadReader env m, MonadCatch m, MonadIO m, MonadLogger m) => m [User]
-findUsers = tryCatchAny getUsers
+findUsers :: (UserRepository m, MonadCatch m, MonadLogger m) => m [User]
+findUsers = withContext (mkContext "findUsers") $ tryCatchAny getUsers
 
-createNewUser
-  :: (HasUserRepository env, MonadReader env m, MonadCatch m, MonadIO m, MonadLogger m)
-  => User
-  -> m User
-createNewUser userInfo = do
-  void . tryCatchAny $ createUser userInfo
-  return userInfo
+createNewUser :: (UserRepository m, MonadCatch m, MonadLogger m) => UserData -> m User
+createNewUser userInfo = withContext (mkContext "createNewUser") $ tryCatchAny $ do
+  createUser userInfo
 
-findUser
-  :: (HasUserRepository env, MonadReader env m, MonadCatch m, MonadIO m, MonadLogger m)
-  => Id
-  -> m User
-findUser userId = withContext context . withField ("userId", userId) $ do
-  logInfo "fetching user"
-  tryCatch try catch
- where
-  try     = getUser userId
-  catch   = handleDomainException
-  context = mkContext "findUser"
+findUser :: (UserRepository m, MonadCatch m, MonadLogger m) => Id -> m User
+findUser userId = withContext (mkContext "findUser") >>> withField ("userId", userId) $ do
+  tryCatch (getUserById userId) handleDomainException
 
-updateUserInfo
-  :: (HasUserRepository env, MonadReader env m, MonadCatch m, MonadIO m, MonadLogger m)
-  => Id
-  -> User
-  -> m User
-updateUserInfo userId userInfo = do
-  tryCatch try catch
-  return userInfo
- where
-  try   = updateUser userId userInfo
-  catch = handleDomainException
+updateUserInfo :: (UserRepository m, MonadCatch m, MonadLogger m) => Id -> UserData -> m User
+updateUserInfo userId userData =
+  withContext (mkContext "updateUserInfo") >>> withField ("userId", userId) $ do
+    tryCatch (updateUser userId userData) handleDomainException
 
-removeUser
-  :: (HasUserRepository env, MonadReader env m, MonadCatch m, MonadIO m, MonadLogger m)
-  => Id
-  -> m NoContent
-removeUser userId = do
-  tryCatch try catch
+removeUser :: (UserRepository m, MonadCatch m, MonadLogger m) => Id -> m NoContent
+removeUser userId = withContext (mkContext "removeUser") $ do
+  tryCatch (deleteUser userId) handleDomainException
   return NoContent
- where
-  try   = deleteUser userId
-  catch = handleDomainException
 
 handleDomainException :: (MonadThrow m) => (DomainException -> m a)
 handleDomainException NotFound{} = throwM $ HttpException.NotFound "Not found"
 handleDomainException _          = throwM HttpException.InternalError
+
+mkContext :: LogPath -> LogPath
+mkContext = ("Api.UserApi->" <>)

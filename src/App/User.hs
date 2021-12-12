@@ -1,37 +1,25 @@
 module App.User
   ( getUsers
   , createUser
-  , getUser
+  , getUserById
   , updateUser
   , deleteUser
   ) where
 
-import           Domain.User                              ( HasUserRepository(..)
-                                                          , Id
-                                                          , User(..)
-                                                          , UserRepository(..)
-                                                          )
-import           RIO                                      ( (.)
-                                                          , (>>=)
-                                                          , MonadIO
-                                                          , MonadReader
-                                                          , asks
-                                                          , flip
-                                                          , liftIO
-                                                          )
+import qualified Domain.User                             as U
 
 
-getUsers :: (MonadReader env m, HasUserRepository env, MonadIO m) => m [User]
-getUsers = asks getUserRepository >>= liftIO . get
+getUsers :: (U.UserRepository m) => m [U.User]
+getUsers = U.getAllUsers
 
-createUser :: (MonadReader env m, HasUserRepository env, MonadIO m) => User -> m ()
-createUser user = asks getUserRepository >>= liftIO . flip upsertOne user
+createUser :: (U.UserRepository m) => U.UserData -> m U.User
+createUser = U.createUser
 
-getUser :: (MonadReader env m, HasUserRepository env, MonadIO m) => Id -> m User
-getUser userId = asks getUserRepository >>= liftIO . flip findOne userId
+getUserById :: (U.UserRepository m) => U.Id -> m U.User
+getUserById = U.getUserById
 
-updateUser :: (MonadReader env m, HasUserRepository env, MonadIO m) => Id -> User -> m ()
-updateUser _ user = asks getUserRepository >>= liftIO . flip upsertOne user
+updateUser :: (U.UserRepository m) => U.Id -> U.UserData -> m U.User
+updateUser = U.updateUser
 
-deleteUser :: (MonadReader env m, HasUserRepository env, MonadIO m) => Id -> m ()
-deleteUser userId = asks getUserRepository >>= liftIO . flip deleteOne userId
+deleteUser :: (U.UserRepository m) => U.Id -> m ()
+deleteUser = U.deleteUser

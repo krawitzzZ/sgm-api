@@ -1,10 +1,11 @@
 module Domain.User
   ( User(..)
+  , UserData(..)
   , Id
   , UserRepository(..)
-  , HasUserRepository(..)
   ) where
 
+import           Control.Exception.Safe                   ( MonadThrow )
 import           Data.Aeson                               ( FromJSON(..)
                                                           , ToJSON(..)
                                                           , genericParseJSON
@@ -13,10 +14,9 @@ import           Data.Aeson                               ( FromJSON(..)
 import           RIO                                      ( ($)
                                                           , Eq
                                                           , Generic
-                                                          , IO
+                                                          , Maybe(..)
                                                           , Show
                                                           , Text
-                                                          , id
                                                           )
 import           Utils                                    ( jsonOptions )
 
@@ -24,11 +24,11 @@ import           Utils                                    ( jsonOptions )
 type Id = Text -- TODO: use UUID
 
 data User = User
-  { userId        :: Id
-  , userFirstName :: Text
-  , userLastName  :: Text
-  , userEmail     :: Text
-  , userPassword  :: Text
+  { userId        :: !Id
+  , userFirstName :: !Text
+  , userLastName  :: !Text
+  , userEmail     :: !Text
+  , userPassword  :: !Text
   }
   deriving (Eq, Show, Generic)
 
@@ -38,17 +38,23 @@ instance FromJSON User where
 instance ToJSON User where
   toJSON = genericToJSON $ jsonOptions "user"
 
--- TODO move to class?
-data UserRepository = UserRepository
-  { findOne   :: !(Id ->  IO User)
-  , get       :: !(IO [User])
-  , saveOne   :: !(User ->  IO ())
-  , upsertOne :: !(User ->  IO ())
-  , deleteOne :: !(Id ->  IO ())
+data UserData = UserData
+  { userDataFirstName :: Maybe Text
+  , userDataLastName  :: Maybe Text
+  , userDataEmail     :: Maybe Text
+  , userDataPassword  :: Maybe Text
   }
+  deriving (Eq, Show, Generic)
 
-class HasUserRepository env where
-  getUserRepository :: env -> UserRepository
+instance FromJSON UserData where
+  parseJSON = genericParseJSON $ jsonOptions "userData"
 
-instance HasUserRepository UserRepository where
-  getUserRepository = id
+instance ToJSON UserData where
+  toJSON = genericToJSON $ jsonOptions "userData"
+
+class MonadThrow m => UserRepository m where
+  getUserById :: Id -> m User
+  getAllUsers :: m [User]
+  createUser :: UserData -> m User
+  updateUser :: Id -> UserData -> m User
+  deleteUser :: Id -> m ()
