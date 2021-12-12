@@ -33,8 +33,11 @@ data LogLine = LogLine
   , context :: !LogPath
   }
   deriving (Eq, Show, Generic)
+
 instance FromJSON LogLine
+
 instance ToJSON LogLine where
   toEncoding = genericToEncoding defaultOptions { omitNothingFields = True }
+
 instance ToLogStr LogLine where
   toLogStr = toLogStr . encode

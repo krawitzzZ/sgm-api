@@ -19,12 +19,16 @@ data Env = Env
   , envLogger         :: !Logger
   , envUserRepository :: !UserRepository
   }
+
 class HasEnv env where
   getEnv :: env -> Env
+
 instance HasEnv Env where
   getEnv = id
+
 instance HasConfig Env where
   getConfig = envConfig
+
 instance HasUserRepository Env where
   getUserRepository = envUserRepository
 

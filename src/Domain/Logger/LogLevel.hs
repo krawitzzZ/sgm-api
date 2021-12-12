@@ -16,5 +16,7 @@ import           RIO                                      ( Bounded
 
 
 data LogLevel = Debug | Info | Warn | Error deriving (Eq, Ord, Show, Read, Enum, Bounded, Generic)
+
 instance FromJSON LogLevel
+
 instance ToJSON LogLevel where

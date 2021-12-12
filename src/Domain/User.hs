@@ -31,11 +31,14 @@ data User = User
   , userPassword  :: Text
   }
   deriving (Eq, Show, Generic)
+
 instance FromJSON User where
   parseJSON = genericParseJSON $ jsonOptions "user"
+
 instance ToJSON User where
   toJSON = genericToJSON $ jsonOptions "user"
 
+-- TODO move to class?
 data UserRepository = UserRepository
   { findOne   :: !(Id ->  IO User)
   , get       :: !(IO [User])
@@ -43,7 +46,9 @@ data UserRepository = UserRepository
   , upsertOne :: !(User ->  IO ())
   , deleteOne :: !(Id ->  IO ())
   }
+
 class HasUserRepository env where
   getUserRepository :: env -> UserRepository
+
 instance HasUserRepository UserRepository where
   getUserRepository = id

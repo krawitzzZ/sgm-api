@@ -16,7 +16,9 @@ data Config = Config
   , configNetworkTimeout :: !Int
   , configLogLevel       :: !LogLevel
   }
+
 class HasConfig env where
   getConfig :: env -> Config
+
 instance HasConfig Config where
   getConfig = id

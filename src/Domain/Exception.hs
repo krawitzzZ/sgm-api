@@ -15,4 +15,5 @@ data DomainException =
   NotFound Text |
   AccessRestricted Text
   deriving (Eq, Show, Generic, Typeable)
+
 instance Exception DomainException
