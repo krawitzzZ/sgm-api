@@ -87,7 +87,7 @@ instance Monad m => MonadLogger (AppT m) where
     let fields' = loggerFields logger <> fromList (map (bimap toText toText) fields)
     local (setEnvLogger logger { loggerFields = fields' }) action
 
-instance MonadThrow m => UserRepository (AppT m) where
+instance (MonadIO m, MonadThrow m) => UserRepository (AppT m) where
   getUserById = UR.findOne
   getAllUsers = UR.get
   createUser  = UR.createUser

@@ -17,6 +17,7 @@ import           Control.Exception.Safe                   ( MonadCatch
                                                           , MonadThrow
                                                           , throwM
                                                           )
+import           Data.UUID                                ( toText )
 import           Domain.Api                               ( ApiVersion(..) )
 import           Domain.Exception                         ( DomainException(..) )
 import           Domain.Logger.Class                      ( MonadLogger(..) )
@@ -70,12 +71,12 @@ createNewUser userInfo = withContext (mkContext "createNewUser") $ tryCatchAny $
   createUser userInfo
 
 findUser :: (UserRepository m, MonadCatch m, MonadLogger m) => Id -> m User
-findUser userId = withContext (mkContext "findUser") >>> withField ("userId", userId) $ do
+findUser userId = withContext (mkContext "findUser") >>> withField ("userId", toText userId) $ do
   tryCatch (getUserById userId) handleDomainException
 
 updateUserInfo :: (UserRepository m, MonadCatch m, MonadLogger m) => Id -> UserData -> m User
 updateUserInfo userId userData =
-  withContext (mkContext "updateUserInfo") >>> withField ("userId", userId) $ do
+  withContext (mkContext "updateUserInfo") >>> withField ("userId", toText userId) $ do
     tryCatch (updateUser userId userData) handleDomainException
 
 removeUser :: (UserRepository m, MonadCatch m, MonadLogger m) => Id -> m NoContent

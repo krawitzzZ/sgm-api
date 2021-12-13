@@ -28,7 +28,7 @@ data LogLine = LogLine
   { time    :: !UTCTime
   , level   :: !LogLevel
   , message :: !Text
-  , fields  :: !(Map Text Text)
+  , fields  :: !(Maybe (Map Text Text))
   , error   :: !(Maybe Text)
   , context :: !LogPath
   }

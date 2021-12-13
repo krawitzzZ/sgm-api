@@ -5,12 +5,12 @@ module Domain.User
   , UserRepository(..)
   ) where
 
-import           Control.Exception.Safe                   ( MonadThrow )
 import           Data.Aeson                               ( FromJSON(..)
                                                           , ToJSON(..)
                                                           , genericParseJSON
                                                           , genericToJSON
                                                           )
+import           Data.UUID                                ( UUID )
 import           RIO                                      ( ($)
                                                           , Eq
                                                           , Generic
@@ -21,13 +21,13 @@ import           RIO                                      ( ($)
 import           Utils                                    ( jsonOptions )
 
 
-type Id = Text -- TODO: use UUID
+type Id = UUID
 
 data User = User
-  { userId        :: !Id
+  { userId        :: !UUID
   , userFirstName :: !Text
   , userLastName  :: !Text
-  , userEmail     :: !Text
+  , userName      :: !Text
   , userPassword  :: !Text
   }
   deriving (Eq, Show, Generic)
@@ -41,7 +41,7 @@ instance ToJSON User where
 data UserData = UserData
   { userDataFirstName :: Maybe Text
   , userDataLastName  :: Maybe Text
-  , userDataEmail     :: Maybe Text
+  , userDataName      :: Maybe Text
   , userDataPassword  :: Maybe Text
   }
   deriving (Eq, Show, Generic)
@@ -52,7 +52,7 @@ instance FromJSON UserData where
 instance ToJSON UserData where
   toJSON = genericToJSON $ jsonOptions "userData"
 
-class MonadThrow m => UserRepository m where
+class UserRepository m where
   getUserById :: Id -> m User
   getAllUsers :: m [User]
   createUser :: UserData -> m User
