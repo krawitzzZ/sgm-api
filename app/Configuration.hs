@@ -8,6 +8,8 @@ import           Configuration.Dotenv                     ( defaultConfig
                                                           , loadSafeFile
                                                           )
 import           Data.Map.Strict                          ( empty )
+import           Database.Beam                            ( DatabaseSettings )
+import           Database.Beam.Postgres                   ( Postgres )
 import           Di.Core                                  ( Di )
 import           Domain.Config                            ( Config(..) )
 import           Domain.Env                               ( Env(..) )
@@ -16,6 +18,7 @@ import           Domain.Logger.LogLevel                   ( LogLevel(..) )
 import           Domain.Logger.LogMessage                 ( LogMessage
                                                           , LogPath
                                                           )
+import           Infra.Db.Schema                          ( SgmDatabase )
 import           RIO                                      ( ($)
                                                           , (<$>)
                                                           , (<*>)
@@ -32,8 +35,9 @@ import           Utils                                    ( readEnvDefault
 loadEnv :: MonadIO m => m ()
 loadEnv = void $ loadSafeFile defaultValidatorMap "env.schema.yaml" defaultConfig
 
-mkAppEnv :: MonadIO m => Di LogLevel LogPath LogMessage -> m Env
-mkAppEnv di = Env <$> mkAppConfig <*> mkLogger di
+mkAppEnv
+  :: MonadIO m => Di LogLevel LogPath LogMessage -> DatabaseSettings Postgres SgmDatabase -> m Env
+mkAppEnv di db = Env <$> mkAppConfig <*> mkLogger di <*> return db
 
 mkAppConfig :: MonadIO m => m Config
 mkAppConfig =

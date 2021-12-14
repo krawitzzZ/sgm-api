@@ -4,16 +4,20 @@ module Domain.Env
   , setEnvLogger
   ) where
 
+import           Database.Beam                            ( DatabaseSettings )
+import           Database.Beam.Postgres                   ( Postgres )
 import           Domain.Config                            ( Config(..)
                                                           , HasConfig(..)
                                                           )
 import           Domain.Logger                            ( Logger(..) )
+import           Infra.Db.Schema                          ( SgmDatabase )
 import           RIO                                      ( id )
 
 
 data Env = Env
   { envConfig :: !Config
   , envLogger :: !Logger
+  , envDb     :: !(DatabaseSettings Postgres SgmDatabase)
   }
 
 class HasEnv env where

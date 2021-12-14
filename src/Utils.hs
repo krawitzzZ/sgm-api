@@ -3,12 +3,17 @@ module Utils
   , jsonOptions
   , readEnvDefault
   , readEnvText
+  , uuidFromText
   ) where
 
 import           Data.Aeson                               ( Options(..)
                                                           , defaultOptions
                                                           )
 import           Data.String.Conversions                  ( cs )
+import           Data.UUID                                ( UUID
+                                                          , fromText
+                                                          )
+import           Infra.Db.Schema.Types                    ( TextUUID )
 import           RIO                                      ( ($)
                                                           , (.)
                                                           , (<>)
@@ -34,6 +39,9 @@ import           System.Environment                       ( lookupEnv )
 
 toText :: (Show s) => s -> Text
 toText = cs . show
+
+uuidFromText :: TextUUID -> UUID
+uuidFromText = fromMaybe (error "Failed to parse UUID") . fromText
 
 jsonOptions :: String -> Options
 jsonOptions prefix = defaultOptions { fieldLabelModifier = dropPrefix >>> firstToLower }
