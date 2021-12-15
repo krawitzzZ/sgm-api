@@ -36,6 +36,7 @@ import           RIO                                      ( ($)
 import           RIO.List                                 ( find )
 
 
+-- TODO if I need MonadBeam be m here, how can I do it?
 get :: MonadIO m => m [User]
 get = users
 

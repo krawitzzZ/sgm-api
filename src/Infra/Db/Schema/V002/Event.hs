@@ -5,13 +5,13 @@ module Infra.Db.Schema.V002.Event
   , createEventsTable
   ) where
 
+import           Data.UUID                                ( UUID )
 import           Database.Beam                            ( Beamable
                                                           , Columnar
                                                           , Table(..)
                                                           , TableEntity
                                                           , timestamp
                                                           )
-import           Database.Beam.Backend                    ( SqlSerial )
 import           Database.Beam.Migrate                    ( CheckedDatabaseEntity
                                                           , Migration
                                                           , createTable
@@ -21,27 +21,26 @@ import           Database.Beam.Migrate                    ( CheckedDatabaseEntit
                                                           )
 import           Database.Beam.Postgres                   ( Postgres
                                                           , now_
-                                                          , serial
+                                                          , uuid
                                                           )
 import           RIO                                      ( (.)
                                                           , Eq
                                                           , Generic
                                                           , Identity
-                                                          , Int32
                                                           , Show
                                                           )
 import           RIO.Time                                 ( LocalTime )
 
 
 data EventEntityT f = EventEntity
-  { eventEntityId          :: Columnar f (SqlSerial Int32)
+  { eventEntityId          :: Columnar f UUID
   , eventEntityLastUpdated :: Columnar f LocalTime
   , eventEntityCreatedAt   :: Columnar f LocalTime
   }
   deriving (Generic, Beamable)
 
 instance Table EventEntityT where
-  data PrimaryKey EventEntityT f = EventEntityId (Columnar f (SqlSerial Int32))
+  data PrimaryKey EventEntityT f = EventEntityId (Columnar f UUID)
     deriving (Generic, Beamable)
   primaryKey = EventEntityId . eventEntityId
 
@@ -55,7 +54,7 @@ createEventsTable
   :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity EventEntityT))
 createEventsTable = createTable
   "events"
-  (EventEntity (field "id" serial)
+  (EventEntity (field "id" uuid notNull)
                (field "last_updated" timestamp (defaultTo_ now_) notNull)
                (field "created_at" timestamp (defaultTo_ now_) notNull)
   )

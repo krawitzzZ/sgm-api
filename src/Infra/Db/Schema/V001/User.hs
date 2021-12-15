@@ -5,13 +5,13 @@ module Infra.Db.Schema.V001.User
   , createUsersTable
   ) where
 
+import           Data.UUID                                ( UUID )
 import           Database.Beam                            ( Beamable
                                                           , Columnar
                                                           , Table(..)
                                                           , TableEntity
                                                           , timestamp
                                                           )
-import           Database.Beam.Backend                    ( SqlSerial )
 import           Database.Beam.Migrate                    ( CheckedDatabaseEntity
                                                           , Migration
                                                           , createTable
@@ -21,14 +21,13 @@ import           Database.Beam.Migrate                    ( CheckedDatabaseEntit
                                                           )
 import           Database.Beam.Postgres                   ( Postgres
                                                           , now_
-                                                          , serial
                                                           , text
+                                                          , uuid
                                                           )
 import           RIO                                      ( (.)
                                                           , Eq
                                                           , Generic
                                                           , Identity
-                                                          , Int32
                                                           , Show
                                                           , Text
                                                           )
@@ -36,7 +35,7 @@ import           RIO.Time                                 ( LocalTime )
 
 
 data UserEntityT f = UserEntity
-  { userEntityId          :: Columnar f (SqlSerial Int32)
+  { userEntityId          :: Columnar f UUID
   , userEntityLastUpdated :: Columnar f LocalTime
   , userEntityCreatedAt   :: Columnar f LocalTime
   , userEntityName        :: Columnar f Text
@@ -47,7 +46,7 @@ data UserEntityT f = UserEntity
   deriving (Generic, Beamable)
 
 instance Table UserEntityT where
-  data PrimaryKey UserEntityT f = UserEntityId (Columnar f (SqlSerial Int32))
+  data PrimaryKey UserEntityT f = UserEntityId (Columnar f UUID)
     deriving (Generic, Beamable)
   primaryKey = UserEntityId . userEntityId
 
@@ -61,7 +60,7 @@ createUsersTable
   :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity UserEntityT))
 createUsersTable = createTable
   "users"
-  (UserEntity (field "id" serial)
+  (UserEntity (field "id" uuid notNull)
               (field "last_updated" timestamp (defaultTo_ now_) notNull)
               (field "created_at" timestamp (defaultTo_ now_) notNull)
               (field "name" text notNull)
