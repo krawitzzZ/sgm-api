@@ -5,49 +5,35 @@ import           Configuration                            ( loadEnv
                                                           )
 import           Data.Map.Strict                          ( empty )
 import           Data.String.Conversions                  ( cs )
-import           Database.Beam.Postgres                   ( connectPostgreSQL
-                                                          , runBeamPostgres
-                                                          , runBeamPostgresDebug
-                                                          )
 import           Di.Core                                  ( log
                                                           , new
                                                           , push
                                                           )
-import           Domain.Logger.LogLevel                   ( LogLevel(..) )
-import           Domain.Logger.LogMessage                 ( LogMessage(..) )
-import           Infra.Db.Schema                          ( getSgmDatabase )
+import           Domain.Env                               ( Env(envDbConn) )
+import           Domain.Logger                            ( LogLevel(..)
+                                                          , LogMessage(..)
+                                                          )
+import           Infra.Beam.Schema                        ( migrateSgmDb )
 import           Infra.Logger.StdErr                      ( mkDiLogFunc )
 import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , (<&>)
+                                                          , (=<<)
                                                           , (>>=)
                                                           , IO
                                                           , Maybe(..)
-                                                          , liftIO
                                                           )
 import           Server                                   ( start )
-import           Utils                                    ( readEnvDefault
-                                                          , readEnvText
-                                                          )
+import           Utils                                    ( readEnvDefault )
 
 
 main :: IO ()
 main = do
   loadEnv
 
-  logLevel        <- readEnvDefault "LOG_LEVEL" Info
-  dbConnStr       <- readEnvText "DB_URL" <&> cs
-  loggingFunction <- mkDiLogFunc logLevel
+  loggingFunction <- mkDiLogFunc =<< readEnvDefault "LOG_LEVEL" Info
 
   new loggingFunction $ \di' -> do
-    let di = push "SGM-API.Main->main" di'
-    let dbLog msg = log di Info $ LogMessage (cs msg) empty Nothing
+    let di = push "SGM-API" di'
 
-    connectPostgreSQL dbConnStr >>= runWithDb logLevel dbLog (startApp di)
- where
-  startApp di db = mkAppEnv di db >>= liftIO . start
-  runWithDb logLevel logFunc action conn =
-    runBeam logLevel conn $ getSgmDatabase logFunc >>= action
-   where
-    runBeam Debug = runBeamPostgresDebug logFunc
-    runBeam _     = runBeamPostgres
+    mkAppEnv di >>= \env -> do
+      migrateSgmDb (envDbConn env) $ \msg -> log di Debug $ LogMessage (cs msg) empty Nothing
+      start env

@@ -12,6 +12,13 @@ packages:
   original:
     hackage: dlist-0.8.0.8
 - completed:
+    hackage: timezone-detect-0.3.0.1@sha256:bcf13d45886e49f2a86695988295d7381471cc1c620b9cf12db34f52e591f097,2230
+    pantry-tree:
+      size: 600
+      sha256: 02861303f2b8a213afec0ef21cba1a86297f029f1dc46181ddf921db4dcceb19
+  original:
+    hackage: timezone-detect-0.3.0.1
+- completed:
     subdir: beam-core
     name: beam-core
     version: 0.9.1.0

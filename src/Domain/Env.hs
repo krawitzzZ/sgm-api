@@ -1,33 +1,17 @@
 module Domain.Env
   ( Env(..)
-  , HasEnv(..)
-  , setEnvLogger
   ) where
 
-import           Database.Beam                            ( DatabaseSettings )
-import           Database.Beam.Postgres                   ( Postgres )
-import           Domain.Config                            ( Config(..)
-                                                          , HasConfig(..)
-                                                          )
-import           Domain.Logger                            ( Logger(..) )
-import           Infra.Db.Schema                          ( SgmDatabase )
-import           RIO                                      ( id )
+import           Control.Monad.Reader.Has                 ( Has )
+import           Database.Beam.Postgres                   ( Connection )
+import           Domain.Config                            ( Config )
+import           Domain.Logger                            ( Logger )
+import           RIO                                      ( Generic )
 
 
 data Env = Env
   { envConfig :: !Config
   , envLogger :: !Logger
-  , envDb     :: !(DatabaseSettings Postgres SgmDatabase)
+  , envDbConn :: !Connection
   }
-
-class HasEnv env where
-  getEnv :: env -> Env
-
-instance HasEnv Env where
-  getEnv = id
-
-instance HasConfig Env where
-  getConfig = envConfig
-
-setEnvLogger :: Logger -> Env -> Env
-setEnvLogger logger env = env { envLogger = logger }
+  deriving (Generic, Has Config, Has Logger, Has Connection)

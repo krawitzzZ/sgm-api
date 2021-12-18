@@ -1,12 +1,13 @@
 module Domain.Config
   ( Config(..)
-  , HasConfig(..)
   ) where
 
-import           Domain.Logger.LogLevel                   ( LogLevel )
-import           RIO                                      ( Int
+import           Control.Monad.Reader.Has                 ( Has )
+import           Data.Password.Validate                   ( ValidPasswordPolicy )
+import           Domain.Logger                            ( LogLevel )
+import           RIO                                      ( Generic
+                                                          , Int
                                                           , Text
-                                                          , id
                                                           )
 
 
@@ -15,10 +16,6 @@ data Config = Config
   , configDbUrl          :: !Text
   , configNetworkTimeout :: !Int
   , configLogLevel       :: !LogLevel
+  , configPasswordPolicy :: !ValidPasswordPolicy
   }
-
-class HasConfig env where
-  getConfig :: env -> Config
-
-instance HasConfig Config where
-  getConfig = id
+  deriving (Generic, Has ValidPasswordPolicy)

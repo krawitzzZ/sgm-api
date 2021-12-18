@@ -1,60 +1,64 @@
 module Domain.User
   ( User(..)
   , UserData(..)
-  , Id
-  , UserRepository(..)
   ) where
 
-import           Data.Aeson                               ( FromJSON(..)
-                                                          , ToJSON(..)
-                                                          , genericParseJSON
-                                                          , genericToJSON
-                                                          )
 import           Data.UUID                                ( UUID )
-import           RIO                                      ( ($)
+import           Domain.Password                          ( Password
+                                                          , PasswordHash
+                                                          )
+import           RIO                                      ( (<>)
+                                                          , (==)
                                                           , Eq
                                                           , Generic
-                                                          , Maybe(..)
-                                                          , Show
+                                                          , Maybe
+                                                          , Show(..)
                                                           , Text
+                                                          , on
                                                           )
-import           Utils                                    ( jsonOptions )
 
-
-type Id = UUID
 
 data User = User
   { userId        :: !UUID
-  , userFirstName :: !Text
-  , userLastName  :: !Text
   , userName      :: !Text
-  , userPassword  :: !Text
+  , userPassword  :: !PasswordHash
+  , userFirstName :: !(Maybe Text)
+  , userLastName  :: !(Maybe Text)
   }
-  deriving (Eq, Show, Generic)
+  deriving Generic
 
-instance FromJSON User where
-  parseJSON = genericParseJSON $ jsonOptions "user"
+instance Eq User where
+  (==) = (==) `on` userId
 
-instance ToJSON User where
-  toJSON = genericToJSON $ jsonOptions "user"
+instance Show User where
+  show (User uId name _ fname lname) =
+    "User { userId = "
+      <> show uId
+      <> ", userName = "
+      <> show name
+      <> ", userFirstName = "
+      <> show fname
+      <> ", userLastName = "
+      <> show lname
+      <> " }"
 
 data UserData = UserData
-  { userDataFirstName :: Maybe Text
-  , userDataLastName  :: Maybe Text
-  , userDataName      :: Maybe Text
-  , userDataPassword  :: Maybe Text
+  { userDataName      :: !Text
+  , userDataPassword  :: !Password
+  , userDataFirstName :: !(Maybe Text)
+  , userDataLastName  :: !(Maybe Text)
   }
-  deriving (Eq, Show, Generic)
+  deriving Generic
 
-instance FromJSON UserData where
-  parseJSON = genericParseJSON $ jsonOptions "userData"
+instance Eq UserData where
+  (==) = (==) `on` userDataName
 
-instance ToJSON UserData where
-  toJSON = genericToJSON $ jsonOptions "userData"
-
-class UserRepository m where
-  getUserById :: Id -> m User
-  getAllUsers :: m [User]
-  createUser :: UserData -> m User
-  updateUser :: Id -> UserData -> m User
-  deleteUser :: Id -> m ()
+instance Show UserData where
+  show (UserData name _ fname lname) =
+    "UserData { userDataName = "
+      <> show name
+      <> ", userFirstName = "
+      <> show fname
+      <> ", userLastName = "
+      <> show lname
+      <> " }"

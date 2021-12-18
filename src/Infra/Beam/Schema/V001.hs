@@ -1,4 +1,4 @@
-module Infra.Db.Schema.V001
+module Infra.Beam.Schema.V001
   ( SgmDatabase(..)
   , migrationMeta
   ) where
@@ -15,8 +15,9 @@ import           Database.Beam.Postgres                   ( PgExtensionEntity
                                                           , pgCreateExtension
                                                           )
 import           Database.Beam.Postgres.PgCrypto          ( PgCrypto )
-import           Infra.Db.Schema.Types                    ( TextUUID )
-import           Infra.Db.Schema.V001.User                ( UserEntityT
+import           Infra.Beam.Schema.Types                  ( TextUUID )
+import           Infra.Beam.Schema.V001.Password          ( )
+import           Infra.Beam.Schema.V001.User              ( UserEntityT
                                                           , createUsersTable
                                                           )
 import           RIO                                      ( (<$>)
@@ -25,8 +26,8 @@ import           RIO                                      ( (<$>)
 
 
 data SgmDatabase f = SgmDatabase
-  { users           :: f (TableEntity UserEntityT)
-  , cryptoExtension :: f (PgExtensionEntity PgCrypto)
+  { dbUsers           :: f (TableEntity UserEntityT)
+  , dbCryptoExtension :: f (PgExtensionEntity PgCrypto)
   }
   deriving (Generic, (Database Postgres))
 

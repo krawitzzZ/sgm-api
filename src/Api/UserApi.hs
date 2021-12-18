@@ -3,9 +3,16 @@ module Api.UserApi
   , UserApi
   ) where
 
-import qualified Api.Exception                           as HttpException
-import           Api.Helpers                              ( tryCatch
-                                                          , tryCatchAny
+import           Api.ApiVersion                           ( ApiVersion(..) )
+import           Api.Exception                            ( ApiException(..)
+                                                          , tryCatchDefault
+                                                          )
+import           Api.Mapper                               ( createUserDtoToUserData
+                                                          , userToUserDto
+                                                          )
+import           Api.Resources.User                       ( CreateUserDto
+                                                          , UpdateUserDto(..)
+                                                          , UserDto
                                                           )
 import           App.User                                 ( createUser
                                                           , deleteUser
@@ -13,23 +20,19 @@ import           App.User                                 ( createUser
                                                           , getUsers
                                                           , updateUser
                                                           )
-import           Control.Exception.Safe                   ( MonadCatch
-                                                          , MonadThrow
-                                                          , throwM
+import           Control.Exception.Safe                   ( MonadCatch )
+import           Data.UUID                                ( UUID
+                                                          , toText
                                                           )
-import           Data.UUID                                ( toText )
-import           Domain.Api                               ( ApiVersion(..) )
-import           Domain.Exception                         ( DomainException(..) )
-import           Domain.Logger.Class                      ( MonadLogger(..) )
-import           Domain.Logger.LogMessage                 ( LogPath )
-import           Domain.User                              ( Id
-                                                          , User(..)
-                                                          , UserData(..)
+import           Domain.Class                             ( MonadLogger(..)
                                                           , UserRepository
                                                           )
+import           Domain.Logger                            ( LogContext )
 import           RIO                                      ( ($)
+                                                          , (<$>)
                                                           , (<>)
                                                           , (>>>)
+                                                          , map
                                                           , return
                                                           )
 import           Servant                                  ( type (:<|>)(..)
@@ -47,46 +50,47 @@ import           Servant                                  ( type (:<|>)(..)
 import           Servant.Exception.Server                 ( Throws )
 
 
-type GetUsers = Get '[JSON] [User]
-type CreateUser = ReqBody '[JSON] UserData :> Post '[JSON] User
-type GetUser = Capture "id" Id :> Get '[JSON] User
-type UpdateUser = Capture "id" Id :> ReqBody '[JSON] UserData :> Put '[JSON] User
-type DeleteUser = Capture "id" Id :> Delete '[JSON] NoContent
+type GetUsers = Get '[JSON] [UserDto]
+type CreateUser = ReqBody '[JSON] CreateUserDto :> Post '[JSON] UserDto
+type GetUser = Capture "id" UUID :> Get '[JSON] UserDto
+type UpdateUser = Capture "id" UUID :> ReqBody '[JSON] UpdateUserDto :> Put '[JSON] UserDto
+type DeleteUser = Capture "id" UUID :> Delete '[JSON] NoContent
 
 -- brittany-disable-next-binding
-type UserApi = Throws HttpException.ApiException :> (GetUsers :<|> CreateUser :<|> GetUser :<|> UpdateUser :<|> DeleteUser)
+type UserApi = Throws ApiException :> (GetUsers :<|> CreateUser :<|> GetUser :<|> UpdateUser :<|> DeleteUser)
 
 userServer :: (UserRepository m, MonadCatch m, MonadLogger m) => ApiVersion -> ServerT UserApi m
 userServer V1 = userV1Server
 
 userV1Server :: (UserRepository m, MonadCatch m, MonadLogger m) => ServerT UserApi m
-userV1Server = findUsers :<|> createNewUser :<|> findUser :<|> updateUserInfo :<|> removeUser
+userV1Server = getAllUsers :<|> createNewUser :<|> findUser :<|> updateUserInfo :<|> removeUser
 
 
-findUsers :: (UserRepository m, MonadCatch m, MonadLogger m) => m [User]
-findUsers = withContext (mkContext "findUsers") $ tryCatchAny getUsers
+getAllUsers :: (UserRepository m, MonadCatch m, MonadLogger m) => m [UserDto]
+getAllUsers =
+  withContext (mkContext "findUsers") $ tryCatchDefault $ map userToUserDto <$> getUsers
 
-createNewUser :: (UserRepository m, MonadCatch m, MonadLogger m) => UserData -> m User
-createNewUser userInfo = withContext (mkContext "createNewUser") $ tryCatchAny $ do
-  createUser userInfo
+createNewUser :: (UserRepository m, MonadCatch m, MonadLogger m) => CreateUserDto -> m UserDto
+createNewUser dto = withContext (mkContext "createNewUser")
+  $ tryCatchDefault (userToUserDto <$> createUser (createUserDtoToUserData dto))
 
-findUser :: (UserRepository m, MonadCatch m, MonadLogger m) => Id -> m User
-findUser userId = withContext (mkContext "findUser") >>> withField ("userId", toText userId) $ do
-  tryCatch (getUserById userId) handleDomainException
+findUser :: (UserRepository m, MonadCatch m, MonadLogger m) => UUID -> m UserDto
+findUser userId =
+  withContext (mkContext "findUser") >>> withField ("userId", toText userId) $ tryCatchDefault
+    (userToUserDto <$> getUserById userId)
 
-updateUserInfo :: (UserRepository m, MonadCatch m, MonadLogger m) => Id -> UserData -> m User
-updateUserInfo userId userData =
-  withContext (mkContext "updateUserInfo") >>> withField ("userId", toText userId) $ do
-    tryCatch (updateUser userId userData) handleDomainException
+updateUserInfo
+  :: (UserRepository m, MonadCatch m, MonadLogger m) => UUID -> UpdateUserDto -> m UserDto
+updateUserInfo userId (UpdateUserDto fname lname) =
+  withContext (mkContext "updateUserInfo") >>> withField ("userId", toText userId) $ tryCatchDefault
+    (userToUserDto <$> updateUser userId fname lname)
 
-removeUser :: (UserRepository m, MonadCatch m, MonadLogger m) => Id -> m NoContent
-removeUser userId = withContext (mkContext "removeUser") $ do
-  tryCatch (deleteUser userId) handleDomainException
-  return NoContent
+removeUser :: (UserRepository m, MonadCatch m, MonadLogger m) => UUID -> m NoContent
+removeUser userId =
+  withContext (mkContext "removeUser") >>> withField ("userId", toText userId) $ do
+    tryCatchDefault (deleteUser userId)
+    return NoContent
 
-handleDomainException :: (MonadThrow m) => (DomainException -> m a)
-handleDomainException NotFound{} = throwM $ HttpException.NotFound "Not found"
-handleDomainException _          = throwM HttpException.InternalError
 
-mkContext :: LogPath -> LogPath
+mkContext :: LogContext -> LogContext
 mkContext = ("Api.UserApi->" <>)

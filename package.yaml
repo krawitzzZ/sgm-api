@@ -26,6 +26,7 @@ dependencies:
 - beam-migrate
 - beam-postgres
 - bytestring
+- can-i-haz
 - containers
 - data-default
 - di-core
@@ -39,6 +40,9 @@ dependencies:
 - lifted-async
 - monad-time
 - mtl
+- password
+- password-instances
+- postgresql-simple
 - safe-exceptions
 - servant-server
 - servant-exceptions
@@ -46,6 +50,7 @@ dependencies:
 - servant-errors
 - string-conversions
 - time
+- timezone-detect
 - uuid
 - wai
 - wai-extra

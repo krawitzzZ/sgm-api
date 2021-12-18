@@ -3,7 +3,7 @@ module Api.AuthApi
   , AuthApi
   ) where
 
-import           Domain.Api                               ( ApiVersion(..) )
+import           Api.ApiVersion                           ( ApiVersion(..) )
 import           RIO                                      ( Monad
                                                           , return
                                                           )

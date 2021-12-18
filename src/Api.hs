@@ -3,6 +3,7 @@ module Api
   , SGMApi
   ) where
 
+import           Api.ApiVersion                           ( ApiVersion )
 import           Api.AuthApi                              ( AuthApi
                                                           , authServer
                                                           )
@@ -10,9 +11,9 @@ import           Api.UserApi                              ( UserApi
                                                           , userServer
                                                           )
 import           Control.Exception.Safe                   ( MonadCatch )
-import           Domain.Api                               ( ApiVersion )
-import           Domain.Logger.Class                      ( MonadLogger )
-import           Domain.User                              ( UserRepository )
+import           Domain.Class                             ( MonadLogger
+                                                          , UserRepository
+                                                          )
 import           Servant                                  ( type (:<|>)((:<|>))
                                                           , type (:>)
                                                           , Capture

@@ -1,28 +1,37 @@
 module Domain.Logger
   ( Logger(..)
-  , logMessage
+  , LogMessage(..)
+  , LogLevel(..)
+  , LogContext
   ) where
 
 import           Data.Map.Strict                          ( Map )
 import           Di.Core                                  ( Di )
-import           Di.Monad                                 ( MonadDi
-                                                          , log
-                                                          )
-import           Domain.Logger.LogLevel                   ( LogLevel )
-import           Domain.Logger.LogMessage                 ( LogMessage(..)
-                                                          , LogPath
-                                                          )
-import           RIO                                      ( Maybe(..)
+import           RIO                                      ( Bounded
+                                                          , Enum
+                                                          , Eq
+                                                          , Generic
+                                                          , Maybe
+                                                          , Ord
+                                                          , Read
+                                                          , Show
                                                           , Text
                                                           )
 
 
 data Logger = Logger
-  { loggerDi     :: !(Di LogLevel LogPath LogMessage)
+  { loggerDi     :: !(Di LogLevel LogContext LogMessage)
   , loggerFields :: !(Map Text Text)
   , loggerError  :: !(Maybe Text)
   }
 
-logMessage :: (MonadDi LogLevel LogPath LogMessage m) => LogLevel -> Text -> Logger -> m ()
-logMessage level lmMessage Logger {..} =
-  log level LogMessage { lmMessage, lmFields = loggerFields, lmError = loggerError }
+data LogMessage = LogMessage
+  { lmMessage :: !Text
+  , lmFields  :: !(Map Text Text)
+  , lmError   :: !(Maybe Text)
+  }
+  deriving (Eq, Show, Generic)
+
+type LogContext = Text
+
+data LogLevel = Debug | Info | Warn | Error deriving (Eq, Ord, Show, Read, Enum, Bounded)

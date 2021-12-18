@@ -1,12 +1,8 @@
-module Domain.Api
+module Api.ApiVersion
   ( ApiVersion(..)
   ) where
 
-import           Data.Aeson                               ( FromJSON(..)
-                                                          , ToJSON(..)
-                                                          , defaultOptions
-                                                          , genericToEncoding
-                                                          )
+import           Data.Aeson                               ( FromJSON(..) )
 import           Data.String.Conversions                  ( cs )
 import           GHC.Read                                 ( readsPrec )
 import           RIO                                      ( ($)
@@ -37,9 +33,6 @@ instance Read ApiVersion where
   readsPrec _ _    = []
 
 instance FromJSON ApiVersion
-
-instance ToJSON ApiVersion where
-  toEncoding = genericToEncoding defaultOptions
 
 instance FromHttpApiData ApiVersion where
   parseUrlPiece version = case maybeVersion of

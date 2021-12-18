@@ -1,96 +1,83 @@
 module Infra.UserRepository
-  ( get
-  , findOne
-  , createUser
-  , upsertOne
+  ( getAll
+  , findOneById
+  , findOneByName
+  , createOne
+  , saveOne
   , deleteOne
   ) where
 
-import           Control.Exception.Safe                   ( MonadThrow
+import           Control.Exception.Safe                   ( MonadCatch
                                                           , throwM
                                                           )
-import           Data.UUID                                ( fromText
-                                                          , nil
-                                                          , toText
-                                                          )
-import           Data.UUID.V4                             ( nextRandom )
+import           Control.Monad.Reader.Has                 ( Has )
+import           Data.String.Conversions                  ( cs )
+import           Data.UUID                                ( UUID )
+import           Database.Beam.Postgres                   ( Connection )
+import           Domain.Class                             ( MonadLogger(..) )
 import           Domain.Exception                         ( DomainException(..) )
-import           Domain.User                              ( Id
-                                                          , User(..)
+import           Domain.Logger                            ( LogContext )
+import           Domain.User                              ( User(..)
                                                           , UserData(..)
                                                           )
+import           Infra.Beam.Mapper                        ( userEntityToDomain )
+import           Infra.Beam.Query.User                    ( allUsers
+                                                          , createAndInsertUser
+                                                          , deleteUser
+                                                          , maybeUserById
+                                                          , maybeUserByName
+                                                          , updateUser
+                                                          )
+import           Infra.Exception                          ( tryCatchDefault )
 import           RIO                                      ( ($)
                                                           , (.)
+                                                          , (<&>)
                                                           , (<>)
-                                                          , (==)
-                                                          , Eq
-                                                          , Exception
+                                                          , (>>)
+                                                          , (>>=)
                                                           , Maybe(..)
-                                                          , Monad
                                                           , MonadIO
-                                                          , Show
-                                                          , fromMaybe
-                                                          , liftIO
+                                                          , MonadReader
+                                                          , Text
+                                                          , map
                                                           , return
+                                                          , show
                                                           )
-import           RIO.List                                 ( find )
 
 
--- TODO if I need MonadBeam be m here, how can I do it?
-get :: MonadIO m => m [User]
-get = users
+getAll :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => m [User]
+getAll = withContext (mkContext "getAll") $ tryCatchDefault $ allUsers <&> map userEntityToDomain
 
-findOne :: (MonadIO m, MonadThrow m) => Id -> m User
-findOne id = do
-  users' <- users
-  case maybeUser users' of
-    Just user -> return user
-    Nothing   -> throwM . NotFound $ "User with id " <> toText id <> " not found"
-  where maybeUser usrs = find (\User { userId } -> userId == id) usrs
+findOneById
+  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => UUID -> m User
+findOneById id = withContext (mkContext "findUsers") $ tryCatchDefault $ maybeUserById id >>= \case
+  Just user -> return $ userEntityToDomain user
+  Nothing   -> throwM . NotFound $ "User with id '" <> cs (show id) <> "' not found"
 
-createUser :: (MonadIO m, MonadThrow m) => UserData -> m User
-createUser (UserData _     _     (Just "test@test.test") _   ) = throwM DatabaseNotFound
-createUser (UserData fname lname email                   pass) = do
-  id <- liftIO nextRandom
-  return $ User id name surname mail password
- where
-  name     = fromMaybe "name" fname
-  surname  = fromMaybe "surname" lname
-  mail     = fromMaybe "mail" email
-  password = fromMaybe "*********" pass
+findOneByName
+  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => Text -> m User
+findOneByName name =
+  withContext (mkContext "findUsers") $ tryCatchDefault $ maybeUserByName name >>= \case
+    Nothing   -> throwM . NotFound $ "User with name '" <> name <> "' not found"
+    Just user -> return $ userEntityToDomain user
 
-upsertOne :: MonadIO m => Id -> UserData -> m User
-upsertOne id (UserData fname lname email pass) = return $ User id name surname mail password
- where
-  name     = fromMaybe "name" fname
-  surname  = fromMaybe "surname" lname
-  mail     = fromMaybe "mail@mail.com" email
-  password = fromMaybe "*********" pass
+createOne
+  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m)
+  => UserData
+  -> m User
+createOne user@UserData { userDataName = name } =
+  withContext (mkContext "createOne") $ tryCatchDefault $ maybeUserByName name >>= \case
+    Just _  -> throwM $ UserNameAlreadyExists $ "User with name '" <> name <> "' already exists"
+    Nothing -> createAndInsertUser user <&> userEntityToDomain
 
-deleteOne :: Monad m => Id -> m ()
-deleteOne _ = return ()
+saveOne
+  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => User -> m User
+saveOne user = withContext (mkContext "saveOne") $ tryCatchDefault $ updateUser user >> return user
 
+deleteOne
+  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => UUID -> m ()
+deleteOne = withContext (mkContext "deleteOne") . tryCatchDefault . deleteUser
 
 
-
-users :: MonadIO m => m [User]
-users = do
-  return
-    [ User { userId        = getId "aeadc5e2-2591-4730-9307-3913e9b95863"
-           , userFirstName = "John"
-           , userLastName  = "Doe"
-           , userName      = "JohnDoe"
-           , userPassword  = "*********"
-           }
-    , User { userId        = getId "e11978d7-808b-4658-a62d-40073916928b"
-           , userFirstName = "Some"
-           , userLastName  = "One"
-           , userName      = "SomeOne"
-           , userPassword  = "*********"
-           }
-    ]
-  where getId = fromMaybe nil . fromText
-
-data DatabaseException = DatabaseNotFound
-  deriving (Show, Eq)
-instance Exception DatabaseException
+mkContext :: LogContext -> LogContext
+mkContext = ("Infra.UserRepository->" <>)

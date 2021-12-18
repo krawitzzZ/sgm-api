@@ -6,20 +6,29 @@ module App.User
   , deleteUser
   ) where
 
-import qualified Domain.User                             as U
+import           Data.UUID                                ( UUID )
+import qualified Domain.Class                            as C
+import           Domain.User                              ( User(..)
+                                                          , UserData
+                                                          )
+import           RIO                                      ( (>>=)
+                                                          , Maybe
+                                                          , Text
+                                                          )
 
 
-getUsers :: (U.UserRepository m) => m [U.User]
-getUsers = U.getAllUsers
+getUsers :: (C.UserRepository m) => m [User]
+getUsers = C.getAllUsers
 
-createUser :: (U.UserRepository m) => U.UserData -> m U.User
-createUser = U.createUser
+createUser :: (C.UserRepository m) => UserData -> m User
+createUser = C.createUser
 
-getUserById :: (U.UserRepository m) => U.Id -> m U.User
-getUserById = U.getUserById
+getUserById :: (C.UserRepository m) => UUID -> m User
+getUserById = C.getUserById
 
-updateUser :: (U.UserRepository m) => U.Id -> U.UserData -> m U.User
-updateUser = U.updateUser
+updateUser :: (C.UserRepository m) => UUID -> Maybe Text -> Maybe Text -> m User
+updateUser userId fname lname =
+  C.getUserById userId >>= \u -> C.saveUser u { userFirstName = fname, userLastName = lname }
 
-deleteUser :: (U.UserRepository m) => U.Id -> m ()
-deleteUser = U.deleteUser
+deleteUser :: (C.UserRepository m) => UUID -> m ()
+deleteUser = C.deleteUser

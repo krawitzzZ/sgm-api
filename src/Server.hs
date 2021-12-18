@@ -6,15 +6,16 @@ import           Api                                      ( SGMApi
                                                           , server
                                                           )
 import           Data.Default                             ( def )
-import           Data.Map.Strict                          ( empty )
+import           Data.Map.Strict                          ( fromList )
 import           Data.String.Conversions                  ( cs )
 import           Di.Core                                  ( log )
 import           Domain.App                               ( runAppT )
 import           Domain.Config                            ( Config(..) )
 import           Domain.Env                               ( Env(..) )
-import           Domain.Logger                            ( Logger(..) )
-import           Domain.Logger.LogLevel                   ( LogLevel(..) )
-import           Domain.Logger.LogMessage                 ( LogMessage(..) )
+import           Domain.Logger                            ( LogLevel(..)
+                                                          , LogMessage(..)
+                                                          , Logger(..)
+                                                          )
 import           Network.Wai                              ( Application
                                                           , Middleware
                                                           , rawPathInfo
@@ -54,19 +55,22 @@ import           Servant                                  ( Context(..)
 start :: Env -> IO ()
 start env = do
   requestLoggerMw <- mkJSONRequestLoggerMiddleware
-  let config  = envConfig env
-  let port    = configPort config
-  let timeout = configNetworkTimeout config
-  let di      = loggerDi . envLogger $ env
-  let initMessage = LogMessage { lmMessage = cs $ "Starting SGM API on port " <> show port
-                               , lmError   = Nothing
-                               , lmFields  = empty
-                               }
+  let di       = loggerDi . envLogger $ env
+  let config   = envConfig env
+  let port     = configPort config
+  let logLevel = configLogLevel config
+  let timeout  = configNetworkTimeout config
+  let fields = fromList
+        [ ("logLevel", cs . show $ logLevel)
+        , ("port"    , cs . show $ port)
+        , ("timeout" , cs . show $ timeout)
+        ]
 
-  log di Info initMessage
+  log di Info LogMessage { lmMessage = "Starting SGM API", lmError = Nothing, lmFields = fields }
 
-  let settings = setPort port . setTimeout timeout $ defaultSettings
-  runSettings settings . requestLoggerMw . errorMwDefJson . mkApp $ env
+  let settings   = setPort port . setTimeout timeout $ defaultSettings
+  let middleware = requestLoggerMw . errorMwDefJson
+  runSettings settings . middleware . mkApp $ env
 
 api :: Proxy SGMApi
 api = Proxy :: Proxy SGMApi

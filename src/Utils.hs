@@ -1,19 +1,17 @@
 module Utils
-  ( toText
+  ( toUTC
   , jsonOptions
   , readEnvDefault
   , readEnvText
-  , uuidFromText
   ) where
 
 import           Data.Aeson                               ( Options(..)
                                                           , defaultOptions
                                                           )
 import           Data.String.Conversions                  ( cs )
-import           Data.UUID                                ( UUID
-                                                          , fromText
+import           Data.Time.LocalTime.TimeZone.Detect      ( TimeZoneName
+                                                          , timeInTimeZoneToUTC
                                                           )
-import           Infra.Db.Schema.Types                    ( TextUUID )
 import           RIO                                      ( ($)
                                                           , (.)
                                                           , (<>)
@@ -21,7 +19,6 @@ import           RIO                                      ( ($)
                                                           , Maybe(..)
                                                           , MonadIO(..)
                                                           , Read
-                                                          , Show
                                                           , String
                                                           , Text
                                                           , drop
@@ -31,17 +28,19 @@ import           RIO                                      ( ($)
                                                           , maybe
                                                           , readMaybe
                                                           , return
-                                                          , show
                                                           )
 import           RIO.Char                                 ( toLower )
+import           RIO.Time                                 ( LocalTime
+                                                          , UTCTime
+                                                          )
 import           System.Environment                       ( lookupEnv )
 
 
-toText :: (Show s) => s -> Text
-toText = cs . show
+toUTC :: MonadIO m => LocalTime -> m UTCTime
+toUTC time = liftIO $ timeInTimeZoneToUTC sgmTZ time
 
-uuidFromText :: TextUUID -> UUID
-uuidFromText = fromMaybe (error "Failed to parse UUID") . fromText
+sgmTZ :: TimeZoneName
+sgmTZ = "Europe/Berlin"
 
 jsonOptions :: String -> Options
 jsonOptions prefix = defaultOptions { fieldLabelModifier = dropPrefix >>> firstToLower }

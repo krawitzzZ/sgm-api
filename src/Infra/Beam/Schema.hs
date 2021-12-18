@@ -1,12 +1,9 @@
-module Infra.Db.Schema
-  ( SgmDatabase(..)
-  , getSgmDatabase
+module Infra.Beam.Schema
+  ( migrateSgmDb
   ) where
 
 import           Data.String.Conversions                  ( cs )
-import           Database.Beam                            ( DatabaseSettings
-                                                          , MonadBeam(..)
-                                                          , all_
+import           Database.Beam                            ( all_
                                                           , runNoReturn
                                                           , runSelectReturningList
                                                           , select
@@ -14,21 +11,20 @@ import           Database.Beam                            ( DatabaseSettings
 import           Database.Beam.Migrate                    ( executeMigration
                                                           , runMigrationSilenced
                                                           , runMigrationSteps
-                                                          , unCheckDatabase
                                                           )
 import           Database.Beam.Migrate.Log                ( BeamMigrateDb(..)
-                                                          , LogEntryT(_logEntryCommitId)
+                                                          , LogEntryT(..)
                                                           , beamMigrateDb
                                                           , ensureBackendTables
                                                           , recordCommit
                                                           )
-import           Database.Beam.Postgres                   ( Pg
-                                                          , Postgres(..)
+import           Database.Beam.Postgres                   ( Connection
+                                                          , Pg
+                                                          , runBeamPostgresDebug
                                                           )
 import           Database.Beam.Postgres.Migrate           ( migrationBackend )
-import           Infra.Db.Schema.Latest                   ( SgmDatabase(..)
-                                                          , migrationSteps
-                                                          )
+import           Infra.Beam.Schema.Latest                 ( migrationSteps )
+import           Infra.Beam.Schema.Types                  ( migrationId )
 import           Prelude                                  ( String )
 import           RIO                                      ( ($)
                                                           , (.)
@@ -36,29 +32,28 @@ import           RIO                                      ( ($)
                                                           , (<>)
                                                           , IO
                                                           , Maybe(..)
+                                                          , MonadIO
                                                           , elem
                                                           , liftIO
                                                           , map
                                                           , return
                                                           , show
+                                                          , void
                                                           )
-import           Utils                                    ( uuidFromText )
 
 
-getSgmDatabase :: (String -> IO ()) -> Pg (DatabaseSettings Postgres SgmDatabase)
-getSgmDatabase logFunc = do
+migrateSgmDb :: MonadIO m => Connection -> (String -> IO ()) -> m ()
+migrateSgmDb conn logFunc = liftIO . runBeamPostgresDebug logFunc conn $ do
   ensureBackendTables migrationBackend
-  db <- runMigrationSteps 0 Nothing migrationSteps $ \_ migrationId migration -> do
+  void $ runMigrationSteps 0 Nothing migrationSteps $ \_ mId migration -> do
     let migrationEntriesQuery = select $ all_ (_beamMigrateLogEntries (beamMigrateDb @_ @Pg))
     appliedUUIDs <- runSelectReturningList migrationEntriesQuery <&> map _logEntryCommitId
-    if migrationId `elem` appliedUUIDs
+    if mId `elem` appliedUUIDs
       then do
-        liftIO . logFunc $ "Migration " <> cs (show migrationId) <> " already applied, skipping"
+        liftIO . logFunc $ "Migration " <> cs (show mId) <> " already applied, skipping"
         return $ runMigrationSilenced migration
       else do
-        liftIO . logFunc $ "Applying migration " <> cs (show migrationId)
+        liftIO . logFunc $ "Applying migration " <> cs (show mId)
         appliedMigation <- executeMigration runNoReturn migration
-        recordCommit $ uuidFromText migrationId
+        recordCommit $ migrationId mId
         return appliedMigation
-
-  return $ unCheckDatabase db

@@ -11,6 +11,7 @@
     "[haskell]": {
       "editor.defaultFormatter": "MaxGabriel.brittany",
     },
+    "currentPath.hideFileIcon": true,
     "brittany.keepCRLF": false,
     "brittany.stackEnable": true,
     "brittany.showErrorNotification": false,
@@ -32,7 +33,8 @@
     "jcanero.hoogle-vscode",
     "s0kil.vscode-hsx",
     "mtxr.sqltools",
-    "mtxr.sqltools-driver-pg"
+    "mtxr.sqltools-driver-pg",
+    "ezzak.current-path"
   ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [
