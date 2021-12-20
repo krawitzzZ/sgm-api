@@ -7,11 +7,13 @@ import           Database.Beam.Postgres                   ( Connection )
 import           Domain.Config                            ( Config )
 import           Domain.Logger                            ( Logger )
 import           RIO                                      ( Generic )
+import           Servant.Auth.Server                      ( JWTSettings )
 
 
 data Env = Env
-  { envConfig :: !Config
-  , envLogger :: !Logger
-  , envDbConn :: !Connection
+  { envConfig      :: !Config
+  , envLogger      :: !Logger
+  , envJwtSettings :: !JWTSettings
+  , envDbConn      :: !Connection
   }
-  deriving (Generic, Has Config, Has Logger, Has Connection)
+  deriving (Generic, Has Config, Has Logger, Has JWTSettings, Has Connection)

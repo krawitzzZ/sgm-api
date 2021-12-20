@@ -5,17 +5,14 @@ module Api.UserApi
 
 import           Api.ApiVersion                           ( ApiVersion(..) )
 import           Api.Exception                            ( ApiException(..)
+                                                          , throw401
                                                           , tryCatchDefault
                                                           )
-import           Api.Mapper                               ( createUserDtoToUserData
-                                                          , userToUserDto
-                                                          )
-import           Api.Resources.User                       ( CreateUserDto
-                                                          , UpdateUserDto(..)
+import           Api.Mapper                               ( userToUserDto )
+import           Api.Resources.User                       ( UpdateUserDto(..)
                                                           , UserDto
                                                           )
-import           App.User                                 ( createUser
-                                                          , deleteUser
+import           App.User                                 ( deleteUser
                                                           , getUserById
                                                           , getUsers
                                                           , updateUser
@@ -24,6 +21,7 @@ import           Control.Exception.Safe                   ( MonadCatch )
 import           Data.UUID                                ( UUID
                                                           , toText
                                                           )
+import           Domain.Auth                              ( AuthenticatedUser(..) )
 import           Domain.Class                             ( MonadLogger(..)
                                                           , UserRepository
                                                           )
@@ -32,6 +30,7 @@ import           RIO                                      ( ($)
                                                           , (<$>)
                                                           , (<>)
                                                           , (>>>)
+                                                          , const
                                                           , map
                                                           , return
                                                           )
@@ -42,37 +41,43 @@ import           Servant                                  ( type (:<|>)(..)
                                                           , Get
                                                           , JSON
                                                           , NoContent(..)
-                                                          , Post
                                                           , Put
                                                           , ReqBody
                                                           , ServerT
                                                           )
+import           Servant.Auth.Server                      ( Auth
+                                                          , AuthResult(..)
+                                                          )
 import           Servant.Exception.Server                 ( Throws )
+import           Utils                                    ( biconst )
 
 
 type GetUsers = Get '[JSON] [UserDto]
-type CreateUser = ReqBody '[JSON] CreateUserDto :> Post '[JSON] UserDto
 type GetUser = Capture "id" UUID :> Get '[JSON] UserDto
 type UpdateUser = Capture "id" UUID :> ReqBody '[JSON] UpdateUserDto :> Put '[JSON] UserDto
 type DeleteUser = Capture "id" UUID :> Delete '[JSON] NoContent
 
 -- brittany-disable-next-binding
-type UserApi = Throws ApiException :> (GetUsers :<|> CreateUser :<|> GetUser :<|> UpdateUser :<|> DeleteUser)
+type UserApi auths = Throws ApiException :> Auth auths AuthenticatedUser :>
+  (
+    GetUsers :<|>
+    GetUser :<|>
+    UpdateUser :<|>
+    DeleteUser
+  )
 
-userServer :: (UserRepository m, MonadCatch m, MonadLogger m) => ApiVersion -> ServerT UserApi m
+userServer
+  :: (UserRepository m, MonadCatch m, MonadLogger m) => ApiVersion -> ServerT (UserApi auths) m
 userServer V1 = userV1Server
 
-userV1Server :: (UserRepository m, MonadCatch m, MonadLogger m) => ServerT UserApi m
-userV1Server = getAllUsers :<|> createNewUser :<|> findUser :<|> updateUserInfo :<|> removeUser
+userV1Server :: (UserRepository m, MonadCatch m, MonadLogger m) => ServerT (UserApi auths) m
+userV1Server (Authenticated _) = getAllUsers :<|> findUser :<|> updateUserInfo :<|> removeUser
+userV1Server _ = throw401 :<|> const throw401 :<|> biconst throw401 :<|> const throw401
 
 
 getAllUsers :: (UserRepository m, MonadCatch m, MonadLogger m) => m [UserDto]
 getAllUsers =
   withContext (mkContext "findUsers") $ tryCatchDefault $ map userToUserDto <$> getUsers
-
-createNewUser :: (UserRepository m, MonadCatch m, MonadLogger m) => CreateUserDto -> m UserDto
-createNewUser dto = withContext (mkContext "createNewUser")
-  $ tryCatchDefault (userToUserDto <$> createUser (createUserDtoToUserData dto))
 
 findUser :: (UserRepository m, MonadCatch m, MonadLogger m) => UUID -> m UserDto
 findUser userId =

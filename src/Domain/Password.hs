@@ -3,9 +3,12 @@ module Domain.Password
   , PasswordHash(..)
   , mkPassword
   , hashPassword
-  , isValid
+  , checkPassword
   ) where
 
+import           Control.Exception.Safe                   ( MonadThrow
+                                                          , throwM
+                                                          )
 import           Data.Aeson                               ( FromJSON(..)
                                                           , Options(..)
                                                           , defaultOptions
@@ -13,9 +16,9 @@ import           Data.Aeson                               ( FromJSON(..)
                                                           )
 import qualified Data.Password.Argon2                    as P
 import           Data.Password.Instances                  ( )
+import           Domain.Exception                         ( DomainException(InvalidPassword) )
 import           RIO                                      ( ($)
                                                           , (<&>)
-                                                          , (==)
                                                           , Bool(..)
                                                           , Eq
                                                           , Generic
@@ -23,6 +26,7 @@ import           RIO                                      ( ($)
                                                           , Read
                                                           , Show
                                                           , Text
+                                                          , return
                                                           )
 
 
@@ -41,6 +45,7 @@ mkPassword pwd = Password $ P.mkPassword pwd
 hashPassword :: (MonadIO m) => Password -> m PasswordHash
 hashPassword (Password pwd) = P.hashPassword pwd <&> PasswordHash
 
-isValid :: Password -> PasswordHash -> Bool
-isValid (Password pwd) (PasswordHash pwdHash) =
-  P.checkPassword pwd pwdHash == P.PasswordCheckSuccess
+checkPassword :: (MonadThrow m) => Password -> PasswordHash -> m ()
+checkPassword (Password pwd) (PasswordHash pwdHash) = case P.checkPassword pwd pwdHash of
+  P.PasswordCheckSuccess -> return ()
+  P.PasswordCheckFail    -> throwM InvalidPassword

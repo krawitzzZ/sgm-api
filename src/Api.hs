@@ -11,22 +11,37 @@ import           Api.UserApi                              ( UserApi
                                                           , userServer
                                                           )
 import           Control.Exception.Safe                   ( MonadCatch )
+import           Control.Monad.Reader.Has                 ( Has )
+import           Control.Monad.Time                       ( MonadTime )
 import           Domain.Class                             ( MonadLogger
                                                           , UserRepository
+                                                          )
+import           RIO                                      ( MonadIO
+                                                          , MonadReader
                                                           )
 import           Servant                                  ( type (:<|>)((:<|>))
                                                           , type (:>)
                                                           , Capture
                                                           , ServerT
                                                           )
+import           Servant.Auth.Server                      ( JWTSettings )
 
 
 -- brittany-disable-next-binding
-type SGMApi = "api" :> Capture "version" ApiVersion :>
+type SGMApi auths = "api" :> Capture "version" ApiVersion :>
   (
-    "users" :> UserApi :<|>
-    "auth" :> AuthApi
+    "auth" :> AuthApi auths :<|>
+    "users" :> UserApi auths
   )
 
-server :: (UserRepository m, MonadCatch m, MonadLogger m) => ServerT SGMApi m
-server apiVersion = userServer apiVersion :<|> authServer apiVersion
+server
+  :: ( Has JWTSettings e
+     , MonadReader e m
+     , UserRepository m
+     , MonadLogger m
+     , MonadCatch m
+     , MonadTime m
+     , MonadIO m
+     )
+  => ServerT (SGMApi auths) m
+server apiVersion = authServer apiVersion :<|> userServer apiVersion

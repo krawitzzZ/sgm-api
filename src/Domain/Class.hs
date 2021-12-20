@@ -1,6 +1,8 @@
 module Domain.Class
-  ( MonadLogger(..)
+  ( Entity(..)
+  , MonadLogger(..)
   , UserRepository(..)
+  , Repository(..)
   ) where
 
 import           Data.UUID                                ( UUID )
@@ -25,7 +27,20 @@ class MonadLogger m where
 
 class (Monad m) => UserRepository m where
   getUserById :: UUID -> m User
+  getUserByName :: Text -> m User
   getAllUsers :: m [User]
   createUser :: UserData -> m User
   saveUser :: User -> m User
   deleteUser :: UUID -> m ()
+
+class Entity entity where
+  entityId :: entity -> UUID
+
+class (Monad m, Entity e) => Repository e m where
+  getById :: UUID -> m e
+  -- getOneBy :: fieldAndValueOrPredicate -> m e -- HOW?
+  -- getBy :: Text -> m [e]
+  getAll :: m [e]
+  create :: eData -> m e
+  save :: e -> m e
+  delete :: e -> m ()

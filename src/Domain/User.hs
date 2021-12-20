@@ -20,7 +20,7 @@ import           RIO                                      ( (<>)
 
 data User = User
   { userId        :: !UUID
-  , userName      :: !Text
+  , userName      :: !Text -- TODO change to username
   , userPassword  :: !PasswordHash
   , userFirstName :: !(Maybe Text)
   , userLastName  :: !(Maybe Text)

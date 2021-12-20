@@ -3,6 +3,7 @@ module Api.Exception
   , tryCatch
   , tryCatches
   , tryCatchDefault
+  , throw401
   ) where
 
 import           Control.Exception.Safe                   ( Handler(..)
@@ -36,10 +37,11 @@ import           Utils.Exception                          ( mkTryCatch
 
 
 data ApiException =
-  InternalError500 |
   BadRequest400 Text |
+  Unauthorized401 |
   NotFound404 Text |
-  Conflict409 Text
+  Conflict409 Text |
+  InternalError500
   deriving (Eq, Show)
 
 instance Exception ApiException
@@ -51,15 +53,17 @@ instance MimeRender PlainText ApiException where
   mimeRender ct = mimeRender ct . show
 
 instance ToServantErr ApiException where
-  status InternalError500{} = H.internalServerError500
   status BadRequest400{}    = H.badRequest400
+  status Unauthorized401{}  = H.unauthorized401
   status NotFound404{}      = H.notFound404
   status Conflict409{}      = H.conflict409
+  status InternalError500{} = H.internalServerError500
 
-  message InternalError500    = "Internal Server Error"
   message (BadRequest400 msg) = msg
-  message (NotFound404   msg) = msg
-  message (Conflict409   msg) = msg
+  message Unauthorized401     = "Unauthorized"
+  message (NotFound404 msg)   = msg
+  message (Conflict409 msg)   = msg
+  message InternalError500    = "Internal Server Error"
 
 tryCatch :: (MonadLogger m, MonadCatch m, Exception e) => m a -> (e -> m a) -> m a
 tryCatch = mkTryCatch (Handler handleSomeException)
@@ -70,8 +74,12 @@ tryCatches = mkTryCatches (Handler handleSomeException)
 tryCatchDefault :: (MonadLogger m, MonadCatch m) => m a -> m a
 tryCatchDefault = mkTryCatchDefault defaultHandlers
 
+throw401 :: (MonadThrow m) => m a
+throw401 = throwM Unauthorized401
+
 
 handleDomainException :: (MonadThrow m, MonadLogger m) => (DomainException -> m a)
+handleDomainException InvalidPassword{}           = throwM Unauthorized401
 handleDomainException NotFound{}                  = throwM $ NotFound404 "Not found"
 handleDomainException (UserNameAlreadyExists msg) = throwM $ Conflict409 msg
 handleDomainException e                           = do

@@ -35,9 +35,11 @@ import           Network.Wai.Middleware.Servant.Errors    ( errorMwDefJson )
 import           RIO                                      ( ($)
                                                           , (.)
                                                           , (<>)
+                                                          , (=<<)
                                                           , IO
                                                           , Maybe(..)
                                                           , liftIO
+                                                          , return
                                                           , show
                                                           )
 import           Servant                                  ( Context(..)
@@ -47,8 +49,13 @@ import           Servant                                  ( Context(..)
                                                           , defaultErrorFormatters
                                                           , err404
                                                           , errBody
-                                                          , hoistServer
+                                                          , hoistServerWithContext
                                                           , serveWithContext
+                                                          )
+import           Servant.Auth.Server                      ( CookieSettings
+                                                          , JWT
+                                                          , JWTSettings
+                                                          , defaultCookieSettings
                                                           )
 
 
@@ -70,14 +77,22 @@ start env = do
 
   let settings   = setPort port . setTimeout timeout $ defaultSettings
   let middleware = requestLoggerMw . errorMwDefJson
-  runSettings settings . middleware . mkApp $ env
+  runSettings settings . middleware =<< mkApp env
 
-api :: Proxy SGMApi
-api = Proxy :: Proxy SGMApi
+serverApi :: Proxy (SGMApi '[JWT])
+serverApi = Proxy :: Proxy (SGMApi '[JWT])
 
-mkApp :: Env -> Application
-mkApp env = serveWithContext api (customFormatters :. EmptyContext)
-  $ hoistServer api (liftIO . runAppT env) server
+contextApi :: Proxy '[CookieSettings , JWTSettings]
+contextApi = Proxy :: Proxy '[CookieSettings , JWTSettings]
+
+mkApp :: Env -> IO Application
+mkApp env = return $ serve $ hoistServer server
+ where
+  serve       = serveWithContext serverApi context
+  hoistServer = hoistServerWithContext serverApi contextApi (liftIO . runAppT env)
+  context     = customFormatters :. cookieConf :. jwtConf :. EmptyContext
+  cookieConf  = defaultCookieSettings
+  jwtConf     = envJwtSettings env
 
 notFoundFormatter :: NotFoundErrorFormatter
 notFoundFormatter req = err404 { errBody = cs $ "Not found path: " <> rawPathInfo req }

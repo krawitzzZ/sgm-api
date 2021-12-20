@@ -67,7 +67,7 @@ createOne
   -> m User
 createOne user@UserData { userDataName = name } =
   withContext (mkContext "createOne") $ tryCatchDefault $ maybeUserByName name >>= \case
-    Just _  -> throwM $ UserNameAlreadyExists $ "User with name '" <> name <> "' already exists"
+    Just _  -> throwM $ UserNameAlreadyExists $ "User with username '" <> name <> "' already exists"
     Nothing -> createAndInsertUser user <&> userEntityToDomain
 
 saveOne

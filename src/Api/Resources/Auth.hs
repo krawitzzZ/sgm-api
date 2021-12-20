@@ -1,14 +1,12 @@
-module Api.Resources.User
-  ( UserDto(..)
-  , UpdateUserDto(..)
+module Api.Resources.Auth
+  ( SignupDto(..)
+  , LoginDto(..)
   ) where
 
 import           Data.Aeson                               ( FromJSON(..)
-                                                          , ToJSON(..)
                                                           , genericParseJSON
-                                                          , genericToJSON
                                                           )
-import           Data.UUID                                ( UUID )
+import           Domain.Password                          ( Password )
 import           RIO                                      ( ($)
                                                           , Generic
                                                           , Maybe
@@ -18,22 +16,22 @@ import           RIO                                      ( ($)
 import           Utils                                    ( jsonOptions )
 
 
-data UserDto = UserDto
-  { userDtoId        :: !UUID
-  , userDtoName      :: !Text
-  , userDtoFirstName :: !(Maybe Text)
-  , userDtoLastName  :: !(Maybe Text)
+data LoginDto = LoginDto
+  { loginDtoName     :: !Text
+  , loginDtoPassword :: !Password
   }
   deriving (Show, Generic)
 
-instance ToJSON UserDto where
-  toJSON = genericToJSON $ jsonOptions "userDto"
+instance FromJSON LoginDto where
+  parseJSON = genericParseJSON $ jsonOptions "loginDto"
 
-data UpdateUserDto = UpdateUserDto
-  { updateUserDtoFirstName :: !(Maybe Text)
-  , updateUserDtoLastName  :: !(Maybe Text)
+data SignupDto = SignupDto
+  { signupDtoName      :: !Text
+  , signupDtoPassword  :: !Password
+  , signupDtoFirstName :: !(Maybe Text)
+  , signupDtoLastName  :: !(Maybe Text)
   }
   deriving (Show, Generic)
 
-instance FromJSON UpdateUserDto where
-  parseJSON = genericParseJSON $ jsonOptions "updateUserDto"
+instance FromJSON SignupDto where
+  parseJSON = genericParseJSON $ jsonOptions "signupDto"

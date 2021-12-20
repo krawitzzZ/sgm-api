@@ -70,8 +70,9 @@ instance Monad m => MonadLogger (AppT m) where
   withFields  = L.withFields
 
 instance (MonadIO m, MonadCatch m) => UserRepository (AppT m) where
-  getUserById = UR.findOneById
-  getAllUsers = UR.getAll
-  createUser  = UR.createOne
-  saveUser    = UR.saveOne
-  deleteUser  = UR.deleteOne
+  getUserById   = UR.findOneById
+  getUserByName = UR.findOneByName -- TODO getUserByUsername
+  getAllUsers   = UR.getAll
+  createUser    = UR.createOne
+  saveUser      = UR.saveOne
+  deleteUser    = UR.deleteOne

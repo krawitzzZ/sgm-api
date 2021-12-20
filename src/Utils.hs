@@ -3,6 +3,9 @@ module Utils
   , jsonOptions
   , readEnvDefault
   , readEnvText
+  , biconst
+  , triconst
+  , tetconst
   ) where
 
 import           Data.Aeson                               ( Options(..)
@@ -21,6 +24,7 @@ import           RIO                                      ( ($)
                                                           , Read
                                                           , String
                                                           , Text
+                                                          , const
                                                           , drop
                                                           , error
                                                           , fromMaybe
@@ -60,3 +64,12 @@ readEnvText key = do
   case envValue of
     Nothing    -> error $ "Environment variable " <> cs key <> " is required"
     Just value -> return $ cs value
+
+biconst :: a -> b -> c -> a
+biconst = const . const
+
+triconst :: a -> b -> c -> d -> a
+triconst = const . const . const
+
+tetconst :: a -> b -> c -> d -> e -> a
+tetconst = const . const . const . const
