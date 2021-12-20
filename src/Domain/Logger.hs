@@ -20,9 +20,9 @@ import           RIO                                      ( Bounded
 
 
 data Logger = Logger
-  { loggerDi     :: !(Di LogLevel LogContext LogMessage)
-  , loggerFields :: !(Map Text Text)
-  , loggerError  :: !(Maybe Text)
+  { lDi     :: !(Di LogLevel LogContext LogMessage)
+  , lFields :: !(Map Text Text)
+  , lError  :: !(Maybe Text)
   }
 
 data LogMessage = LogMessage

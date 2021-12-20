@@ -28,7 +28,7 @@ getUserById = C.getUserById
 
 updateUser :: (C.UserRepository m) => UUID -> Maybe Text -> Maybe Text -> m User
 updateUser userId fname lname =
-  C.getUserById userId >>= \u -> C.saveUser u { userFirstName = fname, userLastName = lname }
+  C.getUserById userId >>= \u -> C.saveUser u { uFirstName = fname, uLastName = lname }
 
 deleteUser :: (C.UserRepository m) => UUID -> m ()
 deleteUser = C.deleteUser

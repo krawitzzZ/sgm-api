@@ -3,6 +3,7 @@ module Infra.Beam.Mapper
   , eventEntityToDomain
   ) where
 
+import           Data.UUID                                ( UUID )
 import           Domain.Event                             ( Event(..) )
 import           Domain.User                              ( User(..) )
 import           Infra.Beam.Schema.Latest                 ( EventEntity
@@ -13,8 +14,22 @@ import           Infra.Beam.Schema.Latest                 ( EventEntity
 
 
 userEntityToDomain :: UserEntity -> User
-userEntityToDomain (UserEntity uId _ _ name pass fname lname) = User uId name pass fname lname
+userEntityToDomain UserEntity { ueId, ueUsername, uePassword, ueFirstName, ueLastName } = User
+  { uId        = ueId
+  , uUsername  = ueUsername
+  , uPassword  = uePassword
+  , uFirstName = ueFirstName
+  , uLastName  = ueLastName
+  }
 
-eventEntityToDomain :: EventEntity -> User -> User -> Event
-eventEntityToDomain (EventEntity uId _ _ title desc start end _ _) createdBy updatedBy =
-  Event uId title desc createdBy updatedBy [] start end
+eventEntityToDomain :: EventEntity -> UUID -> UUID -> Event
+eventEntityToDomain EventEntity { eeId, eeTitle, eeDescription, eeStart, eeEnd } createdBy updatedBy
+  = Event { eId            = eeId
+          , eTitle         = eeTitle
+          , eDescription   = eeDescription
+          , eCreatedBy     = createdBy
+          , eLastUpdatedBy = updatedBy
+          , eAttendees     = [] -- TODO add some attendees
+          , eStart         = eeStart
+          , eEnd           = eeEnd
+          }

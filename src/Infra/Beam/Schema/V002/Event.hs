@@ -41,15 +41,15 @@ import           RIO.Time                                 ( LocalTime )
 
 
 data EventEntityT f = EventEntity
-  { eventEntityId            :: !(C f UUID)
-  , eventEntityCreatedAt     :: !(C f LocalTime)
-  , eventEntityLastUpdatedAt :: !(C f LocalTime)
-  , eventEntityTitle         :: !(C f Text)
-  , eventEntityDescription   :: !(C f (Maybe Text))
-  , eventEntityStart         :: !(C f LocalTime)
-  , eventEntityEnd           :: !(C f LocalTime)
-  , eventEntityCreatedBy     :: !(PrimaryKey UserEntityT f)
-  , eventEntityLastUpdatedBy :: !(PrimaryKey UserEntityT f)
+  { eeId            :: !(C f UUID)
+  , eeCreatedAt     :: !(C f LocalTime)
+  , eeLastUpdatedAt :: !(C f LocalTime)
+  , eeTitle         :: !(C f Text)
+  , eeDescription   :: !(C f (Maybe Text))
+  , eeStart         :: !(C f LocalTime)
+  , eeEnd           :: !(C f LocalTime)
+  , eeCreatedBy     :: !(PrimaryKey UserEntityT f)
+  , eeLastUpdatedBy :: !(PrimaryKey UserEntityT f)
   }
   deriving (Generic, Beamable)
 
@@ -60,7 +60,7 @@ deriving instance Eq EventEntity
 instance Table EventEntityT where
   data PrimaryKey EventEntityT f = EventEntityId !(C f UUID)
     deriving (Generic, Beamable)
-  primaryKey = EventEntityId . eventEntityId
+  primaryKey = EventEntityId . eeId
 
 type EventEntityId = PrimaryKey EventEntityT Identity
 deriving instance Show EventEntityId

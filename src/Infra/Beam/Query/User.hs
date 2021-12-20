@@ -1,7 +1,7 @@
 module Infra.Beam.Query.User
   ( allUsers
   , maybeUserById
-  , maybeUserByName
+  , maybeUserByUsername
   , createAndInsertUser
   , updateUser
   , deleteUser
@@ -61,36 +61,38 @@ allUsers = runBeam (runSelectReturningList $ select $ all_ usersTable)
 maybeUserById :: (Has Connection e, MonadReader e m, MonadIO m) => UUID -> m (Maybe UserEntity)
 maybeUserById id = runBeam $ runSelectReturningOne $ lookup_ usersTable (UserEntityId id)
 
-maybeUserByName :: (Has Connection e, MonadReader e m, MonadIO m) => Text -> m (Maybe UserEntity)
-maybeUserByName name = runBeam $ runSelectReturningOne $ select $ filter_
-  (\u -> userEntityName u ==. val_ (cs name))
+maybeUserByUsername
+  :: (Has Connection e, MonadReader e m, MonadIO m) => Text -> m (Maybe UserEntity)
+maybeUserByUsername username = runBeam $ runSelectReturningOne $ select $ filter_
+  (\UserEntity { ueUsername } -> ueUsername ==. val_ (cs username))
   (all_ usersTable)
 
 createAndInsertUser :: (Has Connection e, MonadReader e m, MonadIO m) => UserData -> m UserEntity
-createAndInsertUser (UserData name pass fname lname) = runBeam $ do
+createAndInsertUser UserData { udUsername, udPassword, udFirstName, udLastName } = runBeam $ do
   let PgCrypto { pgCryptoGenRandomUUID = uuid } = getPgExtension (dbCryptoExtension sgmDb)
-  pwd          <- hashPassword pass
+  pwd          <- hashPassword udPassword
   [userEntity] <- runInsertReturningList $ insert usersTable $ insertExpressions
-    [ UserEntity uuid
-                 currentTimestamp_
-                 currentTimestamp_
-                 (val_ name)
-                 (val_ pwd)
-                 (val_ fname)
-                 (val_ lname)
+    [ UserEntity { ueId            = uuid
+                 , ueCreatedAt     = currentTimestamp_
+                 , ueLastUpdatedAt = currentTimestamp_
+                 , ueUsername      = val_ udUsername
+                 , uePassword      = val_ pwd
+                 , ueFirstName     = val_ udFirstName
+                 , ueLastName      = val_ udLastName
+                 }
     ]
   return userEntity
 
 updateUser :: (Has Connection e, MonadReader e m, MonadIO m) => User -> m ()
 updateUser user = runBeam $ runUpdate $ update
   usersTable
-  (\u ->
-    (userEntityName u <-. val_ (userName user))
-      <> (userEntityLastUpdatedAt u <-. currentTimestamp_)
-      <> (userEntityFirstName u <-. val_ (userFirstName user))
-      <> (userEntityLastName u <-. val_ (userLastName user))
+  (\UserEntity { ueUsername, ueLastUpdatedAt, ueFirstName, ueLastName } ->
+    (ueUsername <-. val_ (uUsername user))
+      <> (ueLastUpdatedAt <-. currentTimestamp_)
+      <> (ueFirstName <-. val_ (uFirstName user))
+      <> (ueLastName <-. val_ (uLastName user))
   )
-  (\u -> userEntityId u ==. val_ (userId user))
+  (\UserEntity { ueId } -> ueId ==. val_ (uId user))
 
 deleteUser :: (Has Connection e, MonadReader e m, MonadIO m) => UUID -> m ()
-deleteUser id = runBeam $ runDelete $ delete usersTable (\u -> userEntityId u ==. val_ id)
+deleteUser id = runBeam $ runDelete $ delete usersTable (\UserEntity { ueId } -> ueId ==. val_ id)

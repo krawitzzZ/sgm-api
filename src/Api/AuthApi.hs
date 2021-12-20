@@ -99,8 +99,9 @@ authV1Server = login :<|> refreshToken :<|> signup
 
 
 login :: (AuthApiConstraints e m) => LoginDto -> m (Headers AuthHeaders NoContent)
-login (LoginDto name pass) = withContext (mkContext "login")
-  $ tryCatch (loginUser name pass >>= responseWithJwtHeaders NoContent) handleJwtException
+login LoginDto { lDtoName, lDtoPassword } = withContext (mkContext "login") $ tryCatch
+  (loginUser lDtoName lDtoPassword >>= responseWithJwtHeaders NoContent)
+  handleJwtException
 
 refreshToken
   :: (AuthApiConstraints e m) => AuthResult AuthenticatedUser -> m (Headers AuthHeaders NoContent)

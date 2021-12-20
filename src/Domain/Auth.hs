@@ -56,26 +56,26 @@ import           Utils                                    ( jsonOptions )
 
 -- TODO add role
 data AuthenticatedUser = AuthenticatedUser
-  { authenticatedUserId   :: !UUID
-  , authenticatedUserName :: !Text
+  { auId   :: !UUID
+  , auName :: !Text
   }
   deriving (Eq, Show, Generic)
 
 instance Entity AuthenticatedUser where
-  entityId = authenticatedUserId
+  entityId = auId
 
 instance ToJSON AuthenticatedUser where
-  toJSON = genericToJSON $ jsonOptions "authenticatedUser"
+  toJSON = genericToJSON $ jsonOptions "au"
 
 instance FromJSON AuthenticatedUser where
-  parseJSON = genericParseJSON $ jsonOptions "authenticatedUser"
+  parseJSON = genericParseJSON $ jsonOptions "au"
 
 instance ToJWT AuthenticatedUser
 instance FromJWT AuthenticatedUser
 
 mkAuthenticatedUser :: User -> AuthenticatedUser
-mkAuthenticatedUser User { userId = id, userName = username } =
-  AuthenticatedUser { authenticatedUserId = id, authenticatedUserName = username }
+mkAuthenticatedUser User { uId = id, uUsername = username } =
+  AuthenticatedUser { auId = id, auName = username }
 
 data JWT = JWT
   { jwtAccessToken  :: ByteString

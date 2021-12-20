@@ -12,10 +12,10 @@ import           RIO                                      ( Generic
 
 
 data Config = Config
-  { configPort           :: !Int
-  , configDbUrl          :: !Text
-  , configNetworkTimeout :: !Int
-  , configLogLevel       :: !LogLevel
-  , configPasswordPolicy :: !ValidPasswordPolicy
+  { cPort           :: !Int
+  , cDbUrl          :: !Text
+  , cNetworkTimeout :: !Int
+  , cLogLevel       :: !LogLevel
+  , cPasswordPolicy :: !ValidPasswordPolicy
   }
   deriving (Generic, Has ValidPasswordPolicy)

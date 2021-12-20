@@ -52,9 +52,9 @@ newtype AppT m a = AppT { unAppT :: ReaderT Env (DiT LogLevel LogContext LogMess
 
 runAppT :: (Has Env e, MonadIO m) => e -> AppT m a -> m a
 runAppT env =
-  let appEnv              = extract env
-      Logger { loggerDi } = extract appEnv
-  in  runDiT loggerDi . flip runReaderT appEnv . unAppT
+  let appEnv         = extract env
+      Logger { lDi } = extract appEnv
+  in  runDiT lDi . flip runReaderT appEnv . unAppT
 
 instance MonadTrans AppT where
   lift = AppT . lift . lift
@@ -70,9 +70,9 @@ instance Monad m => MonadLogger (AppT m) where
   withFields  = L.withFields
 
 instance (MonadIO m, MonadCatch m) => UserRepository (AppT m) where
-  getUserById   = UR.findOneById
-  getUserByName = UR.findOneByName -- TODO getUserByUsername
-  getAllUsers   = UR.getAll
-  createUser    = UR.createOne
-  saveUser      = UR.saveOne
-  deleteUser    = UR.deleteOne
+  getUserById       = UR.findOneById
+  getUserByUsername = UR.findOneByUsername
+  getAllUsers       = UR.getAll
+  createUser        = UR.createOne
+  saveUser          = UR.saveOne
+  deleteUser        = UR.deleteOne

@@ -34,8 +34,8 @@ loginUser
   => Text
   -> Password
   -> m JWT
-loginUser name pwd =
-  getUserByName name >>= \u -> checkPassword pwd (userPassword u) >> mkJwt (mkAuthenticatedUser u)
+loginUser username pwd = getUserByUsername username
+  >>= \u -> checkPassword pwd (uPassword u) >> mkJwt (mkAuthenticatedUser u)
 
 refreshJwtToken
   :: (Has JWTSettings e, MonadReader e m, MonadTime m, MonadIO m) => AuthenticatedUser -> m JWT

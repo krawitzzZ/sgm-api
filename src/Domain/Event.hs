@@ -6,7 +6,6 @@ module Domain.Event
 
 import           Data.Time                                ( LocalTime )
 import           Data.UUID                                ( UUID )
-import           Domain.User                              ( User )
 import           RIO                                      ( Eq
                                                           , Generic
                                                           , Maybe
@@ -16,22 +15,22 @@ import           RIO                                      ( Eq
 
 
 data Event = Event
-  { eventId            :: !UUID
-  , eventTitle         :: !Text
-  , eventDescription   :: !(Maybe Text)
-  , eventCreatedBy     :: !User
-  , eventLastUpdatedBy :: !User
-  , eventAttendees     :: ![User]
-  , eventStart         :: !LocalTime
-  , eventEnd           :: !LocalTime
+  { eId            :: !UUID
+  , eTitle         :: !Text
+  , eDescription   :: !(Maybe Text)
+  , eCreatedBy     :: !UUID
+  , eLastUpdatedBy :: !UUID
+  , eAttendees     :: ![UUID]
+  , eStart         :: !LocalTime
+  , eEnd           :: !LocalTime
   }
   deriving (Eq, Show, Generic)
 
 data EventData = EventData
-  { eventDataTitle       :: !Text
-  , eventDataDescription :: !(Maybe Text)
-  , eventDataStart       :: !LocalTime
-  , eventDataEnd         :: !LocalTime
+  { edTitle       :: !Text
+  , edDescription :: !(Maybe Text)
+  , edStart       :: !LocalTime
+  , edEnd         :: !LocalTime
   }
   deriving (Eq, Show, Generic)
 

@@ -17,21 +17,21 @@ import           Utils                                    ( jsonOptions )
 
 
 data LoginDto = LoginDto
-  { loginDtoName     :: !Text
-  , loginDtoPassword :: !Password
+  { lDtoName     :: !Text
+  , lDtoPassword :: !Password
   }
   deriving (Show, Generic)
 
 instance FromJSON LoginDto where
-  parseJSON = genericParseJSON $ jsonOptions "loginDto"
+  parseJSON = genericParseJSON $ jsonOptions "lDto"
 
 data SignupDto = SignupDto
-  { signupDtoName      :: !Text
-  , signupDtoPassword  :: !Password
-  , signupDtoFirstName :: !(Maybe Text)
-  , signupDtoLastName  :: !(Maybe Text)
+  { sDtoName      :: !Text
+  , sDtoPassword  :: !Password
+  , sDtoFirstName :: !(Maybe Text)
+  , sDtoLastName  :: !(Maybe Text)
   }
   deriving (Show, Generic)
 
 instance FromJSON SignupDto where
-  parseJSON = genericParseJSON $ jsonOptions "signupDto"
+  parseJSON = genericParseJSON $ jsonOptions "sDto"

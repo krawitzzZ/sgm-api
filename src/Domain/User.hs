@@ -7,58 +7,34 @@ import           Data.UUID                                ( UUID )
 import           Domain.Password                          ( Password
                                                           , PasswordHash
                                                           )
-import           RIO                                      ( (<>)
-                                                          , (==)
+import           RIO                                      ( (==)
                                                           , Eq
                                                           , Generic
                                                           , Maybe
-                                                          , Show(..)
                                                           , Text
                                                           , on
                                                           )
 
 
 data User = User
-  { userId        :: !UUID
-  , userName      :: !Text -- TODO change to username
-  , userPassword  :: !PasswordHash
-  , userFirstName :: !(Maybe Text)
-  , userLastName  :: !(Maybe Text)
+  { uId        :: !UUID
+  , uUsername  :: !Text
+  , uPassword  :: !PasswordHash
+  , uFirstName :: !(Maybe Text)
+  , uLastName  :: !(Maybe Text)
   }
   deriving Generic
 
 instance Eq User where
-  (==) = (==) `on` userId
-
-instance Show User where
-  show (User uId name _ fname lname) =
-    "User { userId = "
-      <> show uId
-      <> ", userName = "
-      <> show name
-      <> ", userFirstName = "
-      <> show fname
-      <> ", userLastName = "
-      <> show lname
-      <> " }"
+  (==) = (==) `on` uId
 
 data UserData = UserData
-  { userDataName      :: !Text
-  , userDataPassword  :: !Password
-  , userDataFirstName :: !(Maybe Text)
-  , userDataLastName  :: !(Maybe Text)
+  { udUsername  :: !Text
+  , udPassword  :: !Password
+  , udFirstName :: !(Maybe Text)
+  , udLastName  :: !(Maybe Text)
   }
   deriving Generic
 
 instance Eq UserData where
-  (==) = (==) `on` userDataName
-
-instance Show UserData where
-  show (UserData name _ fname lname) =
-    "UserData { userDataName = "
-      <> show name
-      <> ", userFirstName = "
-      <> show fname
-      <> ", userLastName = "
-      <> show lname
-      <> " }"
+  (==) = (==) `on` udUsername

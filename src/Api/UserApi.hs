@@ -86,9 +86,9 @@ findUser userId =
 
 updateUserInfo
   :: (UserRepository m, MonadCatch m, MonadLogger m) => UUID -> UpdateUserDto -> m UserDto
-updateUserInfo userId (UpdateUserDto fname lname) =
+updateUserInfo userId UpdateUserDto { uuDtoFirstName, uuDtoLastName } =
   withContext (mkContext "updateUserInfo") >>> withField ("userId", toText userId) $ tryCatchDefault
-    (userToUserDto <$> updateUser userId fname lname)
+    (userToUserDto <$> updateUser userId uuDtoFirstName uuDtoLastName)
 
 removeUser :: (UserRepository m, MonadCatch m, MonadLogger m) => UUID -> m NoContent
 removeUser userId =

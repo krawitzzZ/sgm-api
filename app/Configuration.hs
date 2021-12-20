@@ -66,13 +66,13 @@ mkAppConfig =
     <*> mkPasswordPolicy
 
 mkLogger :: MonadIO m => Di LogLevel LogContext LogMessage -> m Logger
-mkLogger loggerDi = return Logger { loggerDi, loggerFields = empty, loggerError = Nothing }
+mkLogger lDi = return Logger { lDi, lFields = empty, lError = Nothing }
 
 mkJwtSettings :: MonadIO m => m JWTSettings
 mkJwtSettings = liftIO generateKey <&> defaultJWTSettings
 
 mkConnection :: MonadIO m => m Connection
-mkConnection = liftIO $ mkAppConfig >>= connectPostgreSQL . cs . configDbUrl
+mkConnection = liftIO $ mkAppConfig >>= connectPostgreSQL . cs . cDbUrl
 
 mkPasswordPolicy :: MonadIO m => m ValidPasswordPolicy
 mkPasswordPolicy = do

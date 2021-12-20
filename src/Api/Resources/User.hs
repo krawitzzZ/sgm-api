@@ -19,21 +19,21 @@ import           Utils                                    ( jsonOptions )
 
 
 data UserDto = UserDto
-  { userDtoId        :: !UUID
-  , userDtoName      :: !Text
-  , userDtoFirstName :: !(Maybe Text)
-  , userDtoLastName  :: !(Maybe Text)
+  { uDtoId        :: !UUID
+  , uDtoName      :: !Text
+  , uDtoFirstName :: !(Maybe Text)
+  , uDtoLastName  :: !(Maybe Text)
   }
   deriving (Show, Generic)
 
 instance ToJSON UserDto where
-  toJSON = genericToJSON $ jsonOptions "userDto"
+  toJSON = genericToJSON $ jsonOptions "uDto"
 
 data UpdateUserDto = UpdateUserDto
-  { updateUserDtoFirstName :: !(Maybe Text)
-  , updateUserDtoLastName  :: !(Maybe Text)
+  { uuDtoFirstName :: !(Maybe Text)
+  , uuDtoLastName  :: !(Maybe Text)
   }
   deriving (Show, Generic)
 
 instance FromJSON UpdateUserDto where
-  parseJSON = genericParseJSON $ jsonOptions "updateUserDto"
+  parseJSON = genericParseJSON $ jsonOptions "uuDto"

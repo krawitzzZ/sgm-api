@@ -11,7 +11,7 @@ import           Domain.User                              ( User(..)
 
 
 userToUserDto :: User -> UserDto
-userToUserDto (User id name _ fname lname) = UserDto id name fname lname
+userToUserDto (User id username _ fname lname) = UserDto id username fname lname
 
 signupDtoToUserData :: SignupDto -> UserData
-signupDtoToUserData (SignupDto name pass fname lname) = UserData name pass fname lname
+signupDtoToUserData (SignupDto username pass fname lname) = UserData username pass fname lname

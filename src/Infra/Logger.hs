@@ -60,20 +60,20 @@ withContext = push
 withError :: (Has Logger e, MonadReader e m, Show err) => err -> m a -> m a
 withError err action = do
   logger <- asks extract
-  local (update . const $ logger { loggerError = Just . cs . show $ err }) action
+  local (update . const $ logger { lError = Just . cs . show $ err }) action
 
 withField :: (Has Logger e, MonadReader e m) => (Text, Text) -> m a -> m a
 withField (field, value) action = do
   logger <- asks extract
-  let fields = loggerFields logger <> singleton field value
-  local (update . const $ logger { loggerFields = fields }) action
+  let fields = lFields logger <> singleton field value
+  local (update . const $ logger { lFields = fields }) action
 
 withFields :: (Has Logger e, MonadReader e m) => [(Text, Text)] -> m a -> m a
 withFields fields action = do
   logger <- asks extract
-  let fields' = loggerFields logger <> fromList fields
-  local (update . const $ logger { loggerFields = fields' }) action
+  let fields' = lFields logger <> fromList fields
+  local (update . const $ logger { lFields = fields' }) action
 
 logMessage :: (MonadDi LogLevel LogContext LogMessage m) => LogLevel -> Text -> Logger -> m ()
 logMessage level lmMessage Logger {..} =
-  log level LogMessage { lmMessage, lmFields = loggerFields, lmError = loggerError }
+  log level LogMessage { lmMessage, lmFields = lFields, lmError = lError }

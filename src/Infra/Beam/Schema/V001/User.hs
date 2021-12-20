@@ -41,13 +41,13 @@ import           RIO.Time                                 ( LocalTime )
 
 
 data UserEntityT f = UserEntity
-  { userEntityId            :: !(C f UUID)
-  , userEntityCreatedAt     :: !(C f LocalTime)
-  , userEntityLastUpdatedAt :: !(C f LocalTime)
-  , userEntityName          :: !(C f Text)
-  , userEntityPassword      :: !(C f PasswordHash)
-  , userEntityFirstName     :: !(C f (Maybe Text))
-  , userEntityLastName      :: !(C f (Maybe Text))
+  { ueId            :: !(C f UUID)
+  , ueCreatedAt     :: !(C f LocalTime)
+  , ueLastUpdatedAt :: !(C f LocalTime)
+  , ueUsername      :: !(C f Text)
+  , uePassword      :: !(C f PasswordHash)
+  , ueFirstName     :: !(C f (Maybe Text))
+  , ueLastName      :: !(C f (Maybe Text))
   }
   deriving (Generic, Beamable)
 
@@ -55,10 +55,11 @@ type UserEntity = UserEntityT Identity
 deriving instance Show UserEntity
 deriving instance Eq UserEntity
 
+-- TODO sneak peek at the type of this for repository class hints
 instance Table UserEntityT where
   data PrimaryKey UserEntityT f = UserEntityId !(C f UUID)
     deriving (Generic, Beamable)
-  primaryKey = UserEntityId . userEntityId
+  primaryKey = UserEntityId . ueId
 
 type UserEntityId = PrimaryKey UserEntityT Identity
 deriving instance Show UserEntityId
@@ -71,7 +72,7 @@ createUsersTable = createTable
   (UserEntity (field "id" uuid notNull)
               (field "created_at" timestamp (defaultTo_ now_) notNull)
               (field "last_updated_at" timestamp (defaultTo_ now_) notNull)
-              (field "name" text notNull unique)
+              (field "username" text notNull unique)
               (field "password" passwordType notNull)
               (field "first_name" (maybeType text))
               (field "last_name" (maybeType text))

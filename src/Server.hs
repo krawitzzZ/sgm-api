@@ -62,11 +62,11 @@ import           Servant.Auth.Server                      ( CookieSettings
 start :: Env -> IO ()
 start env = do
   requestLoggerMw <- mkJSONRequestLoggerMiddleware
-  let di       = loggerDi . envLogger $ env
-  let config   = envConfig env
-  let port     = configPort config
-  let logLevel = configLogLevel config
-  let timeout  = configNetworkTimeout config
+  let di       = lDi . envLogger $ env
+  let conf     = envConfig env
+  let port     = cPort conf
+  let logLevel = cLogLevel conf
+  let timeout  = cNetworkTimeout conf
   let fields = fromList
         [ ("logLevel", cs . show $ logLevel)
         , ("port"    , cs . show $ port)

@@ -1,7 +1,7 @@
 module Infra.UserRepository
   ( getAll
   , findOneById
-  , findOneByName
+  , findOneByUsername
   , createOne
   , saveOne
   , deleteOne
@@ -25,7 +25,7 @@ import           Infra.Beam.Query.User                    ( allUsers
                                                           , createAndInsertUser
                                                           , deleteUser
                                                           , maybeUserById
-                                                          , maybeUserByName
+                                                          , maybeUserByUsername
                                                           , updateUser
                                                           )
 import           Infra.Exception                          ( tryCatchDefault )
@@ -54,20 +54,21 @@ findOneById id = withContext (mkContext "findUsers") $ tryCatchDefault $ maybeUs
   Just user -> return $ userEntityToDomain user
   Nothing   -> throwM . NotFound $ "User with id '" <> cs (show id) <> "' not found"
 
-findOneByName
+findOneByUsername
   :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => Text -> m User
-findOneByName name =
-  withContext (mkContext "findUsers") $ tryCatchDefault $ maybeUserByName name >>= \case
-    Nothing   -> throwM . NotFound $ "User with name '" <> name <> "' not found"
+findOneByUsername username =
+  withContext (mkContext "findUsers") $ tryCatchDefault $ maybeUserByUsername username >>= \case
+    Nothing   -> throwM . NotFound $ "User with username '" <> username <> "' not found"
     Just user -> return $ userEntityToDomain user
 
 createOne
   :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m)
   => UserData
   -> m User
-createOne user@UserData { userDataName = name } =
-  withContext (mkContext "createOne") $ tryCatchDefault $ maybeUserByName name >>= \case
-    Just _  -> throwM $ UserNameAlreadyExists $ "User with username '" <> name <> "' already exists"
+createOne user@UserData { udUsername = username } =
+  withContext (mkContext "createOne") $ tryCatchDefault $ maybeUserByUsername username >>= \case
+    Just _ ->
+      throwM $ UserNameAlreadyExists $ "User with username '" <> username <> "' already exists"
     Nothing -> createAndInsertUser user <&> userEntityToDomain
 
 saveOne
