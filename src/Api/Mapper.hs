@@ -11,16 +11,13 @@ import           Domain.User                              ( NewUserData(..)
 
 
 userToUserDto :: User -> UserDto
-userToUserDto User { uId, uUsername, uFirstName, uLastName } = UserDto { uDtoId        = uId
-                                                                       , uDtoUsername  = uUsername
-                                                                       , uDtoFirstName = uFirstName
-                                                                       , uDtoLastName  = uLastName
-                                                                       }
+userToUserDto User { uId, uUsername, uFirstName, uLastName } =
+  UserDto { udId = uId, udUsername = uUsername, udFirstName = uFirstName, udLastName = uLastName }
 
 signupDtoToUserData :: SignupDto -> NewUserData
-signupDtoToUserData SignupDto { sDtoUsername, sDtoPassword, sDtoFirstName, sDtoLastName } =
-  NewUserData { nudUsername  = sDtoUsername
-              , nudPassword  = sDtoPassword
-              , nudFirstName = sDtoFirstName
-              , nudLastName  = sDtoLastName
-              }
+signupDtoToUserData SignupDto { sdUsername, sdPassword, sdFirstName, sdLastName } = NewUserData
+  { nudUsername  = sdUsername
+  , nudPassword  = sdPassword
+  , nudFirstName = sdFirstName
+  , nudLastName  = sdLastName
+  }
