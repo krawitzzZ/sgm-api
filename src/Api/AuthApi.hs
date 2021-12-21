@@ -96,9 +96,8 @@ login
   :: (Authentication m, UserRepository m, MonadCatch m, MonadLogger m)
   => LoginDto
   -> m (Headers AuthHeaders NoContent)
-login LoginDto { lDtoName, lDtoPassword } = withContext (mkContext "login") $ tryCatch
-  (loginUser lDtoName lDtoPassword >>= responseWithJwtHeaders NoContent)
-  handleJwtException
+login LoginDto { ldName, ldPassword } = withContext (mkContext "login")
+  $ tryCatch (loginUser ldName ldPassword >>= responseWithJwtHeaders NoContent) handleJwtException
 
 refreshToken
   :: (Authentication m, MonadCatch m, MonadLogger m)

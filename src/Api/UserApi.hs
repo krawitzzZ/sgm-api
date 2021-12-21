@@ -79,7 +79,7 @@ userV1Server _ = throw401 :<|> const throw401 :<|> biconst throw401 :<|> const t
 
 getAllUsers :: (UserRepository m, MonadCatch m, MonadLogger m) => m [UserDto]
 getAllUsers =
-  withContext (mkContext "findUsers") $ tryCatchDefault $ map userToUserDto <$> getUsers
+  withContext (mkContext "getAllUsers") $ tryCatchDefault $ map userToUserDto <$> getUsers
 
 findUser :: (UserRepository m, MonadCatch m, MonadLogger m) => UUID -> m UserDto
 findUser userId =
@@ -92,10 +92,10 @@ updateUserInfo
   -> UUID
   -> UpdateUserDto
   -> m UserDto
-updateUserInfo me userId UpdateUserDto { uuDtoFirstName, uuDtoLastName } =
+updateUserInfo me userId UpdateUserDto { uudFirstName, uudLastName } =
   withContext (mkContext "updateUserInfo") >>> withField ("userId", toText userId) $ do
     identityGuard userId me
-    tryCatchDefault (userToUserDto <$> updateUser userId uuDtoFirstName uuDtoLastName)
+    tryCatchDefault (userToUserDto <$> updateUser userId uudFirstName uudLastName)
 
 removeUser
   :: (UserRepository m, MonadCatch m, MonadLogger m) => AuthenticatedUser -> UUID -> m NoContent

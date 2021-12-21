@@ -59,6 +59,7 @@ dependencies:
 - validity-aeson
 - validity-text
 - validity-time
+- validity-uuid
 - wai
 - wai-extra
 - warp
