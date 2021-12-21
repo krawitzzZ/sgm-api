@@ -9,12 +9,22 @@ import           Data.Aeson                               ( FromJSON(..)
                                                           , genericToJSON
                                                           )
 import           Data.UUID                                ( UUID )
+import           Data.Validity                            ( Validity(..)
+                                                          , declare
+                                                          )
+import           Data.Validity.Aeson                      ( parseJSONValid )
+import           Data.Validity.Text                       ( )
 import           RIO                                      ( ($)
+                                                          , (.)
+                                                          , (>)
+                                                          , Bool(..)
                                                           , Generic
                                                           , Maybe
-                                                          , Show
                                                           , Text
+                                                          , maybe
+                                                          , mconcat
                                                           )
+import           RIO.Text                                 ( length )
 import           Utils                                    ( jsonOptions )
 
 
@@ -24,7 +34,7 @@ data UserDto = UserDto
   , uDtoFirstName :: !(Maybe Text)
   , uDtoLastName  :: !(Maybe Text)
   }
-  deriving (Show, Generic)
+  deriving Generic
 
 instance ToJSON UserDto where
   toJSON = genericToJSON $ jsonOptions "uDto"
@@ -33,7 +43,14 @@ data UpdateUserDto = UpdateUserDto
   { uuDtoFirstName :: !(Maybe Text)
   , uuDtoLastName  :: !(Maybe Text)
   }
-  deriving (Show, Generic)
+  deriving Generic
+
+instance Validity UpdateUserDto where
+  validate UpdateUserDto { uuDtoFirstName, uuDtoLastName } = mconcat
+    [ declare "First name is at least 2 characters long"
+              (maybe True ((> 2) . length) uuDtoFirstName)
+    , declare "Last name is at least 2 characters long" (maybe True ((> 2) . length) uuDtoLastName)
+    ]
 
 instance FromJSON UpdateUserDto where
-  parseJSON = genericParseJSON $ jsonOptions "uuDto"
+  parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "uuDto") v

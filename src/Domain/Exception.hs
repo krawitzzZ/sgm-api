@@ -15,17 +15,17 @@ data DomainException =
   InternalError Text |
   NotFound Text |
   UserNameAlreadyExists Text |
-  InvalidPassword |
+  InvalidPassword Text |
   CreateJwtException Text |
-  AccessRestricted Text
+  AccessRestricted
   deriving (Eq)
 
 instance Show DomainException where
   show (InternalError         msg) = "InternalError => " <> cs msg
   show (NotFound              msg) = "NotFound => " <> cs msg
   show (UserNameAlreadyExists msg) = "UserNameAlreadyExists => " <> cs msg
-  show InvalidPassword             = "InvalidPassword => Provided password is invalid"
-  show (CreateJwtException msg)    = "CreateJwtException => " <> cs msg
-  show (AccessRestricted   msg)    = "AccessRestricted => " <> cs msg
+  show (InvalidPassword       msg) = "InvalidPassword => " <> cs msg
+  show (CreateJwtException    msg) = "CreateJwtException => " <> cs msg
+  show AccessRestricted            = "AccessRestricted"
 
 instance Exception DomainException

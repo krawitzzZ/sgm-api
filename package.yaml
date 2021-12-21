@@ -35,6 +35,7 @@ dependencies:
 - dlist
 - dotenv
 - fast-logger
+- genvalidity
 - http-types
 - http-api-data
 - lifted-async
@@ -54,6 +55,10 @@ dependencies:
 - time
 - timezone-detect
 - uuid
+- validity
+- validity-aeson
+- validity-text
+- validity-time
 - wai
 - wai-extra
 - warp

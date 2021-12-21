@@ -56,7 +56,8 @@ loadEnv :: MonadIO m => m ()
 loadEnv = void $ loadSafeFile defaultValidatorMap "env.schema.yaml" defaultConfig
 
 mkAppEnv :: MonadIO m => Di LogLevel LogContext LogMessage -> m Env
-mkAppEnv di = Env <$> mkAppConfig <*> mkLogger di <*> mkJwtSettings <*> mkConnection
+mkAppEnv di =
+  Env <$> mkAppConfig <*> mkLogger di <*> mkJwtSettings <*> mkPasswordPolicy <*> mkConnection
 
 mkAppConfig :: MonadIO m => m Config
 mkAppConfig =
@@ -65,7 +66,6 @@ mkAppConfig =
     <*> readEnvText "DB_URL"
     <*> readEnvDefault "SERVER_TIMEOUT" 20
     <*> readEnvDefault "LOG_LEVEL"      Info
-    <*> mkPasswordPolicy
     <*> return (secondsToNominalDiffTime (60 * 5))
 
 mkLogger :: MonadIO m => Di LogLevel LogContext LogMessage -> m Logger

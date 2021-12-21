@@ -3,7 +3,9 @@ module Api.Exception
   , tryCatch
   , tryCatches
   , tryCatchDefault
+  , throw400
   , throw401
+  , throw500
   ) where
 
 import           Control.Exception.Safe                   ( Handler(..)
@@ -39,7 +41,8 @@ import           Utils.Exception                          ( mkTryCatch
 data ApiException =
   BadRequest400 Text |
   Unauthorized401 |
-  NotFound404 Text |
+  Forbidden403 |
+  NotFound404 |
   Conflict409 Text |
   InternalError500
   deriving (Eq, Show)
@@ -55,15 +58,17 @@ instance MimeRender PlainText ApiException where
 instance ToServantErr ApiException where
   status BadRequest400{}    = H.badRequest400
   status Unauthorized401{}  = H.unauthorized401
+  status Forbidden403{}     = H.forbidden403
   status NotFound404{}      = H.notFound404
   status Conflict409{}      = H.conflict409
   status InternalError500{} = H.internalServerError500
 
   message (BadRequest400 msg) = msg
   message Unauthorized401     = "Unauthorized"
-  message (NotFound404 msg)   = msg
+  message Forbidden403        = "Access forbidden"
+  message NotFound404         = "Not found"
   message (Conflict409 msg)   = msg
-  message InternalError500    = "Internal Server Error"
+  message InternalError500    = "Internal server error"
 
 tryCatch :: (MonadLogger m, MonadCatch m, Exception e) => m a -> (e -> m a) -> m a
 tryCatch = mkTryCatch (Handler handleSomeException)
@@ -74,22 +79,28 @@ tryCatches = mkTryCatches (Handler handleSomeException)
 tryCatchDefault :: (MonadLogger m, MonadCatch m) => m a -> m a
 tryCatchDefault = mkTryCatchDefault defaultHandlers
 
+throw400 :: (MonadThrow m) => Text -> m a
+throw400 msg = throwM $ BadRequest400 msg
+
 throw401 :: (MonadThrow m) => m a
 throw401 = throwM Unauthorized401
 
-
-handleDomainException :: (MonadThrow m, MonadLogger m) => (DomainException -> m a)
-handleDomainException InvalidPassword{}           = throwM Unauthorized401
-handleDomainException NotFound{}                  = throwM $ NotFound404 "Not found"
-handleDomainException (UserNameAlreadyExists msg) = throwM $ Conflict409 msg
-handleDomainException e                           = do
-  withError e $ logWarn "Unhandled domain exception occurred"
-  throwM InternalError500
-
-handleSomeException :: (MonadLogger m, MonadThrow m) => SomeException -> m a
-handleSomeException (SomeException e) = do
+throw500 :: (MonadLogger m, MonadThrow m, Show err) => err -> m b
+throw500 e = do
   withError e $ logWarn "Unexpected exception occurred"
   throwM InternalError500
+
+
+handleDomainException :: (MonadThrow m, MonadLogger m) => (DomainException -> m a)
+handleDomainException InvalidPassword{}             = throwM Unauthorized401
+handleDomainException AccessRestricted{}            = throwM Forbidden403
+handleDomainException NotFound{}                    = throwM NotFound404
+handleDomainException (  UserNameAlreadyExists msg) = throwM $ Conflict409 msg
+handleDomainException e@(CreateJwtException    _  ) = throw500 e
+handleDomainException e@(InternalError         _  ) = throw500 e
+
+handleSomeException :: (MonadLogger m, MonadThrow m) => SomeException -> m a
+handleSomeException (SomeException e) = throw500 e
 
 defaultHandlers :: (MonadLogger m, MonadCatch m) => [Handler m a]
 defaultHandlers = [Handler handleDomainException, Handler handleSomeException]

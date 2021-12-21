@@ -1,10 +1,17 @@
 module Domain.Class
-  ( Entity(..)
-  , MonadLogger(..)
+  ( MonadLogger(..)
   , UserRepository(..)
+  , Authentication(..)
   ) where
 
+import           Control.Exception.Safe                   ( MonadThrow )
 import           Data.UUID                                ( UUID )
+import           Domain.Auth                              ( AuthenticatedUser
+                                                          , JWT
+                                                          )
+import           Domain.Password                          ( Password
+                                                          , PasswordHash
+                                                          )
 import           Domain.User                              ( NewUserData
                                                           , User
                                                           )
@@ -32,5 +39,7 @@ class (Monad m) => UserRepository m where
   saveUser :: User -> m User
   deleteUser :: UUID -> m ()
 
-class Entity entity where
-  entityId :: entity -> UUID
+class (Monad m) => Authentication m where
+  validatePassword :: (MonadThrow m) => Password -> m ()
+  checkPassword :: (MonadThrow m) => Password -> PasswordHash -> m ()
+  createJwt :: AuthenticatedUser -> m JWT

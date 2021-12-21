@@ -5,7 +5,9 @@ module Api.AuthApi
 
 import           Api.ApiVersion                           ( ApiVersion(..) )
 import           Api.Exception                            ( ApiException(..)
+                                                          , throw400
                                                           , throw401
+                                                          , throw500
                                                           , tryCatch
                                                           , tryCatchDefault
                                                           )
@@ -24,24 +26,22 @@ import           Control.Exception.Safe                   ( MonadCatch
                                                           , MonadThrow
                                                           , throwM
                                                           )
-import           Control.Monad.Reader.Has                 ( Has )
-import           Control.Monad.Time                       ( MonadTime )
 import           Data.String.Conversions                  ( cs )
 import           Domain.Auth                              ( AuthenticatedUser
                                                           , JWT(..)
                                                           )
-import           Domain.Class                             ( MonadLogger(..)
+import           Domain.Class                             ( Authentication(..)
+                                                          , MonadLogger(..)
                                                           , UserRepository
                                                           )
-import           Domain.Env                               ( Env )
 import           Domain.Exception                         ( DomainException(..) )
 import           Domain.Logger                            ( LogContext )
+import           Domain.User                              ( NewUserData(..) )
 import           RIO                                      ( ($)
+                                                          , (.)
                                                           , (<>)
                                                           , (>>=)
                                                           , Monad
-                                                          , MonadIO
-                                                          , MonadReader
                                                           , Text
                                                           , return
                                                           )
@@ -81,38 +81,50 @@ type AuthApi auths = Throws ApiException :>
     Signup
   )
 
-type AuthApiConstraints e m
-  = ( Has Env e
-    , MonadReader e m
-    , UserRepository m
-    , MonadCatch m
-    , MonadLogger m
-    , MonadTime m
-    , MonadIO m
-    )
-
-authServer :: (AuthApiConstraints e m) => ApiVersion -> ServerT (AuthApi auths) m
+authServer
+  :: (Authentication m, UserRepository m, MonadCatch m, MonadLogger m)
+  => ApiVersion
+  -> ServerT (AuthApi auths) m
 authServer V1 = authV1Server
 
-authV1Server :: (AuthApiConstraints e m) => ServerT (AuthApi auths) m
+authV1Server
+  :: (Authentication m, UserRepository m, MonadCatch m, MonadLogger m) => ServerT (AuthApi auths) m
 authV1Server = login :<|> refreshToken :<|> signup
 
 
-login :: (AuthApiConstraints e m) => LoginDto -> m (Headers AuthHeaders NoContent)
+login
+  :: (Authentication m, UserRepository m, MonadCatch m, MonadLogger m)
+  => LoginDto
+  -> m (Headers AuthHeaders NoContent)
 login LoginDto { lDtoName, lDtoPassword } = withContext (mkContext "login") $ tryCatch
   (loginUser lDtoName lDtoPassword >>= responseWithJwtHeaders NoContent)
   handleJwtException
 
 refreshToken
-  :: (AuthApiConstraints e m) => AuthResult AuthenticatedUser -> m (Headers AuthHeaders NoContent)
+  :: (Authentication m, MonadCatch m, MonadLogger m)
+  => AuthResult AuthenticatedUser
+  -> m (Headers AuthHeaders NoContent)
 refreshToken (Authenticated authUser) = withContext (mkContext "refreshToken")
   $ tryCatch (refreshJwtToken authUser >>= responseWithJwtHeaders NoContent) handleJwtException
 refreshToken _ = throw401
 
-signup :: (AuthApiConstraints e m) => SignupDto -> m (Headers AuthHeaders UserDto)
-signup signupDto = withContext (mkContext "signup") $ tryCatchDefault $ do
-  (user, jwt) <- signupUser (signupDtoToUserData signupDto)
-  responseWithJwtHeaders (userToUserDto user) jwt
+signup
+  :: (Authentication m, UserRepository m, MonadCatch m, MonadLogger m)
+  => SignupDto
+  -> m (Headers AuthHeaders UserDto)
+signup signupDto = withContext (mkContext "signup") $ do
+  let userData = signupDtoToUserData signupDto
+
+  tryCatch
+    (validatePassword . nudPassword $ userData)
+    (\case
+      InvalidPassword msg -> throw400 msg
+      e                   -> throw500 e
+    )
+
+  tryCatchDefault $ do
+    (user, jwt) <- signupUser userData
+    responseWithJwtHeaders (userToUserDto user) jwt
 
 
 responseWithJwtHeaders :: Monad m => a -> JWT -> m (Headers AuthHeaders a)

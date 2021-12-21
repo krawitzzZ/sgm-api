@@ -14,18 +14,24 @@ import           Di.Monad                                 ( DiT
                                                           , MonadDi
                                                           , runDiT
                                                           )
-import           Domain.Class                             ( MonadLogger(..)
+import qualified Domain.Auth                             as Auth
+import           Domain.Class                             ( Authentication(..)
+                                                          , MonadLogger(..)
                                                           , UserRepository(..)
                                                           )
+import           Domain.Config                            ( Config(..) )
 import           Domain.Env                               ( Env )
 import           Domain.Logger                            ( LogContext
                                                           , LogLevel
                                                           , LogMessage
                                                           , Logger(..)
                                                           )
-import qualified Infra.Logger                            as L
-import qualified Infra.UserRepository                    as UR
+import qualified Domain.Password                         as Password
+import qualified Infra.Logger                            as Logger
+import qualified Infra.UserRepository                    as UserRepo
 import           RIO                                      ( (.)
+                                                          , (<$>)
+                                                          , (>>=)
                                                           , Applicative
                                                           , Functor
                                                           , Generic
@@ -34,6 +40,7 @@ import           RIO                                      ( (.)
                                                           , MonadReader
                                                           , MonadTrans(..)
                                                           , ReaderT(..)
+                                                          , asks
                                                           , flip
                                                           )
 
@@ -60,19 +67,27 @@ instance MonadTrans AppT where
   lift = AppT . lift . lift
 
 instance Monad m => MonadLogger (AppT m) where
-  logDebug    = L.logDebug
-  logInfo     = L.logInfo
-  logWarn     = L.logWarn
-  logError    = L.logError
-  withContext = L.withContext
-  withError   = L.withError
-  withField   = L.withField
-  withFields  = L.withFields
+  logDebug    = Logger.logDebug
+  logInfo     = Logger.logInfo
+  logWarn     = Logger.logWarn
+  logError    = Logger.logError
+  withContext = Logger.withContext
+  withError   = Logger.withError
+  withField   = Logger.withField
+  withFields  = Logger.withFields
 
 instance (MonadIO m, MonadCatch m) => UserRepository (AppT m) where
-  getUserById       = UR.findOneById
-  getUserByUsername = UR.findOneByUsername
-  getAllUsers       = UR.getAll
-  createUser        = UR.createOne
-  saveUser          = UR.saveOne
-  deleteUser        = UR.deleteOne
+  getUserById       = UserRepo.findOneById
+  getUserByUsername = UserRepo.findOneByUsername
+  getAllUsers       = UserRepo.getAll
+  createUser        = UserRepo.createOne
+  saveUser          = UserRepo.saveOne
+  deleteUser        = UserRepo.deleteOne
+
+instance (MonadIO m, MonadTime m) => Authentication (AppT m) where
+  validatePassword pass = asks extract >>= Password.validatePassword pass
+  checkPassword = Password.checkPassword
+  createJwt user = do
+    tokenDuration <- cJwtDuration <$> asks extract
+    jwtSettings   <- asks extract
+    Auth.mkJwt tokenDuration jwtSettings user

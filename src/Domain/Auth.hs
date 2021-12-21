@@ -5,12 +5,9 @@ module Domain.Auth
   , mkAuthenticatedUser
   ) where
 
-import           Control.Exception.Safe                   ( MonadThrow
-                                                          , throwM
-                                                          )
+import           Control.Exception.Safe                   ( throwM )
 import           Control.Monad.Reader.Has                 ( Has
                                                           , extract
-                                                          -- , extract
                                                           )
 import           Control.Monad.Time                       ( MonadTime(..) )
 import           Data.Aeson                               ( FromJSON(..)
@@ -21,15 +18,12 @@ import           Data.Aeson                               ( FromJSON(..)
 import           Data.ByteString.Lazy                     ( ByteString )
 import           Data.String.Conversions                  ( cs )
 import           Data.UUID                                ( UUID )
-import           Domain.Class                             ( Entity(..) )
-import           Domain.Config                            ( Config(..) )
-import           Domain.Env                               ( Env(..) )
 import           Domain.Exception                         ( DomainException(..) )
 import           Domain.User                              ( User(..) )
 import           RIO                                      ( ($)
                                                           , (*)
-                                                          , (.)
                                                           , (<$>)
+                                                          , (<*>)
                                                           , (<>)
                                                           , (>>=)
                                                           , Either(..)
@@ -37,15 +31,13 @@ import           RIO                                      ( ($)
                                                           , Generic
                                                           , Maybe(..)
                                                           , MonadIO
-                                                          , MonadReader
-                                                          , Show
                                                           , Text
-                                                          , asks
                                                           , liftIO
                                                           , return
                                                           , show
                                                           )
-import           RIO.Time                                 ( UTCTime
+import           RIO.Time                                 ( NominalDiffTime
+                                                          , UTCTime
                                                           , addUTCTime
                                                           , nominalDay
                                                           )
@@ -63,58 +55,41 @@ data AuthenticatedUser = AuthenticatedUser
   { auId   :: !UUID
   , auName :: !Text
   }
-  deriving (Eq, Show, Generic)
-
-instance Entity AuthenticatedUser where
-  entityId = auId
+  deriving (Has UUID, Eq, Generic)
 
 instance ToJSON AuthenticatedUser where
   toJSON = genericToJSON $ jsonOptions "au"
-
 instance FromJSON AuthenticatedUser where
   parseJSON = genericParseJSON $ jsonOptions "au"
-
 instance ToJWT AuthenticatedUser
 instance FromJWT AuthenticatedUser
 
 mkAuthenticatedUser :: User -> AuthenticatedUser
-mkAuthenticatedUser User { uId = id, uUsername = username } =
-  AuthenticatedUser { auId = id, auName = username }
+mkAuthenticatedUser User { uId, uUsername } = AuthenticatedUser { auId = uId, auName = uUsername }
 
 data JWT = JWT
   { jwtAccessToken  :: !ByteString
   , jwtRefreshToken :: !ByteString
   }
-  deriving (Eq, Show, Generic)
+  deriving (Eq, Generic)
 
-mkJwt :: (Has Env e, MonadReader e m, MonadTime m, MonadIO m) => AuthenticatedUser -> m JWT
-mkJwt user = do
-  jwtSettings                                 <- envJwtSettings <$> asks extract
-  (accessTokenExpireAt, refreshTokenExpireAt) <- mkExpirationTimes
-  accessToken                                 <- mkToken user jwtSettings accessTokenExpireAt
-  refreshToken                                <- mkToken user jwtSettings refreshTokenExpireAt
-  return $ JWT accessToken refreshToken
+mkJwt :: (MonadTime m, MonadIO m) => NominalDiffTime -> JWTSettings -> AuthenticatedUser -> m JWT
+mkJwt tokenDuration jwtSettings user =
+  mkExpirationTimes tokenDuration >>= \(accessExpire, refreshExpire) ->
+    JWT <$> mkToken user jwtSettings accessExpire <*> mkToken user jwtSettings refreshExpire
 
 
-mkToken :: (Entity a, ToJWT a, MonadIO m) => a -> JWTSettings -> UTCTime -> m ByteString
+mkExpirationTimes :: (MonadTime m) => NominalDiffTime -> m (UTCTime, UTCTime)
+mkExpirationTimes tokenDuration =
+  currentTime >>= \now -> return (addUTCTime tokenDuration now, addUTCTime (nominalDay * 99) now)
+
+mkToken :: (Has UUID a, ToJWT a, MonadIO m) => a -> JWTSettings -> UTCTime -> m ByteString
 mkToken user jwtSettings expireTime = liftIO $ makeJWT user jwtSettings (Just expireTime) >>= \case
   Right token -> return token
-  Left  err   -> throwJwtException (entityId user) err
-
-
-mkExpirationTimes :: (Has Env e, MonadReader e m, MonadTime m) => m (UTCTime, UTCTime)
-mkExpirationTimes = do
-  now                   <- currentTime
-  accessTokenExpireTime <- cJwtDuration . envConfig <$> asks extract
-  let accessTokenExpire  = addUTCTime accessTokenExpireTime now
-  let refreshTokenExpire = addUTCTime (nominalDay * 99) now
-  return (accessTokenExpire, refreshTokenExpire)
-
-throwJwtException :: (MonadThrow m, Show e) => UUID -> e -> m a
-throwJwtException userId err =
-  throwM
-    $  CreateJwtException
-    $  "Failed to create JWT for user with id "
-    <> cs (show userId)
-    <> ": "
-    <> cs (show err)
+  Left err ->
+    throwM
+      $  CreateJwtException
+      $  "Failed to create JWT for user with id "
+      <> cs (show (extract user :: UUID))
+      <> ": "
+      <> cs (show err)

@@ -1,7 +1,10 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module Domain.Password
   ( Password(..)
   , PasswordHash(..)
   , mkPassword
+  , validatePassword
   , hashPassword
   , checkPassword
   ) where
@@ -16,6 +19,13 @@ import           Data.Aeson                               ( FromJSON(..)
                                                           )
 import qualified Data.Password.Argon2                    as P
 import           Data.Password.Instances                  ( )
+import qualified Data.Password.Validate                  as PV
+import           Data.Password.Validate                   ( ValidPasswordPolicy )
+import           Data.String.Conversions                  ( cs )
+import           Data.Validity                            ( Validity(..)
+                                                          , valid
+                                                          )
+import           Data.Validity.Text                       ( )
 import           Domain.Exception                         ( DomainException(InvalidPassword) )
 import           RIO                                      ( ($)
                                                           , (<&>)
@@ -26,12 +36,20 @@ import           RIO                                      ( ($)
                                                           , Read
                                                           , Show
                                                           , Text
+                                                          , const
                                                           , return
+                                                          , show
                                                           )
 
 
 newtype Password = Password { unPassword :: P.Password }
   deriving (Show, Generic)
+
+-- Password will be validated separately using `validatePassword`
+instance Validity P.Password where
+  validate = const valid
+instance Validity Password where
+  validate = const valid
 
 instance FromJSON Password where
   parseJSON = genericParseJSON defaultOptions { unwrapUnaryRecords = True }
@@ -48,4 +66,9 @@ hashPassword (Password pwd) = P.hashPassword pwd <&> PasswordHash
 checkPassword :: (MonadThrow m) => Password -> PasswordHash -> m ()
 checkPassword (Password pwd) (PasswordHash pwdHash) = case P.checkPassword pwd pwdHash of
   P.PasswordCheckSuccess -> return ()
-  P.PasswordCheckFail    -> throwM InvalidPassword
+  P.PasswordCheckFail    -> throwM $ InvalidPassword "Provided password is invalid"
+
+validatePassword :: (MonadThrow m) => Password -> ValidPasswordPolicy -> m ()
+validatePassword (Password pwd) policy = case PV.validatePassword policy pwd of
+  PV.ValidPassword           -> return ()
+  PV.InvalidPassword reasons -> throwM $ InvalidPassword $ cs (show reasons)
