@@ -20,7 +20,7 @@ import           Utils                                    ( jsonOptions )
 
 data UserDto = UserDto
   { uDtoId        :: !UUID
-  , uDtoName      :: !Text
+  , uDtoUsername  :: !Text
   , uDtoFirstName :: !(Maybe Text)
   , uDtoLastName  :: !(Maybe Text)
   }

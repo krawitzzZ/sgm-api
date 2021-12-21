@@ -16,6 +16,7 @@ import           Control.Monad.Time                       ( MonadTime )
 import           Domain.Class                             ( MonadLogger
                                                           , UserRepository
                                                           )
+import           Domain.Env                               ( Env )
 import           RIO                                      ( MonadIO
                                                           , MonadReader
                                                           )
@@ -24,7 +25,6 @@ import           Servant                                  ( type (:<|>)((:<|>))
                                                           , Capture
                                                           , ServerT
                                                           )
-import           Servant.Auth.Server                      ( JWTSettings )
 
 
 -- brittany-disable-next-binding
@@ -35,7 +35,7 @@ type SGMApi auths = "api" :> Capture "version" ApiVersion :>
   )
 
 server
-  :: ( Has JWTSettings e
+  :: ( Has Env e
      , MonadReader e m
      , UserRepository m
      , MonadLogger m

@@ -13,11 +13,12 @@ import           Domain.Auth                              ( AuthenticatedUser(..
                                                           , mkJwt
                                                           )
 import           Domain.Class                             ( UserRepository(..) )
+import           Domain.Env                               ( Env )
 import           Domain.Password                          ( Password
                                                           , checkPassword
                                                           )
-import           Domain.User                              ( User(..)
-                                                          , UserData
+import           Domain.User                              ( NewUserData
+                                                          , User(..)
                                                           )
 import           RIO                                      ( (<&>)
                                                           , (>>)
@@ -26,11 +27,10 @@ import           RIO                                      ( (<&>)
                                                           , MonadReader
                                                           , Text
                                                           )
-import           Servant.Auth.Server                      ( JWTSettings )
 
 
 loginUser
-  :: (Has JWTSettings e, MonadReader e m, UserRepository m, MonadThrow m, MonadTime m, MonadIO m)
+  :: (Has Env e, MonadReader e m, UserRepository m, MonadThrow m, MonadTime m, MonadIO m)
   => Text
   -> Password
   -> m JWT
@@ -38,12 +38,12 @@ loginUser username pwd = getUserByUsername username
   >>= \u -> checkPassword pwd (uPassword u) >> mkJwt (mkAuthenticatedUser u)
 
 refreshJwtToken
-  :: (Has JWTSettings e, MonadReader e m, MonadTime m, MonadIO m) => AuthenticatedUser -> m JWT
+  :: (Has Env e, MonadReader e m, MonadTime m, MonadIO m) => AuthenticatedUser -> m JWT
 refreshJwtToken = mkJwt
 
 -- TODO validate password if strong enough
 signupUser
-  :: (Has JWTSettings e, MonadReader e m, UserRepository m, MonadTime m, MonadIO m)
-  => UserData
+  :: (Has Env e, MonadReader e m, UserRepository m, MonadTime m, MonadIO m)
+  => NewUserData
   -> m (User, JWT)
 signupUser userData = createUser userData >>= \u -> mkJwt (mkAuthenticatedUser u) <&> (u, )

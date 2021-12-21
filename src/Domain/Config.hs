@@ -9,6 +9,7 @@ import           RIO                                      ( Generic
                                                           , Int
                                                           , Text
                                                           )
+import           RIO.Time                                 ( NominalDiffTime )
 
 
 data Config = Config
@@ -17,5 +18,6 @@ data Config = Config
   , cNetworkTimeout :: !Int
   , cLogLevel       :: !LogLevel
   , cPasswordPolicy :: !ValidPasswordPolicy
+  , cJwtDuration    :: !NominalDiffTime
   }
   deriving (Generic, Has ValidPasswordPolicy)

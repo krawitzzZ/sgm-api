@@ -1,6 +1,6 @@
 module Domain.User
   ( User(..)
-  , UserData(..)
+  , NewUserData(..)
   ) where
 
 import           Data.UUID                                ( UUID )
@@ -28,13 +28,10 @@ data User = User
 instance Eq User where
   (==) = (==) `on` uId
 
-data UserData = UserData
-  { udUsername  :: !Text
-  , udPassword  :: !Password
-  , udFirstName :: !(Maybe Text)
-  , udLastName  :: !(Maybe Text)
+data NewUserData = NewUserData
+  { nudUsername  :: !Text
+  , nudPassword  :: !Password
+  , nudFirstName :: !(Maybe Text)
+  , nudLastName  :: !(Maybe Text)
   }
   deriving Generic
-
-instance Eq UserData where
-  (==) = (==) `on` udUsername

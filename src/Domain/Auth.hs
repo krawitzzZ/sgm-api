@@ -10,6 +10,7 @@ import           Control.Exception.Safe                   ( MonadThrow
                                                           )
 import           Control.Monad.Reader.Has                 ( Has
                                                           , extract
+                                                          -- , extract
                                                           )
 import           Control.Monad.Time                       ( MonadTime(..) )
 import           Data.Aeson                               ( FromJSON(..)
@@ -21,10 +22,14 @@ import           Data.ByteString.Lazy                     ( ByteString )
 import           Data.String.Conversions                  ( cs )
 import           Data.UUID                                ( UUID )
 import           Domain.Class                             ( Entity(..) )
+import           Domain.Config                            ( Config(..) )
+import           Domain.Env                               ( Env(..) )
 import           Domain.Exception                         ( DomainException(..) )
 import           Domain.User                              ( User(..) )
 import           RIO                                      ( ($)
                                                           , (*)
+                                                          , (.)
+                                                          , (<$>)
                                                           , (<>)
                                                           , (>>=)
                                                           , Either(..)
@@ -43,7 +48,6 @@ import           RIO                                      ( ($)
 import           RIO.Time                                 ( UTCTime
                                                           , addUTCTime
                                                           , nominalDay
-                                                          , secondsToNominalDiffTime
                                                           )
 import           Servant.Auth.JWT                         ( FromJWT
                                                           , ToJWT
@@ -78,18 +82,17 @@ mkAuthenticatedUser User { uId = id, uUsername = username } =
   AuthenticatedUser { auId = id, auName = username }
 
 data JWT = JWT
-  { jwtAccessToken  :: ByteString
-  , jwtRefreshToken :: ByteString
+  { jwtAccessToken  :: !ByteString
+  , jwtRefreshToken :: !ByteString
   }
   deriving (Eq, Show, Generic)
 
-mkJwt :: (Has JWTSettings e, MonadReader e m, MonadTime m, MonadIO m) => AuthenticatedUser -> m JWT
+mkJwt :: (Has Env e, MonadReader e m, MonadTime m, MonadIO m) => AuthenticatedUser -> m JWT
 mkJwt user = do
-  jwtSettings                                 <- asks extract
+  jwtSettings                                 <- envJwtSettings <$> asks extract
   (accessTokenExpireAt, refreshTokenExpireAt) <- mkExpirationTimes
   accessToken                                 <- mkToken user jwtSettings accessTokenExpireAt
   refreshToken                                <- mkToken user jwtSettings refreshTokenExpireAt
-
   return $ JWT accessToken refreshToken
 
 
@@ -99,10 +102,11 @@ mkToken user jwtSettings expireTime = liftIO $ makeJWT user jwtSettings (Just ex
   Left  err   -> throwJwtException (entityId user) err
 
 
-mkExpirationTimes :: (MonadTime m) => m (UTCTime, UTCTime)
+mkExpirationTimes :: (Has Env e, MonadReader e m, MonadTime m) => m (UTCTime, UTCTime)
 mkExpirationTimes = do
-  now <- currentTime
-  let accessTokenExpire  = addUTCTime (secondsToNominalDiffTime 60) now
+  now                   <- currentTime
+  accessTokenExpireTime <- cJwtDuration . envConfig <$> asks extract
+  let accessTokenExpire  = addUTCTime accessTokenExpireTime now
   let refreshTokenExpire = addUTCTime (nominalDay * 99) now
   return (accessTokenExpire, refreshTokenExpire)
 

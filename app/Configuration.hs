@@ -26,6 +26,7 @@ import           Domain.Logger                            ( LogContext
                                                           , Logger(..)
                                                           )
 import           RIO                                      ( ($)
+                                                          , (*)
                                                           , (.)
                                                           , (<$>)
                                                           , (<&>)
@@ -41,6 +42,7 @@ import           RIO                                      ( ($)
                                                           , show
                                                           , void
                                                           )
+import           RIO.Time                                 ( secondsToNominalDiffTime )
 import           Servant.Auth.Server                      ( JWTSettings
                                                           , defaultJWTSettings
                                                           , generateKey
@@ -64,6 +66,7 @@ mkAppConfig =
     <*> readEnvDefault "SERVER_TIMEOUT" 20
     <*> readEnvDefault "LOG_LEVEL"      Info
     <*> mkPasswordPolicy
+    <*> return (secondsToNominalDiffTime (60 * 5))
 
 mkLogger :: MonadIO m => Di LogLevel LogContext LogMessage -> m Logger
 mkLogger lDi = return Logger { lDi, lFields = empty, lError = Nothing }

@@ -26,7 +26,7 @@ instance FromJSON LoginDto where
   parseJSON = genericParseJSON $ jsonOptions "lDto"
 
 data SignupDto = SignupDto
-  { sDtoName      :: !Text
+  { sDtoUsername  :: !Text
   , sDtoPassword  :: !Password
   , sDtoFirstName :: !(Maybe Text)
   , sDtoLastName  :: !(Maybe Text)

@@ -46,10 +46,10 @@ data EventEntityT f = EventEntity
   , eeLastUpdatedAt :: !(C f LocalTime)
   , eeTitle         :: !(C f Text)
   , eeDescription   :: !(C f (Maybe Text))
-  , eeStart         :: !(C f LocalTime)
-  , eeEnd           :: !(C f LocalTime)
   , eeCreatedBy     :: !(PrimaryKey UserEntityT f)
   , eeLastUpdatedBy :: !(PrimaryKey UserEntityT f)
+  , eeStart         :: !(C f LocalTime)
+  , eeEnd           :: !(C f LocalTime)
   }
   deriving (Generic, Beamable)
 
@@ -75,8 +75,8 @@ createEventsTable = createTable
                (field "last_updated_at" timestamp (defaultTo_ now_) notNull)
                (field "title" text notNull)
                (field "description" (maybeType text))
-               (field "start" timestamp notNull)
-               (field "end" timestamp notNull)
                (UserEntityId (field "created_by" uuid notNull))
                (UserEntityId (field "last_updated_by" uuid notNull))
+               (field "start" timestamp notNull)
+               (field "end" timestamp notNull)
   )

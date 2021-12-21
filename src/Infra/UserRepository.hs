@@ -17,8 +17,8 @@ import           Database.Beam.Postgres                   ( Connection )
 import           Domain.Class                             ( MonadLogger(..) )
 import           Domain.Exception                         ( DomainException(..) )
 import           Domain.Logger                            ( LogContext )
-import           Domain.User                              ( User(..)
-                                                          , UserData(..)
+import           Domain.User                              ( NewUserData(..)
+                                                          , User(..)
                                                           )
 import           Infra.Beam.Mapper                        ( userEntityToDomain )
 import           Infra.Beam.Query.User                    ( allUsers
@@ -63,12 +63,12 @@ findOneByUsername username =
 
 createOne
   :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m)
-  => UserData
+  => NewUserData
   -> m User
-createOne user@UserData { udUsername = username } =
-  withContext (mkContext "createOne") $ tryCatchDefault $ maybeUserByUsername username >>= \case
+createOne user@NewUserData { nudUsername } =
+  withContext (mkContext "createOne") $ tryCatchDefault $ maybeUserByUsername nudUsername >>= \case
     Just _ ->
-      throwM $ UserNameAlreadyExists $ "User with username '" <> username <> "' already exists"
+      throwM $ UserNameAlreadyExists $ "User with username '" <> nudUsername <> "' already exists"
     Nothing -> createAndInsertUser user <&> userEntityToDomain
 
 saveOne

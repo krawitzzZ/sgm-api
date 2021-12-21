@@ -1,16 +1,16 @@
 module Domain.Event
   ( Event(..)
-  , EventData(..)
-  , EventRepository(..)
+  , NewEventData(..)
   ) where
 
 import           Data.Time                                ( LocalTime )
 import           Data.UUID                                ( UUID )
-import           RIO                                      ( Eq
+import           RIO                                      ( (==)
+                                                          , Eq
                                                           , Generic
                                                           , Maybe
-                                                          , Show
                                                           , Text
+                                                          , on
                                                           )
 
 
@@ -24,19 +24,18 @@ data Event = Event
   , eStart         :: !LocalTime
   , eEnd           :: !LocalTime
   }
-  deriving (Eq, Show, Generic)
+  deriving Generic
 
-data EventData = EventData
-  { edTitle       :: !Text
-  , edDescription :: !(Maybe Text)
-  , edStart       :: !LocalTime
-  , edEnd         :: !LocalTime
+instance Eq Event where
+  (==) = (==) `on` eId
+
+data NewEventData = NewEventData
+  { nedTitle         :: !Text
+  , nedDescription   :: !(Maybe Text)
+  , nedCreatedBy     :: !UUID
+  , nedLastUpdatedBy :: !UUID
+  , nedAttendees     :: ![UUID]
+  , nedStart         :: !LocalTime
+  , nedEnd           :: !LocalTime
   }
-  deriving (Eq, Show, Generic)
-
-class EventRepository m where
-  getEventById :: UUID -> m Event
-  getAllEvents :: m [Event]
-  createEvent :: EventData -> m Event
-  saveEvent :: Event -> m ()
-  deleteEvent :: UUID -> m ()
+  deriving (Eq, Generic)

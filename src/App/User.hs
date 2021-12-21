@@ -8,8 +8,8 @@ module App.User
 
 import           Data.UUID                                ( UUID )
 import qualified Domain.Class                            as C
-import           Domain.User                              ( User(..)
-                                                          , UserData
+import           Domain.User                              ( NewUserData
+                                                          , User(..)
                                                           )
 import           RIO                                      ( (>>=)
                                                           , Maybe
@@ -20,7 +20,7 @@ import           RIO                                      ( (>>=)
 getUsers :: (C.UserRepository m) => m [User]
 getUsers = C.getAllUsers
 
-createUser :: (C.UserRepository m) => UserData -> m User
+createUser :: (C.UserRepository m) => NewUserData -> m User
 createUser = C.createUser
 
 getUserById :: (C.UserRepository m) => UUID -> m User

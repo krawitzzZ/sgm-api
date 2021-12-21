@@ -5,13 +5,22 @@ module Api.Mapper
 
 import           Api.Resources.Auth                       ( SignupDto(..) )
 import           Api.Resources.User                       ( UserDto(..) )
-import           Domain.User                              ( User(..)
-                                                          , UserData(..)
+import           Domain.User                              ( NewUserData(..)
+                                                          , User(..)
                                                           )
 
 
 userToUserDto :: User -> UserDto
-userToUserDto (User id username _ fname lname) = UserDto id username fname lname
+userToUserDto User { uId, uUsername, uFirstName, uLastName } = UserDto { uDtoId        = uId
+                                                                       , uDtoUsername  = uUsername
+                                                                       , uDtoFirstName = uFirstName
+                                                                       , uDtoLastName  = uLastName
+                                                                       }
 
-signupDtoToUserData :: SignupDto -> UserData
-signupDtoToUserData (SignupDto username pass fname lname) = UserData username pass fname lname
+signupDtoToUserData :: SignupDto -> NewUserData
+signupDtoToUserData SignupDto { sDtoUsername, sDtoPassword, sDtoFirstName, sDtoLastName } =
+  NewUserData { nudUsername  = sDtoUsername
+              , nudPassword  = sDtoPassword
+              , nudFirstName = sDtoFirstName
+              , nudLastName  = sDtoLastName
+              }

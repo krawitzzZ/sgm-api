@@ -33,6 +33,7 @@ import           Domain.Auth                              ( AuthenticatedUser
 import           Domain.Class                             ( MonadLogger(..)
                                                           , UserRepository
                                                           )
+import           Domain.Env                               ( Env )
 import           Domain.Exception                         ( DomainException(..) )
 import           Domain.Logger                            ( LogContext )
 import           RIO                                      ( ($)
@@ -59,7 +60,6 @@ import           Servant                                  ( type (:<|>)((:<|>))
                                                           )
 import           Servant.Auth.Server                      ( Auth
                                                           , AuthResult(..)
-                                                          , JWTSettings
                                                           )
 import           Servant.Exception.Server                 ( Throws )
 
@@ -82,7 +82,7 @@ type AuthApi auths = Throws ApiException :>
   )
 
 type AuthApiConstraints e m
-  = ( Has JWTSettings e
+  = ( Has Env e
     , MonadReader e m
     , UserRepository m
     , MonadCatch m

@@ -55,7 +55,6 @@ type UserEntity = UserEntityT Identity
 deriving instance Show UserEntity
 deriving instance Eq UserEntity
 
--- TODO sneak peek at the type of this for repository class hints
 instance Table UserEntityT where
   data PrimaryKey UserEntityT f = UserEntityId !(C f UUID)
     deriving (Generic, Beamable)

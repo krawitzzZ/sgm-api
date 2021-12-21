@@ -5,8 +5,8 @@ module Domain.Class
   ) where
 
 import           Data.UUID                                ( UUID )
-import           Domain.User                              ( User
-                                                          , UserData
+import           Domain.User                              ( NewUserData
+                                                          , User
                                                           )
 import           RIO                                      ( Monad
                                                           , Show
@@ -28,7 +28,7 @@ class (Monad m) => UserRepository m where
   getUserById :: UUID -> m User
   getUserByUsername :: Text -> m User
   getAllUsers :: m [User]
-  createUser :: UserData -> m User
+  createUser :: NewUserData -> m User
   saveUser :: User -> m User
   deleteUser :: UUID -> m ()
 

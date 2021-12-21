@@ -33,8 +33,8 @@ import           Database.Beam.Postgres                   ( Connection
                                                           )
 import           Database.Beam.Postgres.PgCrypto          ( PgCrypto(..) )
 import           Domain.Password                          ( hashPassword )
-import           Domain.User                              ( User(..)
-                                                          , UserData(..)
+import           Domain.User                              ( NewUserData(..)
+                                                          , User(..)
                                                           )
 import           Infra.Beam.Query                         ( runBeam
                                                           , usersTable
@@ -67,21 +67,23 @@ maybeUserByUsername username = runBeam $ runSelectReturningOne $ select $ filter
   (\UserEntity { ueUsername } -> ueUsername ==. val_ (cs username))
   (all_ usersTable)
 
-createAndInsertUser :: (Has Connection e, MonadReader e m, MonadIO m) => UserData -> m UserEntity
-createAndInsertUser UserData { udUsername, udPassword, udFirstName, udLastName } = runBeam $ do
-  let PgCrypto { pgCryptoGenRandomUUID = uuid } = getPgExtension (dbCryptoExtension sgmDb)
-  pwd          <- hashPassword udPassword
-  [userEntity] <- runInsertReturningList $ insert usersTable $ insertExpressions
-    [ UserEntity { ueId            = uuid
-                 , ueCreatedAt     = currentTimestamp_
-                 , ueLastUpdatedAt = currentTimestamp_
-                 , ueUsername      = val_ udUsername
-                 , uePassword      = val_ pwd
-                 , ueFirstName     = val_ udFirstName
-                 , ueLastName      = val_ udLastName
-                 }
-    ]
-  return userEntity
+createAndInsertUser
+  :: (Has Connection e, MonadReader e m, MonadIO m) => NewUserData -> m UserEntity
+createAndInsertUser NewUserData { nudUsername, nudPassword, nudFirstName, nudLastName } =
+  runBeam $ do
+    let PgCrypto { pgCryptoGenRandomUUID = uuid } = getPgExtension (dbCryptoExtension sgmDb)
+    pwd          <- hashPassword nudPassword
+    [userEntity] <- runInsertReturningList $ insert usersTable $ insertExpressions
+      [ UserEntity { ueId            = uuid
+                   , ueCreatedAt     = currentTimestamp_
+                   , ueLastUpdatedAt = currentTimestamp_
+                   , ueUsername      = val_ nudUsername
+                   , uePassword      = val_ pwd
+                   , ueFirstName     = val_ nudFirstName
+                   , ueLastName      = val_ nudLastName
+                   }
+      ]
+    return userEntity
 
 updateUser :: (Has Connection e, MonadReader e m, MonadIO m) => User -> m ()
 updateUser user = runBeam $ runUpdate $ update
