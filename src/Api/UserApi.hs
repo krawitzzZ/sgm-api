@@ -8,6 +8,7 @@ import           Api.Exception                            ( ApiException(..)
                                                           , throw401
                                                           , tryCatchDefault
                                                           )
+import           Api.Helpers                              ( identityGuard )
 import           Api.Mapper                               ( userToUserDto )
 import           Api.Resources.User                       ( UpdateUserDto(..)
                                                           , UserDto
@@ -37,13 +38,14 @@ import           RIO                                      ( ($)
 import           Servant                                  ( type (:<|>)(..)
                                                           , type (:>)
                                                           , Capture
-                                                          , Delete
                                                           , Get
                                                           , JSON
                                                           , NoContent(..)
                                                           , Put
                                                           , ReqBody
                                                           , ServerT
+                                                          , StdMethod(..)
+                                                          , Verb
                                                           )
 import           Servant.Auth.Server                      ( Auth
                                                           , AuthResult(..)
@@ -55,7 +57,7 @@ import           Utils                                    ( biconst )
 type GetUsers = Get '[JSON] [UserDto]
 type GetUser = Capture "id" UUID :> Get '[JSON] UserDto
 type UpdateUser = Capture "id" UUID :> ReqBody '[JSON] UpdateUserDto :> Put '[JSON] UserDto
-type DeleteUser = Capture "id" UUID :> Delete '[JSON] NoContent
+type DeleteUser = Capture "id" UUID :> Verb 'DELETE 204 '[JSON] NoContent
 
 -- brittany-disable-next-binding
 type UserApi auths = Throws ApiException :> Auth auths AuthenticatedUser :>
@@ -71,7 +73,7 @@ userServer
 userServer V1 = userV1Server
 
 userV1Server :: (UserRepository m, MonadCatch m, MonadLogger m) => ServerT (UserApi auths) m
-userV1Server (Authenticated _) = getAllUsers :<|> findUser :<|> updateUserInfo :<|> removeUser
+userV1Server (Authenticated u) = getAllUsers :<|> findUser :<|> updateUserInfo u :<|> removeUser u
 userV1Server _ = throw401 :<|> const throw401 :<|> biconst throw401 :<|> const throw401
 
 
@@ -85,14 +87,21 @@ findUser userId =
     (userToUserDto <$> getUserById userId)
 
 updateUserInfo
-  :: (UserRepository m, MonadCatch m, MonadLogger m) => UUID -> UpdateUserDto -> m UserDto
-updateUserInfo userId UpdateUserDto { uuDtoFirstName, uuDtoLastName } =
-  withContext (mkContext "updateUserInfo") >>> withField ("userId", toText userId) $ tryCatchDefault
-    (userToUserDto <$> updateUser userId uuDtoFirstName uuDtoLastName)
+  :: (UserRepository m, MonadCatch m, MonadLogger m)
+  => AuthenticatedUser
+  -> UUID
+  -> UpdateUserDto
+  -> m UserDto
+updateUserInfo me userId UpdateUserDto { uuDtoFirstName, uuDtoLastName } =
+  withContext (mkContext "updateUserInfo") >>> withField ("userId", toText userId) $ do
+    identityGuard userId me
+    tryCatchDefault (userToUserDto <$> updateUser userId uuDtoFirstName uuDtoLastName)
 
-removeUser :: (UserRepository m, MonadCatch m, MonadLogger m) => UUID -> m NoContent
-removeUser userId =
+removeUser
+  :: (UserRepository m, MonadCatch m, MonadLogger m) => AuthenticatedUser -> UUID -> m NoContent
+removeUser me userId =
   withContext (mkContext "removeUser") >>> withField ("userId", toText userId) $ do
+    identityGuard userId me
     tryCatchDefault (deleteUser userId)
     return NoContent
 
