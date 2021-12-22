@@ -7,6 +7,7 @@ import           Data.UUID                                ( UUID )
 import           Domain.Password                          ( Password
                                                           , PasswordHash
                                                           )
+import           Domain.Role                              ( Role )
 import           RIO                                      ( (==)
                                                           , Eq
                                                           , Generic
@@ -20,6 +21,7 @@ data User = User
   { uId        :: !UUID
   , uUsername  :: !Text
   , uPassword  :: !PasswordHash
+  , uRoles     :: ![Role]
   , uFirstName :: !(Maybe Text)
   , uLastName  :: !(Maybe Text)
   }
@@ -31,6 +33,7 @@ instance Eq User where
 data NewUserData = NewUserData
   { nudUsername  :: !Text
   , nudPassword  :: !Password
+  , nudRoles     :: ![Role]
   , nudFirstName :: !(Maybe Text)
   , nudLastName  :: !(Maybe Text)
   }

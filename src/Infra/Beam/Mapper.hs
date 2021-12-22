@@ -11,12 +11,14 @@ import           Infra.Beam.Schema.Latest                 ( EventEntity
                                                           , UserEntity
                                                           , UserEntityT(..)
                                                           )
+import           RIO.Vector                               ( toList )
 
 
 userEntityToDomain :: UserEntity -> User
 userEntityToDomain UserEntity {..} = User { uId        = ueId
                                           , uUsername  = ueUsername
                                           , uPassword  = uePassword
+                                          , uRoles     = toList ueRoles
                                           , uFirstName = ueFirstName
                                           , uLastName  = ueLastName
                                           }

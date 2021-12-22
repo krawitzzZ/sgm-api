@@ -17,6 +17,7 @@ import           Domain.Event                             ( Event(..)
                                                           , NewEventData(..)
                                                           , UpdateEventInfoData(..)
                                                           )
+import           Domain.Role                              ( Role(..) )
 import           Domain.User                              ( NewUserData(..)
                                                           , User(..)
                                                           )
@@ -32,6 +33,7 @@ userToUserDto User {..} = UserDto { uDtoId        = uId
 signupDtoToUserData :: SignupDto -> NewUserData
 signupDtoToUserData SignupDto {..} = NewUserData { nudUsername  = sDtoUsername
                                                  , nudPassword  = sDtoPassword
+                                                 , nudRoles     = [Participant]
                                                  , nudFirstName = sDtoFirstName
                                                  , nudLastName  = sDtoLastName
                                                  }

@@ -11,6 +11,7 @@ import           Database.Beam                            ( Beamable
                                                           , C
                                                           , Table(..)
                                                           , TableEntity
+                                                          , array
                                                           , maybeType
                                                           , timestamp
                                                           )
@@ -28,7 +29,10 @@ import           Database.Beam.Postgres                   ( Postgres
                                                           , uuid
                                                           )
 import           Domain.Password                          ( PasswordHash(..) )
-import           Infra.Beam.Schema.Types                  ( passwordType )
+import           Domain.Role                              ( Role )
+import           Infra.Beam.Schema.Types                  ( passwordType
+                                                          , roleType
+                                                          )
 import           RIO                                      ( (.)
                                                           , Eq
                                                           , Generic
@@ -36,6 +40,7 @@ import           RIO                                      ( (.)
                                                           , Maybe(..)
                                                           , Show
                                                           , Text
+                                                          , Vector
                                                           )
 import           RIO.Time                                 ( LocalTime )
 
@@ -46,6 +51,7 @@ data UserEntityT f = UserEntity
   , ueLastUpdatedAt :: !(C f LocalTime)
   , ueUsername      :: !(C f Text)
   , uePassword      :: !(C f PasswordHash)
+  , ueRoles         :: !(C f (Vector Role))
   , ueFirstName     :: !(C f (Maybe Text))
   , ueLastName      :: !(C f (Maybe Text))
   }
@@ -73,6 +79,7 @@ createUsersTable = createTable
               (field "last_updated_at" timestamp (defaultTo_ now_) notNull)
               (field "username" text notNull unique)
               (field "password" passwordType notNull)
+              (field "roles" (array roleType 9) notNull)
               (field "first_name" (maybeType text))
               (field "last_name" (maybeType text))
   )

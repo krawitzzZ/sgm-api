@@ -48,6 +48,7 @@ import           RIO                                      ( ($)
                                                           , Text
                                                           , return
                                                           )
+import           RIO.Vector                               ( fromList )
 
 
 allUsers :: (Has Connection c, MonadIO m) => c -> m [UserEntity]
@@ -71,6 +72,7 @@ createAndInsertUser c NewUserData {..} = runBeam c $ do
                  , ueLastUpdatedAt = currentTimestamp_
                  , ueUsername      = val_ nudUsername
                  , uePassword      = val_ pwd
+                 , ueRoles         = val_ (fromList nudRoles)
                  , ueFirstName     = val_ nudFirstName
                  , ueLastName      = val_ nudLastName
                  }

@@ -6,7 +6,7 @@ import qualified Data.Password.Argon2                    as P
 import           Database.Beam.Backend                    ( BeamBackend
                                                           , FromBackendRow(..)
                                                           , HasSqlValueSyntax(..)
-                                                          , IsSql92DataTypeSyntax(varCharType)
+                                                          , IsSql92DataTypeSyntax(..)
                                                           )
 import           Database.Beam.Migrate                    ( BeamMigrateSqlBackend
                                                           , HasDefaultSqlDataType(..)

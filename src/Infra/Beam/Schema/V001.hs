@@ -17,6 +17,7 @@ import           Database.Beam.Postgres                   ( PgExtensionEntity
 import           Database.Beam.Postgres.PgCrypto          ( PgCrypto )
 import           Infra.Beam.Schema.Types                  ( TextUUID )
 import           Infra.Beam.Schema.V001.Password          ( )
+import           Infra.Beam.Schema.V001.Role              ( )
 import           Infra.Beam.Schema.V001.User              ( UserEntityT
                                                           , createUsersTable
                                                           )

@@ -2,6 +2,7 @@ module Infra.Beam.Schema.Types
   ( MigrationInfo
   , TextUUID
   , passwordType
+  , roleType
   , migrationId
   ) where
 
@@ -14,7 +15,8 @@ import           Database.Beam.Migrate                    ( CheckedDatabaseSetti
                                                           )
 import           Database.Beam.Postgres                   ( Postgres )
 import           Database.Beam.Postgres.Syntax            ( pgTextType )
-import           Domain.Password                          ( PasswordHash(..) )
+import           Domain.Password                          ( PasswordHash )
+import           Domain.Role                              ( Role )
 import           RIO                                      ( (.)
                                                           , Text
                                                           , error
@@ -24,13 +26,16 @@ import           RIO                                      ( (.)
 
 type TextUUID = Text
 
-migrationId :: TextUUID -> UUID
-migrationId = fromMaybe (error "Failed to parse UUID") . fromText
-
 type MigrationInfo a a'
   = ( TextUUID
     , CheckedDatabaseSettings Postgres a -> Migration Postgres (CheckedDatabaseSettings Postgres a')
     )
 
+migrationId :: TextUUID -> UUID
+migrationId = fromMaybe (error "Failed to parse UUID") . fromText
+
 passwordType :: DataType Postgres PasswordHash
 passwordType = DataType pgTextType
+
+roleType :: DataType Postgres Role
+roleType = DataType pgTextType
