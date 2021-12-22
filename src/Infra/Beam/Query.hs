@@ -24,23 +24,13 @@ import           Infra.Beam.Schema.Latest                 ( EventEntityT
                                                           , sgmDb
                                                           )
 import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , (>>=)
                                                           , MonadIO
-                                                          , MonadReader
-                                                          , asks
-                                                          , flip
                                                           , liftIO
                                                           )
 
 
--- TODO no need for Reader e m
-runBeam :: (Has Connection e, MonadReader e m, MonadIO m) => Pg a -> m a
-runBeam query = asks extract >>= liftIO . flip runBeamPostgres query
-
--- TODO like this
-runBeam' :: (Has Connection c, MonadIO m) => c -> Pg a -> m a
-runBeam' c query = liftIO $ runBeamPostgres (extract c) query
+runBeam :: (Has Connection c, MonadIO m) => c -> Pg a -> m a
+runBeam c query = liftIO $ runBeamPostgres (extract c) query
 
 usersTable :: DatabaseEntity Postgres SgmDatabase (TableEntity UserEntityT)
 usersTable = dbUsers sgmDb

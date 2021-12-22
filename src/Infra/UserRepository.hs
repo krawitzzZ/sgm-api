@@ -37,7 +37,6 @@ import           RIO                                      ( ($)
                                                           , (>>=)
                                                           , Maybe(..)
                                                           , MonadIO
-                                                          , MonadReader
                                                           , Text
                                                           , map
                                                           , return
@@ -45,44 +44,47 @@ import           RIO                                      ( ($)
                                                           )
 
 
--- TODO get !!! START HERE !!! rid of reader
-getAll :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => m [User]
-getAll = withContext (mkContext "getAll") $ tryCatchDefault $ allUsers <&> map userEntityToDomain
+getAll :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> m [User]
+getAll c =
+  withContext (mkContext "getAll") $ tryCatchDefault $ allUsers c <&> map userEntityToDomain
 
-findOneById
-  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => UUID -> m User
-findOneById id =
-  withContext (mkContext "findOneById") $ tryCatchDefault $ maybeUserById id >>= \case
+findOneById :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> UUID -> m User
+findOneById c id =
+  withContext (mkContext "findOneById") $ tryCatchDefault $ maybeUserById c id >>= \case
     Just user -> return $ userEntityToDomain user
     Nothing   -> throwM . NotFound $ "User with id '" <> cs (show id) <> "' not found"
 
 findOneByUsername
-  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => Text -> m User
-findOneByUsername username =
+  :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> Text -> m User
+findOneByUsername c username =
   withContext (mkContext "findOneByUsername")
     $   tryCatchDefault
-    $   maybeUserByUsername username
+    $   maybeUserByUsername c username
     >>= \case
           Nothing   -> throwM . NotFound $ "User with username '" <> username <> "' not found"
           Just user -> return $ userEntityToDomain user
 
 createOne
-  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m)
-  => NewUserData
-  -> m User
-createOne user@NewUserData {..} =
-  withContext (mkContext "createOne") $ tryCatchDefault $ maybeUserByUsername nudUsername >>= \case
-    Just _ ->
-      throwM $ UserNameAlreadyExists $ "User with username '" <> nudUsername <> "' already exists"
-    Nothing -> createAndInsertUser user <&> userEntityToDomain
+  :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> NewUserData -> m User
+createOne c user@NewUserData {..} =
+  withContext (mkContext "createOne")
+    $   tryCatchDefault
+    $   maybeUserByUsername c nudUsername
+    >>= \case
+          Just _ ->
+            throwM
+              $  UserNameAlreadyExists
+              $  "User with username '"
+              <> nudUsername
+              <> "' already exists"
+          Nothing -> createAndInsertUser c user <&> userEntityToDomain
 
-saveOne
-  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => User -> m User
-saveOne user = withContext (mkContext "saveOne") $ tryCatchDefault $ updateUser user >> return user
+saveOne :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> User -> m User
+saveOne c user =
+  withContext (mkContext "saveOne") $ tryCatchDefault $ updateUser c user >> return user
 
-deleteOne
-  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => UUID -> m ()
-deleteOne = withContext (mkContext "deleteOne") . tryCatchDefault . deleteUser
+deleteOne :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> UUID -> m ()
+deleteOne c = withContext (mkContext "deleteOne") . tryCatchDefault . deleteUser c
 
 
 mkContext :: LogContext -> LogContext

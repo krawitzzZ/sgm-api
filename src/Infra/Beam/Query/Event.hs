@@ -42,21 +42,18 @@ import           RIO                                      ( ($)
                                                           , (<>)
                                                           , Maybe
                                                           , MonadIO
-                                                          , MonadReader
                                                           , return
                                                           )
 
 
--- TODO get rid of Reader
-allEvents :: (Has Connection e, MonadReader e m, MonadIO m) => m [EventEntity]
-allEvents = runBeam (runSelectReturningList $ select $ all_ eventsTable)
+allEvents :: (Has Connection c, MonadIO m) => c -> m [EventEntity]
+allEvents c = runBeam c (runSelectReturningList $ select $ all_ eventsTable)
 
-maybeEventById :: (Has Connection e, MonadReader e m, MonadIO m) => UUID -> m (Maybe EventEntity)
-maybeEventById id = runBeam $ runSelectReturningOne $ lookup_ eventsTable (EventEntityId id)
+maybeEventById :: (Has Connection c, MonadIO m) => c -> UUID -> m (Maybe EventEntity)
+maybeEventById c id = runBeam c $ runSelectReturningOne $ lookup_ eventsTable (EventEntityId id)
 
-createAndInsertEvent
-  :: (Has Connection e, MonadReader e m, MonadIO m) => NewEventData -> m EventEntity
-createAndInsertEvent NewEventData {..} = runBeam $ do
+createAndInsertEvent :: (Has Connection c, MonadIO m) => c -> NewEventData -> m EventEntity
+createAndInsertEvent c NewEventData {..} = runBeam c $ do
   let PgCrypto {..} = pgCrypto
   [eventEntity] <- runInsertReturningList $ insert eventsTable $ insertExpressions
     [ EventEntity { eeId            = pgCryptoGenRandomUUID
@@ -72,8 +69,8 @@ createAndInsertEvent NewEventData {..} = runBeam $ do
     ]
   return eventEntity
 
-updateEventDetails :: (Has Connection e, MonadReader e m, MonadIO m) => Event -> m ()
-updateEventDetails Event {..} = runBeam $ runUpdate $ update
+updateEventDetails :: (Has Connection c, MonadIO m) => c -> Event -> m ()
+updateEventDetails c Event {..} = runBeam c $ runUpdate $ update
   eventsTable
   (\EventEntity {..} ->
     (eeLastUpdatedAt <-. currentTimestamp_)
@@ -85,5 +82,6 @@ updateEventDetails Event {..} = runBeam $ runUpdate $ update
   )
   (\EventEntity {..} -> eeId ==. val_ eId)
 
-deleteEvent :: (Has Connection e, MonadReader e m, MonadIO m) => UUID -> m ()
-deleteEvent id = runBeam $ runDelete $ delete eventsTable (\EventEntity {..} -> eeId ==. val_ id)
+deleteEvent :: (Has Connection c, MonadIO m) => c -> UUID -> m ()
+deleteEvent c id =
+  runBeam c $ runDelete $ delete eventsTable (\EventEntity {..} -> eeId ==. val_ id)

@@ -45,27 +45,24 @@ import           RIO                                      ( ($)
                                                           , (<>)
                                                           , Maybe
                                                           , MonadIO
-                                                          , MonadReader
                                                           , Text
                                                           , return
                                                           )
 
 
-allUsers :: (Has Connection e, MonadReader e m, MonadIO m) => m [UserEntity]
-allUsers = runBeam (runSelectReturningList $ select $ all_ usersTable)
+allUsers :: (Has Connection c, MonadIO m) => c -> m [UserEntity]
+allUsers c = runBeam c (runSelectReturningList $ select $ all_ usersTable)
 
-maybeUserById :: (Has Connection e, MonadReader e m, MonadIO m) => UUID -> m (Maybe UserEntity)
-maybeUserById id = runBeam $ runSelectReturningOne $ lookup_ usersTable (UserEntityId id)
+maybeUserById :: (Has Connection c, MonadIO m) => c -> UUID -> m (Maybe UserEntity)
+maybeUserById c id = runBeam c $ runSelectReturningOne $ lookup_ usersTable (UserEntityId id)
 
-maybeUserByUsername
-  :: (Has Connection e, MonadReader e m, MonadIO m) => Text -> m (Maybe UserEntity)
-maybeUserByUsername username = runBeam $ runSelectReturningOne $ select $ filter_
+maybeUserByUsername :: (Has Connection c, MonadIO m) => c -> Text -> m (Maybe UserEntity)
+maybeUserByUsername c username = runBeam c $ runSelectReturningOne $ select $ filter_
   (\UserEntity {..} -> ueUsername ==. val_ username)
   (all_ usersTable)
 
-createAndInsertUser
-  :: (Has Connection e, MonadReader e m, MonadIO m) => NewUserData -> m UserEntity
-createAndInsertUser NewUserData {..} = runBeam $ do
+createAndInsertUser :: (Has Connection c, MonadIO m) => c -> NewUserData -> m UserEntity
+createAndInsertUser c NewUserData {..} = runBeam c $ do
   let PgCrypto {..} = pgCrypto
   pwd          <- hashPassword nudPassword
   [userEntity] <- runInsertReturningList $ insert usersTable $ insertExpressions
@@ -80,8 +77,8 @@ createAndInsertUser NewUserData {..} = runBeam $ do
     ]
   return userEntity
 
-updateUser :: (Has Connection e, MonadReader e m, MonadIO m) => User -> m ()
-updateUser User {..} = runBeam $ runUpdate $ update
+updateUser :: (Has Connection c, MonadIO m) => c -> User -> m ()
+updateUser c User {..} = runBeam c $ runUpdate $ update
   usersTable
   (\UserEntity {..} ->
     (ueUsername <-. val_ uUsername)
@@ -91,5 +88,5 @@ updateUser User {..} = runBeam $ runUpdate $ update
   )
   (\UserEntity {..} -> ueId ==. val_ uId)
 
-deleteUser :: (Has Connection e, MonadReader e m, MonadIO m) => UUID -> m ()
-deleteUser id = runBeam $ runDelete $ delete usersTable (\UserEntity {..} -> ueId ==. val_ id)
+deleteUser :: (Has Connection c, MonadIO m) => c -> UUID -> m ()
+deleteUser c id = runBeam c $ runDelete $ delete usersTable (\UserEntity {..} -> ueId ==. val_ id)

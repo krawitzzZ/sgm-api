@@ -35,41 +35,36 @@ import           RIO                                      ( ($)
                                                           , (>>=)
                                                           , Maybe(..)
                                                           , MonadIO
-                                                          , MonadReader
                                                           , map
                                                           , return
                                                           , show
                                                           )
 
 
-getAll :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => m [Event]
-getAll = withContext (mkContext "getAll") $ tryCatchDefault $ allEvents <&> map eventEntityToDomain
+getAll :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> m [Event]
+getAll c =
+  withContext (mkContext "getAll") $ tryCatchDefault $ allEvents c <&> map eventEntityToDomain
 
-findOneById
-  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => UUID -> m Event
-findOneById id =
-  withContext (mkContext "findOneById") $ tryCatchDefault $ maybeEventById id >>= \case
+findOneById :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> UUID -> m Event
+findOneById c id =
+  withContext (mkContext "findOneById") $ tryCatchDefault $ maybeEventById c id >>= \case
     Just event -> return $ eventEntityToDomain event
     Nothing    -> throwM . NotFound $ "Event with id '" <> cs (show id) <> "' not found"
 
 createOne
-  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m)
-  => NewEventData
-  -> m Event
-createOne event =
+  :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> NewEventData -> m Event
+createOne c event =
   withContext (mkContext "createOne")
     $   tryCatchDefault
-    $   createAndInsertEvent event
+    $   createAndInsertEvent c event
     <&> eventEntityToDomain
 
-saveOne
-  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => Event -> m Event
-saveOne event =
-  withContext (mkContext "saveOne") $ tryCatchDefault $ updateEventDetails event >> return event
+saveOne :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> Event -> m Event
+saveOne c event =
+  withContext (mkContext "saveOne") $ tryCatchDefault $ updateEventDetails c event >> return event
 
-deleteOne
-  :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => UUID -> m ()
-deleteOne = withContext (mkContext "deleteOne") . tryCatchDefault . deleteEvent
+deleteOne :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> UUID -> m ()
+deleteOne c = withContext (mkContext "deleteOne") . tryCatchDefault . deleteEvent c
 
 
 mkContext :: LogContext -> LogContext
