@@ -15,6 +15,7 @@ import           Di.Monad                                 ( DiT
                                                           , runDiT
                                                           )
 import qualified Domain.Auth                             as Auth
+import qualified Domain.Auth.Password                    as Password
 import           Domain.Class                             ( Authentication(..)
                                                           , EventRepository(..)
                                                           , MonadLogger(..)
@@ -27,7 +28,6 @@ import           Domain.Logger                            ( LogContext
                                                           , LogMessage
                                                           , Logger(..)
                                                           )
-import qualified Domain.Password                         as Password
 import qualified Infra.EventRepository                   as EventRepo
 import qualified Infra.Logger                            as Logger
 import qualified Infra.UserRepository                    as UserRepo

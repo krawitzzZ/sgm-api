@@ -16,7 +16,7 @@ import           Database.PostgreSQL.Simple.FromField     ( FromField(..)
                                                           , returnError
                                                           )
 import           Database.PostgreSQL.Simple.ToField       ( ToField(..) )
-import           Domain.Role                              ( Role )
+import           Domain.Auth.Role                         ( Role )
 import           RIO                                      ( (.)
                                                           , (<$>)
                                                           , Maybe(..)

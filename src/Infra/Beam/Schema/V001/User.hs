@@ -28,8 +28,8 @@ import           Database.Beam.Postgres                   ( Postgres
                                                           , text
                                                           , uuid
                                                           )
-import           Domain.Password                          ( PasswordHash(..) )
-import           Domain.Role                              ( Role )
+import           Domain.Auth.Password                     ( PasswordHash(..) )
+import           Domain.Auth.Role                         ( Role )
 import           Infra.Beam.Schema.Types                  ( passwordType
                                                           , roleType
                                                           )

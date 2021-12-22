@@ -11,7 +11,7 @@ import           Database.Beam.Backend                    ( BeamBackend
 import           Database.Beam.Migrate                    ( BeamMigrateSqlBackend
                                                           , HasDefaultSqlDataType(..)
                                                           )
-import           Domain.Password                          ( PasswordHash(..) )
+import           Domain.Auth.Password                     ( PasswordHash(..) )
 import           RIO                                      ( ($)
                                                           , (<$>)
                                                           , Maybe(..)

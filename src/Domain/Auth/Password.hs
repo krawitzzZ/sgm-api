@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Domain.Password
+module Domain.Auth.Password
   ( Password(..)
   , PasswordHash(..)
   , mkPassword
@@ -45,6 +45,7 @@ import           RIO                                      ( ($)
 newtype Password = Password { unPassword :: P.Password }
   deriving (Show, Generic)
 
+-- Orphan instance for validation purposes
 -- Password will be validated separately using `validatePassword`
 instance Validity P.Password where
   validate = const valid

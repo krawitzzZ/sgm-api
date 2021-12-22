@@ -12,7 +12,7 @@ import           Domain.Auth                              ( AuthUser(..)
 import           Domain.Class                             ( Authentication(..)
                                                           , UserRepository(..)
                                                           )
-import           Domain.Password                          ( Password )
+import           Domain.Auth.Password                          ( Password )
 import           Domain.User                              ( NewUserData
                                                           , User(..)
                                                           )

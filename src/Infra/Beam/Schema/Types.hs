@@ -15,8 +15,8 @@ import           Database.Beam.Migrate                    ( CheckedDatabaseSetti
                                                           )
 import           Database.Beam.Postgres                   ( Postgres )
 import           Database.Beam.Postgres.Syntax            ( pgTextType )
-import           Domain.Password                          ( PasswordHash )
-import           Domain.Role                              ( Role )
+import           Domain.Auth.Password                     ( PasswordHash )
+import           Domain.Auth.Role                         ( Role )
 import           RIO                                      ( (.)
                                                           , Text
                                                           , error

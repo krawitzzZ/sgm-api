@@ -1,4 +1,5 @@
-module Domain.Role
+
+module Domain.Auth.Role
   ( Role(..)
   ) where
 

@@ -18,6 +18,7 @@ import           Data.Aeson                               ( FromJSON(..)
 import           Data.ByteString.Lazy                     ( ByteString )
 import           Data.String.Conversions                  ( cs )
 import           Data.UUID                                ( UUID )
+import           Domain.Auth.Role                         ( Role )
 import           Domain.Exception                         ( DomainException(..) )
 import           Domain.User                              ( User(..) )
 import           RIO                                      ( ($)
@@ -31,7 +32,6 @@ import           RIO                                      ( ($)
                                                           , Generic
                                                           , Maybe(..)
                                                           , MonadIO
-                                                          , Text
                                                           , liftIO
                                                           , return
                                                           , show
@@ -50,10 +50,9 @@ import           Servant.Auth.Server                      ( JWTSettings
 import           Utils                                    ( jsonOptions )
 
 
--- TODO !!!! THEN CONTINUE HERE !!! add role
 data AuthUser = AuthUser
-  { auId       :: !UUID
-  , auUsername :: !Text
+  { auId    :: !UUID
+  , auRoles :: ![Role]
   }
   deriving (Has UUID, Eq, Generic)
 
@@ -65,7 +64,7 @@ instance ToJWT AuthUser
 instance FromJWT AuthUser
 
 mkAuthUser :: User -> AuthUser
-mkAuthUser User {..} = AuthUser { auId = uId, auUsername = uUsername }
+mkAuthUser User {..} = AuthUser { auId = uId, auRoles = uRoles }
 
 data JWT = JWT
   { jwtAccessToken  :: !ByteString

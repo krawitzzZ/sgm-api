@@ -12,11 +12,11 @@ import           Data.UUID                                ( UUID )
 import           Domain.Auth                              ( AuthUser
                                                           , JWT
                                                           )
+import           Domain.Auth.Password                     ( Password
+                                                          , PasswordHash
+                                                          )
 import           Domain.Event                             ( Event
                                                           , NewEventData
-                                                          )
-import           Domain.Password                          ( Password
-                                                          , PasswordHash
                                                           )
 import           Domain.User                              ( NewUserData
                                                           , User

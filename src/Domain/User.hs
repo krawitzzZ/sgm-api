@@ -4,10 +4,10 @@ module Domain.User
   ) where
 
 import           Data.UUID                                ( UUID )
-import           Domain.Password                          ( Password
+import           Domain.Auth.Password                     ( Password
                                                           , PasswordHash
                                                           )
-import           Domain.Role                              ( Role )
+import           Domain.Auth.Role                         ( Role )
 import           RIO                                      ( (==)
                                                           , Eq
                                                           , Generic
