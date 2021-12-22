@@ -3,33 +3,34 @@ module Infra.Beam.Mapper
   , eventEntityToDomain
   ) where
 
-import           Data.UUID                                ( UUID )
 import           Domain.Event                             ( Event(..) )
 import           Domain.User                              ( User(..) )
 import           Infra.Beam.Schema.Latest                 ( EventEntity
                                                           , EventEntityT(..)
+                                                          , PrimaryKey(UserEntityId)
                                                           , UserEntity
                                                           , UserEntityT(..)
                                                           )
 
 
 userEntityToDomain :: UserEntity -> User
-userEntityToDomain UserEntity { ueId, ueUsername, uePassword, ueFirstName, ueLastName } = User
-  { uId        = ueId
-  , uUsername  = ueUsername
-  , uPassword  = uePassword
-  , uFirstName = ueFirstName
-  , uLastName  = ueLastName
-  }
+userEntityToDomain UserEntity {..} = User { uId        = ueId
+                                          , uUsername  = ueUsername
+                                          , uPassword  = uePassword
+                                          , uFirstName = ueFirstName
+                                          , uLastName  = ueLastName
+                                          }
 
-eventEntityToDomain :: EventEntity -> UUID -> UUID -> Event
-eventEntityToDomain EventEntity { eeId, eeTitle, eeDescription, eeStart, eeEnd } createdBy updatedBy
-  = Event { eId            = eeId
-          , eTitle         = eeTitle
-          , eDescription   = eeDescription
-          , eCreatedBy     = createdBy
-          , eLastUpdatedBy = updatedBy
-          , eAttendees     = [] -- TODO add some attendees
-          , eStart         = eeStart
-          , eEnd           = eeEnd
-          }
+eventEntityToDomain :: EventEntity -> Event
+eventEntityToDomain EventEntity {..} =
+  let (UserEntityId createdBy    ) = eeCreatedBy
+      (UserEntityId lastUpdatedBy) = eeLastUpdatedBy
+  in  Event { eId            = eeId
+            , eTitle         = eeTitle
+            , eDescription   = eeDescription
+            , eCreatedBy     = createdBy
+            , eLastUpdatedBy = lastUpdatedBy
+            , eAttendees     = [] -- TODO add some attendees
+            , eStart         = eeStart
+            , eEnd           = eeEnd
+            }

@@ -45,27 +45,32 @@ import           RIO                                      ( ($)
                                                           )
 
 
+-- TODO get !!! START HERE !!! rid of reader
 getAll :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => m [User]
 getAll = withContext (mkContext "getAll") $ tryCatchDefault $ allUsers <&> map userEntityToDomain
 
 findOneById
   :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => UUID -> m User
-findOneById id = withContext (mkContext "findUsers") $ tryCatchDefault $ maybeUserById id >>= \case
-  Just user -> return $ userEntityToDomain user
-  Nothing   -> throwM . NotFound $ "User with id '" <> cs (show id) <> "' not found"
+findOneById id =
+  withContext (mkContext "findOneById") $ tryCatchDefault $ maybeUserById id >>= \case
+    Just user -> return $ userEntityToDomain user
+    Nothing   -> throwM . NotFound $ "User with id '" <> cs (show id) <> "' not found"
 
 findOneByUsername
   :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m) => Text -> m User
 findOneByUsername username =
-  withContext (mkContext "findUsers") $ tryCatchDefault $ maybeUserByUsername username >>= \case
-    Nothing   -> throwM . NotFound $ "User with username '" <> username <> "' not found"
-    Just user -> return $ userEntityToDomain user
+  withContext (mkContext "findOneByUsername")
+    $   tryCatchDefault
+    $   maybeUserByUsername username
+    >>= \case
+          Nothing   -> throwM . NotFound $ "User with username '" <> username <> "' not found"
+          Just user -> return $ userEntityToDomain user
 
 createOne
   :: (Has Connection e, MonadReader e m, MonadLogger m, MonadCatch m, MonadIO m)
   => NewUserData
   -> m User
-createOne user@NewUserData { nudUsername } =
+createOne user@NewUserData {..} =
   withContext (mkContext "createOne") $ tryCatchDefault $ maybeUserByUsername nudUsername >>= \case
     Just _ ->
       throwM $ UserNameAlreadyExists $ "User with username '" <> nudUsername <> "' already exists"

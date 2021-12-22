@@ -100,8 +100,10 @@ handleDomainException InvalidPassword{}             = throwM Unauthorized401
 handleDomainException AccessRestricted{}            = throwM Forbidden403
 handleDomainException NotFound{}                    = throwM NotFound404
 handleDomainException (  UserNameAlreadyExists msg) = throwM $ Conflict409 msg
-handleDomainException e@(CreateJwtException    _  ) = throw500 e
-handleDomainException e@(InternalError         _  ) = throw500 e
+handleDomainException e@(CreateJwtException    _  ) = do
+  withError e $ logWarn "Failed to create JWT"
+  throwM InternalError500
+handleDomainException e@(InternalError _) = throw500 e
 
 handleSomeException :: (MonadLogger m, MonadThrow m) => SomeException -> m a
 handleSomeException (SomeException e) = throw500 e

@@ -27,7 +27,7 @@ import           Control.Exception.Safe                   ( MonadCatch
                                                           , throwM
                                                           )
 import           Data.String.Conversions                  ( cs )
-import           Domain.Auth                              ( AuthenticatedUser
+import           Domain.Auth                              ( AuthUser
                                                           , JWT(..)
                                                           )
 import           Domain.Class                             ( Authentication(..)
@@ -69,7 +69,7 @@ type AuthHeaders = '[Header "X-Access-Token" Text , Header "X-Refresh-Token" Tex
 type Login
   = "login" :> ReqBody '[JSON] LoginDto :> Verb 'POST 204 '[JSON] (Headers AuthHeaders NoContent)
 type RefreshToken auths
-  = "login" :> "refresh" :> Auth auths AuthenticatedUser :> Verb 'POST 204 '[JSON] (Headers AuthHeaders NoContent)
+  = "login" :> "refresh" :> Auth auths AuthUser :> Verb 'POST 204 '[JSON] (Headers AuthHeaders NoContent)
 type Signup
   = "signup" :> ReqBody '[JSON] SignupDto :> PostCreated '[JSON] (Headers AuthHeaders UserDto)
 
@@ -96,12 +96,13 @@ login
   :: (Authentication m, UserRepository m, MonadCatch m, MonadLogger m)
   => LoginDto
   -> m (Headers AuthHeaders NoContent)
-login LoginDto { ldName, ldPassword } = withContext (mkContext "login")
-  $ tryCatch (loginUser ldName ldPassword >>= responseWithJwtHeaders NoContent) handleJwtException
+login LoginDto { lDtoName, lDtoPassword } = withContext (mkContext "login") $ tryCatch
+  (loginUser lDtoName lDtoPassword >>= responseWithJwtHeaders NoContent)
+  handleJwtException
 
 refreshToken
   :: (Authentication m, MonadCatch m, MonadLogger m)
-  => AuthResult AuthenticatedUser
+  => AuthResult AuthUser
   -> m (Headers AuthHeaders NoContent)
 refreshToken (Authenticated authUser) = withContext (mkContext "refreshToken")
   $ tryCatch (refreshJwtToken authUser >>= responseWithJwtHeaders NoContent) handleJwtException
@@ -112,8 +113,6 @@ signup
   => SignupDto
   -> m (Headers AuthHeaders UserDto)
 signup signupDto = withContext (mkContext "signup") $ do
-  let userData = signupDtoToUserData signupDto
-
   tryCatch
     (validatePassword . nudPassword $ userData)
     (\case
@@ -124,6 +123,7 @@ signup signupDto = withContext (mkContext "signup") $ do
   tryCatchDefault $ do
     (user, jwt) <- signupUser userData
     responseWithJwtHeaders (userToUserDto user) jwt
+  where userData = signupDtoToUserData signupDto
 
 
 responseWithJwtHeaders :: Monad m => a -> JWT -> m (Headers AuthHeaders a)
@@ -133,7 +133,7 @@ responseWithJwtHeaders response (JWT accessTok refreshTok) =
 handleJwtException :: (MonadLogger m, MonadThrow m) => DomainException -> m b
 handleJwtException err@(CreateJwtException _) = do
   withError err $ logWarn "Failed to create JWT"
-  throwM Unauthorized401
+  throwM InternalError500
 handleJwtException _ = throwM Unauthorized401
 
 

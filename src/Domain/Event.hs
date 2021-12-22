@@ -1,6 +1,7 @@
 module Domain.Event
   ( Event(..)
   , NewEventData(..)
+  , UpdateEventInfoData(..)
   ) where
 
 import           Data.Time                                ( LocalTime )
@@ -34,8 +35,16 @@ data NewEventData = NewEventData
   , nedDescription   :: !(Maybe Text)
   , nedCreatedBy     :: !UUID
   , nedLastUpdatedBy :: !UUID
-  , nedAttendees     :: ![UUID]
   , nedStart         :: !LocalTime
   , nedEnd           :: !LocalTime
   }
-  deriving (Eq, Generic)
+  deriving Generic
+
+data UpdateEventInfoData = UpdateEventInfoData
+  { ueidTitle         :: !Text
+  , ueidDescription   :: !(Maybe Text)
+  , ueidLastUpdatedBy :: !UUID
+  , ueidStart         :: !LocalTime
+  , ueidEnd           :: !LocalTime
+  }
+  deriving Generic

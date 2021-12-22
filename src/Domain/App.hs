@@ -16,6 +16,7 @@ import           Di.Monad                                 ( DiT
                                                           )
 import qualified Domain.Auth                             as Auth
 import           Domain.Class                             ( Authentication(..)
+                                                          , EventRepository(..)
                                                           , MonadLogger(..)
                                                           , UserRepository(..)
                                                           )
@@ -27,6 +28,7 @@ import           Domain.Logger                            ( LogContext
                                                           , Logger(..)
                                                           )
 import qualified Domain.Password                         as Password
+import qualified Infra.EventRepository                   as EventRepo
 import qualified Infra.Logger                            as Logger
 import qualified Infra.UserRepository                    as UserRepo
 import           RIO                                      ( (.)
@@ -83,6 +85,13 @@ instance (MonadIO m, MonadCatch m) => UserRepository (AppT m) where
   createUser        = UserRepo.createOne
   saveUser          = UserRepo.saveOne
   deleteUser        = UserRepo.deleteOne
+
+instance (MonadIO m, MonadCatch m) => EventRepository (AppT m) where
+  getEventById = EventRepo.findOneById
+  getAllEvents = EventRepo.getAll
+  createEvent  = EventRepo.createOne
+  saveEvent    = EventRepo.saveOne
+  deleteEvent  = EventRepo.deleteOne
 
 instance (MonadIO m, MonadTime m) => Authentication (AppT m) where
   validatePassword pass = asks extract >>= Password.validatePassword pass

@@ -3,6 +3,7 @@ module Domain.Logger
   , LogMessage(..)
   , LogLevel(..)
   , LogContext
+  , userIdKey
   ) where
 
 import           Data.Map.Strict                          ( Map )
@@ -35,3 +36,6 @@ data LogMessage = LogMessage
 type LogContext = Text
 
 data LogLevel = Debug | Info | Warn | Error deriving (Eq, Ord, Show, Read, Enum, Bounded)
+
+userIdKey :: Text
+userIdKey = "userId"

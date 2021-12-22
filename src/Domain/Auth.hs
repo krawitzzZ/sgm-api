@@ -1,8 +1,8 @@
 module Domain.Auth
-  ( AuthenticatedUser(..)
+  ( AuthUser(..)
   , JWT(..)
   , mkJwt
-  , mkAuthenticatedUser
+  , mkAuthUser
   ) where
 
 import           Control.Exception.Safe                   ( throwM )
@@ -50,22 +50,22 @@ import           Servant.Auth.Server                      ( JWTSettings
 import           Utils                                    ( jsonOptions )
 
 
--- TODO add role
-data AuthenticatedUser = AuthenticatedUser
-  { auId   :: !UUID
-  , auName :: !Text
+-- TODO !!!! THEN CONTINUE HERE !!! add role
+data AuthUser = AuthUser
+  { auId       :: !UUID
+  , auUsername :: !Text
   }
   deriving (Has UUID, Eq, Generic)
 
-instance ToJSON AuthenticatedUser where
+instance ToJSON AuthUser where
   toJSON = genericToJSON $ jsonOptions "au"
-instance FromJSON AuthenticatedUser where
+instance FromJSON AuthUser where
   parseJSON = genericParseJSON $ jsonOptions "au"
-instance ToJWT AuthenticatedUser
-instance FromJWT AuthenticatedUser
+instance ToJWT AuthUser
+instance FromJWT AuthUser
 
-mkAuthenticatedUser :: User -> AuthenticatedUser
-mkAuthenticatedUser User { uId, uUsername } = AuthenticatedUser { auId = uId, auName = uUsername }
+mkAuthUser :: User -> AuthUser
+mkAuthUser User {..} = AuthUser { auId = uId, auUsername = uUsername }
 
 data JWT = JWT
   { jwtAccessToken  :: !ByteString
@@ -73,15 +73,15 @@ data JWT = JWT
   }
   deriving (Eq, Generic)
 
-mkJwt :: (MonadTime m, MonadIO m) => NominalDiffTime -> JWTSettings -> AuthenticatedUser -> m JWT
+mkJwt :: (MonadTime m, MonadIO m) => NominalDiffTime -> JWTSettings -> AuthUser -> m JWT
 mkJwt tokenDuration jwtSettings user =
   mkExpirationTimes tokenDuration >>= \(accessExpire, refreshExpire) ->
     JWT <$> mkToken user jwtSettings accessExpire <*> mkToken user jwtSettings refreshExpire
 
 
 mkExpirationTimes :: (MonadTime m) => NominalDiffTime -> m (UTCTime, UTCTime)
-mkExpirationTimes tokenDuration =
-  currentTime >>= \now -> return (addUTCTime tokenDuration now, addUTCTime (nominalDay * 99) now)
+mkExpirationTimes tokenDuration = currentTime >>= \now -> do
+  return (addUTCTime tokenDuration now, addUTCTime (nominalDay * 99) now)
 
 mkToken :: (Has UUID a, ToJWT a, MonadIO m) => a -> JWTSettings -> UTCTime -> m ByteString
 mkToken user jwtSettings expireTime = liftIO $ makeJWT user jwtSettings (Just expireTime) >>= \case

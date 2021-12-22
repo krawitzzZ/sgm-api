@@ -30,31 +30,32 @@ import           Utils                                    ( jsonOptions )
 
 
 data UserDto = UserDto
-  { udId        :: !UUID
-  , udUsername  :: !Text
-  , udFirstName :: !(Maybe Text)
-  , udLastName  :: !(Maybe Text)
+  { uDtoId        :: !UUID
+  , uDtoUsername  :: !Text
+  , uDtoFirstName :: !(Maybe Text)
+  , uDtoLastName  :: !(Maybe Text)
   }
   deriving Generic
 
 instance ToJSON UserDto where
-  toJSON = genericToJSON $ jsonOptions "ud"
+  toJSON = genericToJSON $ jsonOptions "uDto"
 
 data UpdateUserDto = UpdateUserDto
-  { uudFirstName :: !(Maybe Text)
-  , uudLastName  :: !(Maybe Text)
+  { uuDtoFirstName :: !(Maybe Text)
+  , uuDtoLastName  :: !(Maybe Text)
   }
   deriving Generic
 
 instance Validity UpdateUserDto where
-  validate UpdateUserDto { uudFirstName, uudLastName } = mconcat
-    [ declare "First name is at least 2 characters long" (maybe True ((> 2) . length) uudFirstName)
+  validate UpdateUserDto {..} = mconcat
+    [ declare "First name is at least 2 characters long"
+              (maybe True ((> 2) . length) uuDtoFirstName)
     , declare "First name is not longer than 30 characters"
-              (maybe True ((<= 30) . length) uudFirstName)
-    , declare "Last name is at least 2 characters long" (maybe True ((> 2) . length) uudLastName)
+              (maybe True ((<= 30) . length) uuDtoFirstName)
+    , declare "Last name is at least 2 characters long" (maybe True ((> 2) . length) uuDtoLastName)
     , declare "Last name is not longer than 30 characters"
-              (maybe True ((<= 30) . length) uudLastName)
+              (maybe True ((<= 30) . length) uuDtoLastName)
     ]
 
 instance FromJSON UpdateUserDto where
-  parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "uud") v
+  parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "uuDto") v

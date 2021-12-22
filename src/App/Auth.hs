@@ -5,9 +5,9 @@ module App.Auth
   ) where
 
 import           Control.Exception.Safe                   ( MonadThrow )
-import           Domain.Auth                              ( AuthenticatedUser(..)
+import           Domain.Auth                              ( AuthUser(..)
                                                           , JWT(..)
-                                                          , mkAuthenticatedUser
+                                                          , mkAuthUser
                                                           )
 import           Domain.Class                             ( Authentication(..)
                                                           , UserRepository(..)
@@ -25,11 +25,11 @@ import           RIO                                      ( (<&>)
 
 loginUser :: (UserRepository m, Authentication m, MonadThrow m) => Text -> Password -> m JWT
 loginUser username pwd = getUserByUsername username >>= \u -> do
-  checkPassword pwd (uPassword u) >> createJwt (mkAuthenticatedUser u)
+  checkPassword pwd (uPassword u) >> createJwt (mkAuthUser u)
 
-refreshJwtToken :: (Authentication m) => AuthenticatedUser -> m JWT
+refreshJwtToken :: (Authentication m) => AuthUser -> m JWT
 refreshJwtToken = createJwt
 
 signupUser :: (Authentication m, UserRepository m) => NewUserData -> m (User, JWT)
 signupUser userData = createUser userData >>= \u -> do
-  createJwt (mkAuthenticatedUser u) <&> (u, )
+  createJwt (mkAuthUser u) <&> (u, )

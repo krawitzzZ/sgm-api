@@ -1,8 +1,8 @@
 module App.User
   ( getUsers
   , createUser
-  , getUserById
-  , updateUser
+  , findUserById
+  , updateUserDetails
   , deleteUser
   ) where
 
@@ -23,12 +23,14 @@ getUsers = C.getAllUsers
 createUser :: (C.UserRepository m) => NewUserData -> m User
 createUser = C.createUser
 
-getUserById :: (C.UserRepository m) => UUID -> m User
-getUserById = C.getUserById
+findUserById :: (C.UserRepository m) => UUID -> m User
+findUserById = C.getUserById
 
-updateUser :: (C.UserRepository m) => UUID -> Maybe Text -> Maybe Text -> m User
-updateUser userId fname lname =
-  C.getUserById userId >>= \u -> C.saveUser u { uFirstName = fname, uLastName = lname }
+-- TODO use Policy
+updateUserDetails :: (C.UserRepository m) => UUID -> Maybe Text -> Maybe Text -> m User
+updateUserDetails userId uFirstName uLastName =
+  C.getUserById userId >>= \u -> C.saveUser u { uFirstName, uLastName }
 
+-- TODO use Policy
 deleteUser :: (C.UserRepository m) => UUID -> m ()
 deleteUser = C.deleteUser
