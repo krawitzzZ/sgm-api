@@ -19,7 +19,7 @@ import           Data.Aeson                               ( (.=)
                                                           , ToJSON(..)
                                                           , object
                                                           )
-import           Domain.Class                             ( MonadLogger(..) )
+import           Domain.App.Class                         ( MonadLogger(..) )
 import           Domain.Exception                         ( DomainException(..) )
 import qualified Network.HTTP.Types                      as H
 import           RIO                                      ( ($)
@@ -97,7 +97,7 @@ throw500 e = do
 
 handleDomainException :: (MonadThrow m, MonadLogger m) => (DomainException -> m a)
 handleDomainException InvalidPassword{}             = throwM Unauthorized401
-handleDomainException AccessRestricted{}            = throwM Forbidden403
+handleDomainException AccessPolicyViolation{}       = throwM Forbidden403
 handleDomainException NotFound{}                    = throwM NotFound404
 handleDomainException (  UserNameAlreadyExists msg) = throwM $ Conflict409 msg
 handleDomainException e@(CreateJwtException    _  ) = do

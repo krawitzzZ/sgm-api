@@ -18,8 +18,8 @@ import           Database.Beam.Postgres                   ( Connection
                                                           , connectPostgreSQL
                                                           )
 import           Di.Core                                  ( Di )
-import           Domain.Config                            ( Config(..) )
-import           Domain.Env                               ( Env(..) )
+import           Domain.App.Config                        ( Config(..) )
+import           Domain.App.Env                           ( Env(..) )
 import           Domain.Logger                            ( LogContext
                                                           , LogLevel(..)
                                                           , LogMessage

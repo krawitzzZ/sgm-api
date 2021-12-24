@@ -14,15 +14,15 @@ import           Di.Monad                                 ( DiT
                                                           , MonadDi
                                                           , runDiT
                                                           )
-import qualified Domain.Auth                             as Auth
-import qualified Domain.Auth.Password                    as Password
-import           Domain.Class                             ( Authentication(..)
+import           Domain.App.Class                         ( Authentication(..)
                                                           , EventRepository(..)
                                                           , MonadLogger(..)
                                                           , UserRepository(..)
                                                           )
-import           Domain.Config                            ( Config(..) )
-import           Domain.Env                               ( Env(..) )
+import           Domain.App.Config                        ( Config(..) )
+import           Domain.App.Env                           ( Env(..) )
+import qualified Domain.Auth                             as Auth
+import qualified Domain.Auth.Password                    as Password
 import           Domain.Logger                            ( LogContext
                                                           , LogLevel
                                                           , LogMessage
@@ -59,14 +59,14 @@ newtype AppT m a = AppT { unAppT :: ReaderT Env (DiT LogLevel LogContext LogMess
                    , MonadDi LogLevel LogContext LogMessage
                    )
 
+instance MonadTrans AppT where
+  lift = AppT . lift . lift
+
 runAppT :: (Has Env e, MonadIO m) => e -> AppT m a -> m a
 runAppT env =
   let appEnv         = extract env
       Logger { lDi } = extract appEnv
   in  runDiT lDi . flip runReaderT appEnv . unAppT
-
-instance MonadTrans AppT where
-  lift = AppT . lift . lift
 
 instance Monad m => MonadLogger (AppT m) where
   logDebug    = Logger.logDebug
@@ -96,7 +96,11 @@ instance (MonadIO m, MonadCatch m) => EventRepository (AppT m) where
 instance (MonadIO m, MonadTime m) => Authentication (AppT m) where
   validatePassword pass = asks extract >>= Password.validatePassword pass
   checkPassword = Password.checkPassword
+  refreshJwt authUser = do
+    tokenDuration <- cJwtDuration <$> asks extract
+    jwtSettings   <- asks extract
+    Auth.refreshJwt tokenDuration jwtSettings authUser
   createJwt user = do
     tokenDuration <- cJwtDuration <$> asks extract
     jwtSettings   <- asks extract
-    Auth.mkJwt tokenDuration jwtSettings user
+    Auth.createJwt tokenDuration jwtSettings user

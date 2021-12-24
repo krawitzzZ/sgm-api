@@ -14,7 +14,7 @@ import           Api.UserApi                              ( UserApi
                                                           , userServer
                                                           )
 import           Control.Exception.Safe                   ( MonadCatch )
-import           Domain.Class                             ( Authentication
+import           Domain.App.Class                         ( Authentication
                                                           , EventRepository
                                                           , MonadLogger
                                                           , UserRepository

@@ -12,15 +12,14 @@ import           Api.Resources.Event                      ( EventDto(..)
                                                           , UpdateEventInfoDto(..)
                                                           )
 import           Api.Resources.User                       ( UserDto(..) )
-import           Domain.Auth                              ( AuthUser(..) )
 import           Domain.Auth.Role                         ( Role(..) )
-import           Domain.Event                             ( Event(..)
-                                                          , NewEventData(..)
+import           Domain.Auth.UserClaims                   ( UserClaims(..) )
+import           Domain.Event                             ( Event(..) )
+import           Domain.Event.EventData                   ( NewEventData(..)
                                                           , UpdateEventInfoData(..)
                                                           )
-import           Domain.User                              ( NewUserData(..)
-                                                          , User(..)
-                                                          )
+import           Domain.User                              ( User(..) )
+import           Domain.User.UserData                     ( NewUserData(..) )
 
 
 userToUserDto :: User -> UserDto
@@ -49,21 +48,21 @@ eventToEventDto Event {..} = EventDto { eDtoId            = eId
                                       , eDtoEnd           = eEnd
                                       }
 
-newEventDtoToEventData :: NewEventDto -> AuthUser -> NewEventData
-newEventDtoToEventData NewEventDto {..} AuthUser {..} = NewEventData
+newEventDtoToEventData :: NewEventDto -> UserClaims -> NewEventData
+newEventDtoToEventData NewEventDto {..} UserClaims {..} = NewEventData
   { nedTitle         = neDtoTitle
   , nedDescription   = neDtoDescription
-  , nedCreatedBy     = auId
-  , nedLastUpdatedBy = auId
+  , nedCreatedBy     = ucId
+  , nedLastUpdatedBy = ucId
   , nedStart         = neDtoStart
   , nedEnd           = neDtoEnd
   }
 
-updateEventInfoDtoToEventData :: UpdateEventInfoDto -> AuthUser -> UpdateEventInfoData
-updateEventInfoDtoToEventData UpdateEventInfoDto {..} AuthUser {..} = UpdateEventInfoData
+updateEventInfoDtoToEventData :: UpdateEventInfoDto -> UserClaims -> UpdateEventInfoData
+updateEventInfoDtoToEventData UpdateEventInfoDto {..} UserClaims {..} = UpdateEventInfoData
   { ueidTitle         = ueiDtoTitle
   , ueidDescription   = ueiDtoDescription
-  , ueidLastUpdatedBy = auId
+  , ueidLastUpdatedBy = ucId
   , ueidStart         = ueiDtoStart
   , ueidEnd           = ueiDtoEnd
   }

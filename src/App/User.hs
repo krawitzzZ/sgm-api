@@ -1,36 +1,36 @@
 module App.User
   ( getUsers
-  , createUser
   , findUserById
   , updateUserDetails
   , deleteUser
   ) where
 
+import           Control.Exception.Safe                   ( MonadThrow )
 import           Data.UUID                                ( UUID )
-import qualified Domain.Class                            as C
-import           Domain.User                              ( NewUserData
+import qualified Domain.App.Class                        as C
+import           Domain.Auth.UserClaims                   ( UserClaims )
+import           Domain.Policy                            ( accessPolicyGuard )
+import           Domain.User                              ( Action(..)
                                                           , User(..)
                                                           )
-import           RIO                                      ( (>>=)
+import           RIO                                      ( (>>)
+                                                          , (>>=)
                                                           , Maybe
                                                           , Text
                                                           )
 
 
-getUsers :: (C.UserRepository m) => m [User]
-getUsers = C.getAllUsers
+getUsers :: (C.UserRepository m, MonadThrow m) => UserClaims -> m [User]
+getUsers me = accessPolicyGuard me GetAllUsers >> C.getAllUsers
 
-createUser :: (C.UserRepository m) => NewUserData -> m User
-createUser = C.createUser
+findUserById :: (C.UserRepository m, MonadThrow m) => UserClaims -> UUID -> m User
+findUserById me userId = accessPolicyGuard me GetUser >> C.getUserById userId
 
-findUserById :: (C.UserRepository m) => UUID -> m User
-findUserById = C.getUserById
+updateUserDetails
+  :: (C.UserRepository m, MonadThrow m) => UserClaims -> UUID -> Maybe Text -> Maybe Text -> m User
+updateUserDetails me userId uFirstName uLastName =
+  accessPolicyGuard me (UpdateUserInfo userId) >> C.getUserById userId >>= \user ->
+    C.saveUser user { uFirstName, uLastName }
 
--- TODO use Policy
-updateUserDetails :: (C.UserRepository m) => UUID -> Maybe Text -> Maybe Text -> m User
-updateUserDetails userId uFirstName uLastName =
-  C.getUserById userId >>= \u -> C.saveUser u { uFirstName, uLastName }
-
--- TODO use Policy
-deleteUser :: (C.UserRepository m) => UUID -> m ()
-deleteUser = C.deleteUser
+deleteUser :: (C.UserRepository m, MonadThrow m) => UserClaims -> UUID -> m ()
+deleteUser me userId = accessPolicyGuard me (DeleteUser userId) >> C.deleteUser userId

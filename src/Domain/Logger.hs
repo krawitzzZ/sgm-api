@@ -11,7 +11,6 @@ import           Di.Core                                  ( Di )
 import           RIO                                      ( Bounded
                                                           , Enum
                                                           , Eq
-                                                          , Generic
                                                           , Maybe
                                                           , Ord
                                                           , Read
@@ -31,7 +30,6 @@ data LogMessage = LogMessage
   , lmFields  :: !(Map Text Text)
   , lmError   :: !(Maybe Text)
   }
-  deriving (Eq, Show, Generic)
 
 type LogContext = Text
 

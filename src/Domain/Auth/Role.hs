@@ -1,4 +1,3 @@
-
 module Domain.Auth.Role
   ( Role(..)
   ) where
@@ -24,4 +23,4 @@ data Role =
   deriving (Eq, Show, Read, Ord, Enum, Bounded, Generic)
 
 instance ToJSON Role
-instance FromJSON Role where
+instance FromJSON Role

@@ -5,17 +5,14 @@ module App.Auth
   ) where
 
 import           Control.Exception.Safe                   ( MonadThrow )
-import           Domain.Auth                              ( AuthUser(..)
-                                                          , JWT(..)
-                                                          , mkAuthUser
-                                                          )
-import           Domain.Class                             ( Authentication(..)
+import           Domain.App.Class                         ( Authentication(..)
                                                           , UserRepository(..)
                                                           )
-import           Domain.Auth.Password                          ( Password )
-import           Domain.User                              ( NewUserData
-                                                          , User(..)
-                                                          )
+import           Domain.Auth                              ( JWT )
+import           Domain.Auth.Password                     ( Password )
+import           Domain.Auth.UserClaims                   ( UserClaims )
+import           Domain.User                              ( User(..) )
+import           Domain.User.UserData                     ( NewUserData )
 import           RIO                                      ( (<&>)
                                                           , (>>)
                                                           , (>>=)
@@ -25,11 +22,10 @@ import           RIO                                      ( (<&>)
 
 loginUser :: (UserRepository m, Authentication m, MonadThrow m) => Text -> Password -> m JWT
 loginUser username pwd = getUserByUsername username >>= \u -> do
-  checkPassword pwd (uPassword u) >> createJwt (mkAuthUser u)
+  checkPassword pwd (uPassword u) >> createJwt u
 
-refreshJwtToken :: (Authentication m) => AuthUser -> m JWT
-refreshJwtToken = createJwt
+refreshJwtToken :: (Authentication m) => UserClaims -> m JWT
+refreshJwtToken = refreshJwt
 
 signupUser :: (Authentication m, UserRepository m) => NewUserData -> m (User, JWT)
-signupUser userData = createUser userData >>= \u -> do
-  createJwt (mkAuthUser u) <&> (u, )
+signupUser userData = createUser userData >>= \u -> createJwt u <&> (u, )

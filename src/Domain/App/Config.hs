@@ -1,10 +1,9 @@
-module Domain.Config
+module Domain.App.Config
   ( Config(..)
   ) where
 
 import           Domain.Logger                            ( LogLevel )
-import           RIO                                      ( Generic
-                                                          , Int
+import           RIO                                      ( Int
                                                           , Text
                                                           )
 import           RIO.Time                                 ( NominalDiffTime )
@@ -17,4 +16,3 @@ data Config = Config
   , cLogLevel       :: !LogLevel
   , cJwtDuration    :: !NominalDiffTime
   }
-  deriving Generic

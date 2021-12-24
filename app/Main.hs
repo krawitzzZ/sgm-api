@@ -9,7 +9,7 @@ import           Di.Core                                  ( log
                                                           , new
                                                           , push
                                                           )
-import           Domain.Env                               ( Env(envDbConn) )
+import           Domain.App.Env                           ( Env(..) )
 import           Domain.Logger                            ( LogLevel(..)
                                                           , LogMessage(..)
                                                           )

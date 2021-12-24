@@ -14,6 +14,7 @@ import           Data.Validity                            ( Validity(..)
                                                           )
 import           Data.Validity.Aeson                      ( parseJSONValid )
 import           Data.Validity.Text                       ( )
+import           Data.Validity.UUID                       ( )
 import           RIO                                      ( ($)
                                                           , (.)
                                                           , (<=)
@@ -46,6 +47,9 @@ data UpdateUserDto = UpdateUserDto
   }
   deriving Generic
 
+instance FromJSON UpdateUserDto where
+  parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "uuDto") v
+
 instance Validity UpdateUserDto where
   validate UpdateUserDto {..} = mconcat
     [ declare "First name is at least 2 characters long"
@@ -56,6 +60,3 @@ instance Validity UpdateUserDto where
     , declare "Last name is not longer than 30 characters"
               (maybe True ((<= 30) . length) uuDtoLastName)
     ]
-
-instance FromJSON UpdateUserDto where
-  parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "uuDto") v

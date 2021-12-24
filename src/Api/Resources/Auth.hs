@@ -11,7 +11,7 @@ import           Data.Validity                            ( Validity(..)
                                                           )
 import           Data.Validity.Aeson                      ( parseJSONValid )
 import           Data.Validity.Text                       ( )
-import           Domain.Auth.Password                          ( Password )
+import           Domain.Auth.Password                     ( Password )
 import           RIO                                      ( ($)
                                                           , (.)
                                                           , (<=)
@@ -44,6 +44,9 @@ data SignupDto = SignupDto
   }
   deriving Generic
 
+instance FromJSON SignupDto where
+  parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "sDto") v
+
 instance Validity SignupDto where
   validate SignupDto { sDtoUsername, sDtoFirstName, sDtoLastName } = mconcat
     [ declare "Username is at least 5 characters long"    (length sDtoUsername > 5)
@@ -55,6 +58,3 @@ instance Validity SignupDto where
     , declare "Last name is not longer than 30 characters"
               (maybe True ((<= 30) . length) sDtoLastName)
     ]
-
-instance FromJSON SignupDto where
-  parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "sDto") v

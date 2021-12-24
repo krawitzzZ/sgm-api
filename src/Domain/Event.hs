@@ -1,18 +1,26 @@
 module Domain.Event
   ( Event(..)
-  , NewEventData(..)
-  , UpdateEventInfoData(..)
+  , Action(..)
   ) where
 
 import           Data.Time                                ( LocalTime )
 import           Data.UUID                                ( UUID )
-import           RIO                                      ( (==)
+import           Domain.Auth.Permission                   ( Permission(..)
+                                                          , check
+                                                          )
+import           Domain.Auth.Role                         ( Role(..) )
+import           Domain.Auth.UserClaims                   ( UserClaims(..) )
+import           Domain.Policy.AccessPolicy               ( AccessPolicy(..)
+                                                          , Action
+                                                          )
+import           RIO                                      ( (<>)
+                                                          , (==)
                                                           , Eq
-                                                          , Generic
                                                           , Maybe
                                                           , Text
                                                           , on
                                                           )
+import           Utils                                    ( anyElem )
 
 
 data Event = Event
@@ -25,26 +33,22 @@ data Event = Event
   , eStart         :: !LocalTime
   , eEnd           :: !LocalTime
   }
-  deriving Generic
 
 instance Eq Event where
   (==) = (==) `on` eId
 
-data NewEventData = NewEventData
-  { nedTitle         :: !Text
-  , nedDescription   :: !(Maybe Text)
-  , nedCreatedBy     :: !UUID
-  , nedLastUpdatedBy :: !UUID
-  , nedStart         :: !LocalTime
-  , nedEnd           :: !LocalTime
-  }
-  deriving Generic
+instance AccessPolicy Event where
+  data Action Event =
+    CreateEvent |
+    GetEvent |
+    GetAllEvents |
+    UpdateEventInfo UUID |
+    DeleteEvent UUID
 
-data UpdateEventInfoData = UpdateEventInfoData
-  { ueidTitle         :: !Text
-  , ueidDescription   :: !(Maybe Text)
-  , ueidLastUpdatedBy :: !UUID
-  , ueidStart         :: !LocalTime
-  , ueidEnd           :: !LocalTime
-  }
-  deriving Generic
+  checkAccessPolicy _ CreateEvent  = Granted
+  checkAccessPolicy _ GetEvent     = Granted
+  checkAccessPolicy _ GetAllEvents = Granted
+  checkAccessPolicy UserClaims {..} (UpdateEventInfo createdBy) =
+    check (ucId == createdBy) <> check ([Moderator, Admin, Superadmin] `anyElem` ucRoles)
+  checkAccessPolicy UserClaims {..} (DeleteEvent createdBy) =
+    check (ucId == createdBy) <> check ([Moderator, Admin, Superadmin] `anyElem` ucRoles)

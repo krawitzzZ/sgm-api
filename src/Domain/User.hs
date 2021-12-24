@@ -1,20 +1,26 @@
 module Domain.User
   ( User(..)
-  , NewUserData(..)
+  , Action(..)
   ) where
 
 import           Data.UUID                                ( UUID )
-import           Domain.Auth.Password                     ( Password
-                                                          , PasswordHash
+import           Domain.Auth.Password                     ( PasswordHash )
+import           Domain.Auth.Permission                   ( Permission(..)
+                                                          , check
                                                           )
-import           Domain.Auth.Role                         ( Role )
-import           RIO                                      ( (==)
+import           Domain.Auth.Role                         ( Role(..) )
+import           Domain.Auth.UserClaims                   ( UserClaims(..) )
+import           Domain.Policy.AccessPolicy               ( AccessPolicy(..) )
+import           RIO                                      ( (<>)
+                                                          , (==)
                                                           , Eq
-                                                          , Generic
                                                           , Maybe
+                                                          , Semigroup(..)
                                                           , Text
+                                                          , elem
                                                           , on
                                                           )
+import           Utils                                    ( anyElem )
 
 
 data User = User
@@ -25,16 +31,22 @@ data User = User
   , uFirstName :: !(Maybe Text)
   , uLastName  :: !(Maybe Text)
   }
-  deriving Generic
 
 instance Eq User where
   (==) = (==) `on` uId
 
-data NewUserData = NewUserData
-  { nudUsername  :: !Text
-  , nudPassword  :: !Password
-  , nudRoles     :: ![Role]
-  , nudFirstName :: !(Maybe Text)
-  , nudLastName  :: !(Maybe Text)
-  }
-  deriving Generic
+instance AccessPolicy User where
+  data Action User =
+    CreateUser |
+    GetUser |
+    GetAllUsers |
+    UpdateUserInfo UUID |
+    DeleteUser UUID
+
+  checkAccessPolicy UserClaims {..} CreateUser  = check (Superadmin `elem` ucRoles)
+  checkAccessPolicy _               GetUser     = Granted
+  checkAccessPolicy _               GetAllUsers = Granted
+  checkAccessPolicy UserClaims {..} (UpdateUserInfo userId) =
+    check (ucId == userId) <> check ([Admin, Superadmin] `anyElem` ucRoles)
+  checkAccessPolicy UserClaims {..} (DeleteUser userId) =
+    check (ucId == userId) <> check (Superadmin `elem` ucRoles)

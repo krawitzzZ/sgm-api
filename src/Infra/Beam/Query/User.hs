@@ -3,7 +3,7 @@ module Infra.Beam.Query.User
   , maybeUserById
   , maybeUserByUsername
   , createAndInsertUser
-  , updateUser
+  , updateUserInfo
   , deleteUser
   ) where
 
@@ -30,9 +30,8 @@ import           Database.Beam.Backend.SQL.BeamExtensions ( runInsertReturningLi
 import           Database.Beam.Postgres                   ( Connection )
 import           Database.Beam.Postgres.PgCrypto          ( PgCrypto(..) )
 import           Domain.Auth.Password                     ( hashPassword )
-import           Domain.User                              ( NewUserData(..)
-                                                          , User(..)
-                                                          )
+import           Domain.User                              ( User(..) )
+import           Domain.User.UserData                     ( NewUserData(..) )
 import           Infra.Beam.Query                         ( pgCrypto
                                                           , runBeam
                                                           , usersTable
@@ -55,7 +54,7 @@ allUsers :: (Has Connection c, MonadIO m) => c -> m [UserEntity]
 allUsers c = runBeam c (runSelectReturningList $ select $ all_ usersTable)
 
 maybeUserById :: (Has Connection c, MonadIO m) => c -> UUID -> m (Maybe UserEntity)
-maybeUserById c id = runBeam c $ runSelectReturningOne $ lookup_ usersTable (UserEntityId id)
+maybeUserById c uId = runBeam c $ runSelectReturningOne $ lookup_ usersTable (UserEntityId uId)
 
 maybeUserByUsername :: (Has Connection c, MonadIO m) => c -> Text -> m (Maybe UserEntity)
 maybeUserByUsername c username = runBeam c $ runSelectReturningOne $ select $ filter_
@@ -79,16 +78,16 @@ createAndInsertUser c NewUserData {..} = runBeam c $ do
     ]
   return userEntity
 
-updateUser :: (Has Connection c, MonadIO m) => c -> User -> m ()
-updateUser c User {..} = runBeam c $ runUpdate $ update
+updateUserInfo :: (Has Connection c, MonadIO m) => c -> User -> m ()
+updateUserInfo c User {..} = runBeam c $ runUpdate $ update
   usersTable
   (\UserEntity {..} ->
-    (ueUsername <-. val_ uUsername)
-      <> (ueLastUpdatedAt <-. currentTimestamp_)
+    (ueLastUpdatedAt <-. currentTimestamp_)
       <> (ueFirstName <-. val_ uFirstName)
       <> (ueLastName <-. val_ uLastName)
   )
   (\UserEntity {..} -> ueId ==. val_ uId)
 
 deleteUser :: (Has Connection c, MonadIO m) => c -> UUID -> m ()
-deleteUser c id = runBeam c $ runDelete $ delete usersTable (\UserEntity {..} -> ueId ==. val_ id)
+deleteUser c uId =
+  runBeam c $ runDelete $ delete usersTable (\UserEntity {..} -> ueId ==. val_ uId)

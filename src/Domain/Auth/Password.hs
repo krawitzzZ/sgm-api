@@ -4,9 +4,9 @@ module Domain.Auth.Password
   ( Password(..)
   , PasswordHash(..)
   , mkPassword
-  , validatePassword
   , hashPassword
   , checkPassword
+  , validatePassword
   ) where
 
 import           Control.Exception.Safe                   ( MonadThrow
@@ -26,7 +26,7 @@ import           Data.Validity                            ( Validity(..)
                                                           , valid
                                                           )
 import           Data.Validity.Text                       ( )
-import           Domain.Exception                         ( DomainException(InvalidPassword) )
+import           Domain.Exception                         ( DomainException(..) )
 import           RIO                                      ( ($)
                                                           , (<&>)
                                                           , Bool(..)

@@ -13,10 +13,9 @@ import           Control.Monad.Reader.Has                 ( Has )
 import           Data.String.Conversions                  ( cs )
 import           Data.UUID                                ( UUID )
 import           Database.Beam.Postgres                   ( Connection )
-import           Domain.Class                             ( MonadLogger(..) )
-import           Domain.Event                             ( Event(..)
-                                                          , NewEventData(..)
-                                                          )
+import           Domain.App.Class                         ( MonadLogger(..) )
+import           Domain.Event                             ( Event(..) )
+import           Domain.Event.EventData                   ( NewEventData )
 import           Domain.Exception                         ( DomainException(..) )
 import           Domain.Logger                            ( LogContext )
 import           Infra.Beam.Mapper                        ( eventEntityToDomain )
@@ -46,10 +45,10 @@ getAll c =
   withContext (mkContext "getAll") $ tryCatchDefault $ allEvents c <&> map eventEntityToDomain
 
 findOneById :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> UUID -> m Event
-findOneById c id =
-  withContext (mkContext "findOneById") $ tryCatchDefault $ maybeEventById c id >>= \case
+findOneById c eId =
+  withContext (mkContext "findOneById") $ tryCatchDefault $ maybeEventById c eId >>= \case
     Just event -> return $ eventEntityToDomain event
-    Nothing    -> throwM . NotFound $ "Event with id '" <> cs (show id) <> "' not found"
+    Nothing    -> throwM . NotFound $ "Event with id '" <> cs (show eId) <> "' not found"
 
 createOne
   :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> NewEventData -> m Event

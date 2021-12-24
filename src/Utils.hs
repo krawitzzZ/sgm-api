@@ -3,6 +3,7 @@ module Utils
   , jsonOptions
   , readEnvDefault
   , readEnvText
+  , anyElem
   , biconst
   , triconst
   , tetconst
@@ -19,13 +20,17 @@ import           RIO                                      ( ($)
                                                           , (.)
                                                           , (<>)
                                                           , (>>>)
+                                                          , Bool
+                                                          , Eq
                                                           , Maybe(..)
                                                           , MonadIO(..)
                                                           , Read
                                                           , String
                                                           , Text
+                                                          , any
                                                           , const
                                                           , drop
+                                                          , elem
                                                           , error
                                                           , fromMaybe
                                                           , length
@@ -64,6 +69,9 @@ readEnvText key = do
   case envValue of
     Nothing    -> error $ "Environment variable " <> cs key <> " is required"
     Just value -> return $ cs value
+
+anyElem :: (Eq a) => [a] -> [a] -> Bool
+anyElem needles haystack = any (`elem` haystack) needles
 
 biconst :: a -> b -> c -> a
 biconst = const . const

@@ -42,7 +42,7 @@ mkDiLogFunc appLogLevel = liftIO $ newStderrLoggerSet defaultBufSize <&> printTo
       let message  = DL.lmMessage log_message
       let error    = DL.lmError log_message
       let fields   = getFields $ DL.lmFields log_message
-      let context  = mconcat $ toList (intersperse " => " log_path)
+      let context  = mconcat $ toList (intersperse " |> " log_path)
       let logLine  = LogLine { time, severity, message, fields, error, context }
       liftIO $ pushLogStrLn logger $ toLogStr logLine
 

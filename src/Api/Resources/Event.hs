@@ -56,6 +56,9 @@ data NewEventDto = NewEventDto
   }
   deriving Generic
 
+instance FromJSON NewEventDto where
+  parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "neDto") v
+
 instance Validity NewEventDto where
   validate NewEventDto {..} = mconcat
     [ declare "Title is at least 5 characters long"    (length neDtoTitle > 5)
@@ -67,9 +70,6 @@ instance Validity NewEventDto where
     , declare "End is after start" (neDtoEnd > neDtoStart)
     ]
 
-instance FromJSON NewEventDto where
-  parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "neDto") v
-
 data UpdateEventInfoDto = UpdateEventInfoDto
   { ueiDtoTitle       :: !Text
   , ueiDtoDescription :: !(Maybe Text)
@@ -77,6 +77,9 @@ data UpdateEventInfoDto = UpdateEventInfoDto
   , ueiDtoEnd         :: !LocalTime
   }
   deriving Generic
+
+instance FromJSON UpdateEventInfoDto where
+  parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "ueiDto") v
 
 instance Validity UpdateEventInfoDto where
   validate UpdateEventInfoDto {..} = mconcat
@@ -88,6 +91,3 @@ instance Validity UpdateEventInfoDto where
               (maybe True ((<= 300) . length) ueiDtoDescription)
     , declare "End is after start" (ueiDtoEnd > ueiDtoStart)
     ]
-
-instance FromJSON UpdateEventInfoDto where
-  parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "ueiDto") v

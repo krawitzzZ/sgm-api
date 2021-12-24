@@ -12,9 +12,9 @@ import           Api.Mapper                               ( eventToEventDto
                                                           , newEventDtoToEventData
                                                           , updateEventInfoDtoToEventData
                                                           )
-import           Api.Resources.Event                      ( EventDto(..)
-                                                          , NewEventDto(..)
-                                                          , UpdateEventInfoDto(..)
+import           Api.Resources.Event                      ( EventDto
+                                                          , NewEventDto
+                                                          , UpdateEventInfoDto
                                                           )
 import           App.Event                                ( createNewEvent
                                                           , deleteEvent
@@ -26,14 +26,15 @@ import           Control.Exception.Safe                   ( MonadCatch )
 import           Data.UUID                                ( UUID
                                                           , toText
                                                           )
-import           Domain.Auth                              ( AuthUser(..) )
-import           Domain.Class                             ( EventRepository
+import           Domain.App.Class                         ( EventRepository
                                                           , MonadLogger(..)
                                                           )
+import           Domain.Auth.UserClaims                   ( UserClaims(..) )
 import           Domain.Logger                            ( LogContext
                                                           , userIdKey
                                                           )
 import           RIO                                      ( ($)
+                                                          , (.)
                                                           , (<$>)
                                                           , (<&>)
                                                           , (<>)
@@ -70,7 +71,7 @@ type UpdateEvent = Capture "id" UUID :> ReqBody '[JSON] UpdateEventInfoDto :> Pu
 type DeleteEvent = Capture "id" UUID :> Verb 'DELETE 204 '[JSON] NoContent
 
 -- brittany-disable-next-binding
-type EventApi auths = Throws ApiException :> Auth auths AuthUser :>
+type EventApi auths = Throws ApiException :> Auth auths UserClaims :>
   (
     GetEvents :<|>
     GetEvent :<|>
@@ -90,35 +91,35 @@ eventV1Server _ =
   throw401 :<|> const throw401 :<|> const throw401 :<|> biconst throw401 :<|> const throw401
 
 
-allEvents :: (EventRepository m, MonadCatch m, MonadLogger m) => AuthUser -> m [EventDto]
+allEvents :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> m [EventDto]
 allEvents me =
   withContext (mkContext "allEvents")
-    >>> withField (userIdKey, toText (auId me))
+    >>> withField (userIdKey, toText . ucId $ me)
     $   tryCatchDefault
     $   map eventToEventDto
-    <$> getEvents
+    <$> getEvents me
 
-eventById :: (EventRepository m, MonadCatch m, MonadLogger m) => AuthUser -> UUID -> m EventDto
+eventById :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m EventDto
 eventById me eventId =
   withContext (mkContext "eventById")
     >>> withFields (logFields me eventId)
     $   tryCatchDefault
-    $   findEventById eventId
+    $   findEventById me eventId
     <&> eventToEventDto
 
 newEvent
-  :: (EventRepository m, MonadCatch m, MonadLogger m) => AuthUser -> NewEventDto -> m EventDto
+  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> NewEventDto -> m EventDto
 newEvent me newEventDto =
   withContext (mkContext "newEvent")
-    >>> withField (userIdKey, toText (auId me))
+    >>> withField (userIdKey, toText . ucId $ me)
     $   tryCatchDefault
-    $   createNewEvent newEventData me
+    $   createNewEvent me newEventData
     <&> eventToEventDto
   where newEventData = newEventDtoToEventData newEventDto me
 
 updateEventInfo
   :: (EventRepository m, MonadCatch m, MonadLogger m)
-  => AuthUser
+  => UserClaims
   -> UUID
   -> UpdateEventInfoDto
   -> m EventDto
@@ -126,21 +127,22 @@ updateEventInfo me eventId updateEventInfoDto =
   withContext (mkContext "updateEventInfo")
     >>> withFields (logFields me eventId)
     $   tryCatchDefault
-    $   updateEventDetails eventId updateEventData me
+    $   updateEventDetails me eventId updateEventData
     <&> eventToEventDto
   where updateEventData = updateEventInfoDtoToEventData updateEventInfoDto me
 
-removeEvent :: (EventRepository m, MonadCatch m, MonadLogger m) => AuthUser -> UUID -> m NoContent
+removeEvent
+  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m NoContent
 removeEvent me eventId =
   withContext (mkContext "removeEvent")
     >>> withFields (logFields me eventId)
     $   tryCatchDefault
-    $   deleteEvent eventId me
+    $   deleteEvent me eventId
     >>  return NoContent
 
 
-logFields :: AuthUser -> UUID -> [(Text, Text)]
-logFields me eventId = [(userIdKey, toText (auId me)), ("eventId", toText eventId)]
+logFields :: UserClaims -> UUID -> [(Text, Text)]
+logFields me eventId = [(userIdKey, toText . ucId $ me), ("eventId", toText eventId)]
 
 mkContext :: LogContext -> LogContext
 mkContext = ("Api.EventApi->" <>)

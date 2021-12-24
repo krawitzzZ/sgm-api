@@ -1,28 +1,22 @@
-module Domain.Class
+module Domain.App.Class
   ( MonadLogger(..)
   , UserRepository(..)
   , EventRepository(..)
   , Authentication(..)
-  , Policy(..)
   ) where
 
 import           Control.Exception.Safe                   ( MonadThrow )
-import           Data.Kind                                ( Type )
 import           Data.UUID                                ( UUID )
-import           Domain.Auth                              ( AuthUser
-                                                          , JWT
-                                                          )
+import           Domain.Auth                              ( JWT )
 import           Domain.Auth.Password                     ( Password
                                                           , PasswordHash
                                                           )
-import           Domain.Event                             ( Event
-                                                          , NewEventData
-                                                          )
-import           Domain.User                              ( NewUserData
-                                                          , User
-                                                          )
-import           RIO                                      ( Bool
-                                                          , Monad
+import           Domain.Auth.UserClaims                   ( UserClaims )
+import           Domain.Event                             ( Event )
+import           Domain.Event.EventData                   ( NewEventData )
+import           Domain.User                              ( User )
+import           Domain.User.UserData                     ( NewUserData )
+import           RIO                                      ( Monad
                                                           , Show
                                                           , Text
                                                           )
@@ -56,11 +50,5 @@ class (Monad m) => EventRepository m where
 class (Monad m) => Authentication m where
   validatePassword :: (MonadThrow m) => Password -> m ()
   checkPassword :: (MonadThrow m) => Password -> PasswordHash -> m ()
-  createJwt :: AuthUser -> m JWT
-
-class Policy e where
-  data PolicyAction e :: Type
-  policyGuard :: (MonadThrow m) => PolicyAction e -> AuthUser -> e -> m ()
-  canCreate :: AuthUser -> e -> Bool
-  canEdit :: AuthUser -> e -> Bool
-  canDelete :: AuthUser -> e -> Bool
+  refreshJwt :: UserClaims -> m JWT
+  createJwt :: User -> m JWT

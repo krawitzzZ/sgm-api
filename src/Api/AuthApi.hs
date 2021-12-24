@@ -27,16 +27,15 @@ import           Control.Exception.Safe                   ( MonadCatch
                                                           , throwM
                                                           )
 import           Data.String.Conversions                  ( cs )
-import           Domain.Auth                              ( AuthUser
-                                                          , JWT(..)
-                                                          )
-import           Domain.Class                             ( Authentication(..)
+import           Domain.App.Class                         ( Authentication(..)
                                                           , MonadLogger(..)
                                                           , UserRepository
                                                           )
+import           Domain.Auth                              ( JWT(..) )
+import           Domain.Auth.UserClaims                   ( UserClaims )
 import           Domain.Exception                         ( DomainException(..) )
 import           Domain.Logger                            ( LogContext )
-import           Domain.User                              ( NewUserData(..) )
+import           Domain.User.UserData                     ( NewUserData(..) )
 import           RIO                                      ( ($)
                                                           , (.)
                                                           , (<>)
@@ -69,7 +68,7 @@ type AuthHeaders = '[Header "X-Access-Token" Text , Header "X-Refresh-Token" Tex
 type Login
   = "login" :> ReqBody '[JSON] LoginDto :> Verb 'POST 204 '[JSON] (Headers AuthHeaders NoContent)
 type RefreshToken auths
-  = "login" :> "refresh" :> Auth auths AuthUser :> Verb 'POST 204 '[JSON] (Headers AuthHeaders NoContent)
+  = "login" :> "refresh" :> Auth auths UserClaims :> Verb 'POST 204 '[JSON] (Headers AuthHeaders NoContent)
 type Signup
   = "signup" :> ReqBody '[JSON] SignupDto :> PostCreated '[JSON] (Headers AuthHeaders UserDto)
 
@@ -102,7 +101,7 @@ login LoginDto { lDtoName, lDtoPassword } = withContext (mkContext "login") $ tr
 
 refreshToken
   :: (Authentication m, MonadCatch m, MonadLogger m)
-  => AuthResult AuthUser
+  => AuthResult UserClaims
   -> m (Headers AuthHeaders NoContent)
 refreshToken (Authenticated authUser) = withContext (mkContext "refreshToken")
   $ tryCatch (refreshJwtToken authUser >>= responseWithJwtHeaders NoContent) handleJwtException

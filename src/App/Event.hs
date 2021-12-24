@@ -6,35 +6,42 @@ module App.Event
   , deleteEvent
   ) where
 
+import           Control.Exception.Safe                   ( MonadThrow )
 import           Data.UUID                                ( UUID )
-import           Domain.Auth                              ( AuthUser )
-import qualified Domain.Class                            as C
-import           Domain.Event                             ( Event(..)
-                                                          , NewEventData
+import qualified Domain.App.Class                        as C
+import           Domain.Auth.UserClaims                   ( UserClaims )
+import           Domain.Event                             ( Action(..)
+                                                          , Event(..)
+                                                          )
+import           Domain.Event.EventData                   ( NewEventData
                                                           , UpdateEventInfoData(..)
                                                           )
-import           RIO                                      ( (>>=) )
+import           Domain.Policy                            ( accessPolicyGuard )
+import           RIO                                      ( (>>)
+                                                          , (>>=)
+                                                          )
 
 
-getEvents :: (C.EventRepository m) => m [Event]
-getEvents = C.getAllEvents
+getEvents :: (C.EventRepository m, MonadThrow m) => UserClaims -> m [Event]
+getEvents me = accessPolicyGuard me GetAllEvents >> C.getAllEvents
 
-createNewEvent :: (C.EventRepository m) => NewEventData -> AuthUser -> m Event
-createNewEvent eventData _ = C.createEvent eventData -- TODO use Policy
+createNewEvent :: (C.EventRepository m, MonadThrow m) => UserClaims -> NewEventData -> m Event
+createNewEvent me eventData = accessPolicyGuard me CreateEvent >> C.createEvent eventData
 
-findEventById :: (C.EventRepository m) => UUID -> m Event
-findEventById = C.getEventById
+findEventById :: (C.EventRepository m, MonadThrow m) => UserClaims -> UUID -> m Event
+findEventById me eventId = accessPolicyGuard me GetEvent >> C.getEventById eventId
 
--- TODO use Policy
-updateEventDetails :: (C.EventRepository m) => UUID -> UpdateEventInfoData -> AuthUser -> m Event
-updateEventDetails eventId UpdateEventInfoData {..} _ = C.getEventById eventId >>= \event ->
-  C.saveEvent event { eTitle         = ueidTitle
-                    , eDescription   = ueidDescription
-                    , eLastUpdatedBy = ueidLastUpdatedBy
-                    , eStart         = ueidStart
-                    , eEnd           = ueidEnd
-                    }
+updateEventDetails
+  :: (C.EventRepository m, MonadThrow m) => UserClaims -> UUID -> UpdateEventInfoData -> m Event
+updateEventDetails me eventId UpdateEventInfoData {..} = C.getEventById eventId >>= \event -> do
+  accessPolicyGuard me (UpdateEventInfo (eCreatedBy event)) >> C.saveEvent event
+    { eTitle         = ueidTitle
+    , eDescription   = ueidDescription
+    , eLastUpdatedBy = ueidLastUpdatedBy
+    , eStart         = ueidStart
+    , eEnd           = ueidEnd
+    }
 
--- TODO use Policy
-deleteEvent :: (C.EventRepository m) => UUID -> AuthUser -> m ()
-deleteEvent id _ = C.deleteEvent id
+deleteEvent :: (C.EventRepository m, MonadThrow m) => UserClaims -> UUID -> m ()
+deleteEvent me eventId = C.getEventById eventId >>= \event -> do
+  accessPolicyGuard me (DeleteEvent (eCreatedBy event)) >> C.deleteEvent eventId

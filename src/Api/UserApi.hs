@@ -6,7 +6,6 @@ module Api.UserApi
 import           Api.ApiVersion                           ( ApiVersion(..) )
 import           Api.Exception                            ( ApiException(..)
                                                           , throw401
-                                                          , throw403
                                                           , tryCatchDefault
                                                           )
 import           Api.Mapper                               ( userToUserDto )
@@ -18,29 +17,27 @@ import           App.User                                 ( deleteUser
                                                           , getUsers
                                                           , updateUserDetails
                                                           )
-import           Control.Exception.Safe                   ( MonadCatch
-                                                          , MonadThrow
-                                                          )
+import           Control.Exception.Safe                   ( MonadCatch )
 import           Data.UUID                                ( UUID
                                                           , toText
                                                           )
-import           Domain.Auth                              ( AuthUser(..) )
-import           Domain.Class                             ( MonadLogger(..)
+import           Domain.App.Class                         ( MonadLogger(..)
                                                           , UserRepository
                                                           )
+import           Domain.Auth.UserClaims                   ( UserClaims(..) )
 import           Domain.Logger                            ( LogContext
                                                           , userIdKey
                                                           )
 import           RIO                                      ( ($)
+                                                          , (.)
                                                           , (<$>)
                                                           , (<>)
-                                                          , (==)
+                                                          , (>>)
                                                           , (>>>)
                                                           , Text
                                                           , const
                                                           , map
                                                           , return
-                                                          , unless
                                                           )
 import           Servant                                  ( type (:<|>)(..)
                                                           , type (:>)
@@ -67,7 +64,7 @@ type UpdateUser = Capture "id" UUID :> ReqBody '[JSON] UpdateUserDto :> Put '[JS
 type DeleteUser = Capture "id" UUID :> Verb 'DELETE 204 '[JSON] NoContent
 
 -- brittany-disable-next-binding
-type UserApi auths = Throws ApiException :> Auth auths AuthUser :>
+type UserApi auths = Throws ApiException :> Auth auths UserClaims :>
   (
     GetUsers :<|>
     GetUser :<|>
@@ -84,43 +81,39 @@ userV1Server (Authenticated u) = allUsers u :<|> userById u :<|> updateUserInfo 
 userV1Server _ = throw401 :<|> const throw401 :<|> biconst throw401 :<|> const throw401
 
 
-allUsers :: (UserRepository m, MonadCatch m, MonadLogger m) => AuthUser -> m [UserDto]
+allUsers :: (UserRepository m, MonadCatch m, MonadLogger m) => UserClaims -> m [UserDto]
 allUsers me =
   withContext (mkContext "allUsers")
-    >>> withField (userIdKey, toText (auId me))
+    >>> withField (userIdKey, toText . ucId $ me)
     $   tryCatchDefault
     $   map userToUserDto
-    <$> getUsers
+    <$> getUsers me
 
-userById :: (UserRepository m, MonadCatch m, MonadLogger m) => AuthUser -> UUID -> m UserDto
+userById :: (UserRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m UserDto
 userById me userId =
   withContext (mkContext "userById") >>> withFields (logFields me userId) $ tryCatchDefault
-    (userToUserDto <$> findUserById userId)
+    (userToUserDto <$> findUserById me userId)
 
 updateUserInfo
   :: (UserRepository m, MonadCatch m, MonadLogger m)
-  => AuthUser
+  => UserClaims
   -> UUID
   -> UpdateUserDto
   -> m UserDto
-updateUserInfo me userId UpdateUserDto { uuDtoFirstName, uuDtoLastName } =
-  withContext (mkContext "updateUserInfo") >>> withFields (logFields me userId) $ do
-    identityGuard userId me
-    tryCatchDefault (userToUserDto <$> updateUserDetails userId uuDtoFirstName uuDtoLastName)
+updateUserInfo me userId UpdateUserDto {..} =
+  withContext (mkContext "updateUserInfo") >>> withFields (logFields me userId) $ tryCatchDefault
+    (userToUserDto <$> updateUserDetails me userId uuDtoFirstName uuDtoLastName)
 
-removeUser :: (UserRepository m, MonadCatch m, MonadLogger m) => AuthUser -> UUID -> m NoContent
+removeUser :: (UserRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m NoContent
 removeUser me userId =
-  withContext (mkContext "removeUser") >>> withFields (logFields me userId) $ do
-    identityGuard userId me -- TODO use Policy in App.User
-    tryCatchDefault (deleteUser userId)
-    return NoContent
+  withContext (mkContext "removeUser")
+    >>> withFields (logFields me userId)
+    $   tryCatchDefault (deleteUser me userId)
+    >>  return NoContent
 
 
-identityGuard :: (MonadThrow m) => UUID -> AuthUser -> m ()
-identityGuard id u = unless (auId u == id) throw403
-
-logFields :: AuthUser -> UUID -> [(Text, Text)]
-logFields me userId = [(userIdKey, toText (auId me)), ("requestedUserId", toText userId)]
+logFields :: UserClaims -> UUID -> [(Text, Text)]
+logFields me userId = [(userIdKey, toText . ucId $ me), ("requestUserId", toText userId)]
 
 mkContext :: LogContext -> LogContext
 mkContext = ("Api.UserApi->" <>)

@@ -27,9 +27,8 @@ import           Database.Beam                            ( (<-.)
 import           Database.Beam.Backend.SQL.BeamExtensions ( runInsertReturningList )
 import           Database.Beam.Postgres                   ( Connection )
 import           Database.Beam.Postgres.PgCrypto          ( PgCrypto(..) )
-import           Domain.Event                             ( Event(..)
-                                                          , NewEventData(..)
-                                                          )
+import           Domain.Event                             ( Event(..) )
+import           Domain.Event.EventData                   ( NewEventData(..) )
 import           Infra.Beam.Query                         ( eventsTable
                                                           , pgCrypto
                                                           , runBeam
@@ -50,7 +49,7 @@ allEvents :: (Has Connection c, MonadIO m) => c -> m [EventEntity]
 allEvents c = runBeam c (runSelectReturningList $ select $ all_ eventsTable)
 
 maybeEventById :: (Has Connection c, MonadIO m) => c -> UUID -> m (Maybe EventEntity)
-maybeEventById c id = runBeam c $ runSelectReturningOne $ lookup_ eventsTable (EventEntityId id)
+maybeEventById c eId = runBeam c $ runSelectReturningOne $ lookup_ eventsTable (EventEntityId eId)
 
 createAndInsertEvent :: (Has Connection c, MonadIO m) => c -> NewEventData -> m EventEntity
 createAndInsertEvent c NewEventData {..} = runBeam c $ do
@@ -83,5 +82,5 @@ updateEventDetails c Event {..} = runBeam c $ runUpdate $ update
   (\EventEntity {..} -> eeId ==. val_ eId)
 
 deleteEvent :: (Has Connection c, MonadIO m) => c -> UUID -> m ()
-deleteEvent c id =
-  runBeam c $ runDelete $ delete eventsTable (\EventEntity {..} -> eeId ==. val_ id)
+deleteEvent c eId =
+  runBeam c $ runDelete $ delete eventsTable (\EventEntity {..} -> eeId ==. val_ eId)
