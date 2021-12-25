@@ -34,11 +34,9 @@ import           Infra.Beam.Schema.Types                  ( passwordType
                                                           , roleType
                                                           )
 import           RIO                                      ( (.)
-                                                          , Eq
                                                           , Generic
                                                           , Identity
                                                           , Maybe(..)
-                                                          , Show
                                                           , Text
                                                           , Vector
                                                           )
@@ -58,8 +56,6 @@ data UserEntityT f = UserEntity
   deriving (Generic, Beamable)
 
 type UserEntity = UserEntityT Identity
-deriving instance Show UserEntity
-deriving instance Eq UserEntity
 
 instance Table UserEntityT where
   data PrimaryKey UserEntityT f = UserEntityId !(C f UUID)
@@ -67,8 +63,6 @@ instance Table UserEntityT where
   primaryKey = UserEntityId . ueId
 
 type UserEntityId = PrimaryKey UserEntityT Identity
-deriving instance Show UserEntityId
-deriving instance Eq UserEntityId
 
 createUsersTable
   :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity UserEntityT))

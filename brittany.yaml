@@ -87,8 +87,8 @@ conf_layout:
     contents: 3
     tag: AltChooserBoundedSearch
   lconfig_cols: 100
-  lconfig_importColumn: 60
-  lconfig_importAsColumn: 60
+  lconfig_importColumn: 70
+  lconfig_importAsColumn: 70
   lconfig_indentWhereSpecial: true
   lconfig_allowHangingQuasiQuotes: true
   lconfig_alignmentBreakOnMultiline: true

@@ -30,11 +30,9 @@ import           Infra.Beam.Schema.V002.User              ( PrimaryKey(..)
                                                           , UserEntityT
                                                           )
 import           RIO                                      ( (.)
-                                                          , Eq
                                                           , Generic
                                                           , Identity
                                                           , Maybe
-                                                          , Show
                                                           , Text
                                                           )
 import           RIO.Time                                 ( LocalTime )
@@ -54,8 +52,6 @@ data EventEntityT f = EventEntity
   deriving (Generic, Beamable)
 
 type EventEntity = EventEntityT Identity
-deriving instance Show EventEntity
-deriving instance Eq EventEntity
 
 instance Table EventEntityT where
   data PrimaryKey EventEntityT f = EventEntityId !(C f UUID)
@@ -63,8 +59,6 @@ instance Table EventEntityT where
   primaryKey = EventEntityId . eeId
 
 type EventEntityId = PrimaryKey EventEntityT Identity
-deriving instance Show EventEntityId
-deriving instance Eq EventEntityId
 
 createEventsTable
   :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity EventEntityT))
