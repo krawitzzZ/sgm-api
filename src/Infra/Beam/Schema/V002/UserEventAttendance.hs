@@ -6,35 +6,37 @@ module Infra.Beam.Schema.V002.UserEventAttendance
   , createUserEventAttendanceTable
   ) where
 
-import           Database.Beam                            ( Beamable
-                                                          , C
-                                                          , Table(..)
-                                                          , TableEntity
-                                                          , timestamp
-                                                          )
-import           Database.Beam.Migrate                    ( CheckedDatabaseEntity
-                                                          , Migration
-                                                          , createTable
-                                                          , defaultTo_
-                                                          , field
-                                                          , notNull
-                                                          )
-import           Database.Beam.Postgres                   ( Postgres
-                                                          , now_
-                                                          , uuid
-                                                          )
-import           Infra.Beam.Schema.V002.Event             ( EventEntityT
-                                                          , PrimaryKey(EventEntityId)
-                                                          )
-import           Infra.Beam.Schema.V002.User              ( PrimaryKey(UserEntityId)
-                                                          , UserEntityT
-                                                          )
-import           RIO                                      ( (<$>)
-                                                          , (<*>)
-                                                          , Generic
-                                                          , Identity
-                                                          )
-import           RIO.Time                                 ( LocalTime )
+import           Database.Beam                                      ( Beamable
+                                                                    , C
+                                                                    , Table(..)
+                                                                    , TableEntity
+                                                                    , timestamp
+                                                                    )
+import           Database.Beam.Migrate                              ( CheckedDatabaseEntity
+                                                                    , Migration
+                                                                    , createTable
+                                                                    , defaultTo_
+                                                                    , field
+                                                                    , notNull
+                                                                    )
+import           Database.Beam.Postgres                             ( Postgres
+                                                                    , now_
+                                                                    , uuid
+                                                                    )
+import           Infra.Beam.Schema.V002.Event                       ( EventEntityT
+                                                                    , PrimaryKey(EventEntityId)
+                                                                    )
+import           Infra.Beam.Schema.V002.User                        ( PrimaryKey(UserEntityId)
+                                                                    , UserEntityT
+                                                                    )
+import           RIO                                                ( (<$>)
+                                                                    , (<*>)
+                                                                    , Eq
+                                                                    , Generic
+                                                                    , Identity
+                                                                    , Show
+                                                                    )
+import           RIO.Time                                           ( LocalTime )
 
 
 data UserEventAttendancePivotT f = UserEventAttendancePivot
@@ -45,13 +47,18 @@ data UserEventAttendancePivotT f = UserEventAttendancePivot
   deriving (Generic, Beamable)
 
 type UserEventAttendancePivot = UserEventAttendancePivotT Identity
+deriving instance Show UserEventAttendancePivot
+deriving instance Eq UserEventAttendancePivot
 
 instance Table UserEventAttendancePivotT where
-  data PrimaryKey UserEventAttendancePivotT f = UserEventAttendancePivotId !(PrimaryKey UserEntityT f) !(PrimaryKey EventEntityT f)
+  data PrimaryKey UserEventAttendancePivotT f =
+    UserEventAttendancePivotId !(PrimaryKey UserEntityT f) !(PrimaryKey EventEntityT f)
     deriving (Generic, Beamable)
   primaryKey = UserEventAttendancePivotId <$> ueapUserId <*> ueapEventId
 
 type UserEventAttendancePivotId = PrimaryKey UserEventAttendancePivotT Identity
+deriving instance Show UserEventAttendancePivotId
+deriving instance Eq UserEventAttendancePivotId
 
 createUserEventAttendanceTable
   :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity UserEventAttendancePivotT))

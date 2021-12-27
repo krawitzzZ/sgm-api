@@ -3,64 +3,64 @@ module Api.AuthApi
   , AuthApi
   ) where
 
-import           Api.ApiVersion                           ( ApiVersion(..) )
-import           Api.Exception                            ( ApiException(..)
-                                                          , throw400
-                                                          , throw401
-                                                          , throw500
-                                                          , tryCatch
-                                                          , tryCatchDefault
-                                                          )
-import           Api.Mapper                               ( signupDtoToUserData
-                                                          , userToUserDto
-                                                          )
-import           Api.Resources.Auth                       ( LoginDto(..)
-                                                          , SignupDto
-                                                          )
-import           Api.Resources.User                       ( UserDto )
-import           App.Auth                                 ( loginUser
-                                                          , refreshJwtToken
-                                                          , signupUser
-                                                          )
-import           Control.Exception.Safe                   ( MonadCatch
-                                                          , MonadThrow
-                                                          , throwM
-                                                          )
-import           Data.String.Conversions                  ( cs )
-import           Domain.App.Class                         ( Authentication(..)
-                                                          , MonadLogger(..)
-                                                          , UserRepository
-                                                          )
-import           Domain.Auth                              ( JWT(..) )
-import           Domain.Auth.UserClaims                   ( UserClaims )
-import           Domain.Exception                         ( DomainException(..) )
-import           Domain.Logger                            ( LogContext )
-import           Domain.User.UserData                     ( NewUserData(..) )
-import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , (<>)
-                                                          , (>>=)
-                                                          , Monad
-                                                          , Text
-                                                          , return
-                                                          )
-import           Servant                                  ( type (:<|>)((:<|>))
-                                                          , type (:>)
-                                                          , Header
-                                                          , Headers
-                                                          , JSON
-                                                          , NoContent(..)
-                                                          , PostCreated
-                                                          , ReqBody
-                                                          , ServerT
-                                                          , StdMethod(..)
-                                                          , Verb
-                                                          , addHeader
-                                                          )
-import           Servant.Auth.Server                      ( Auth
-                                                          , AuthResult(..)
-                                                          )
-import           Servant.Exception.Server                 ( Throws )
+import           Api.ApiVersion                                     ( ApiVersion(..) )
+import           Api.Exception                                      ( ApiException(..)
+                                                                    , throw400
+                                                                    , throw401
+                                                                    , throw500
+                                                                    , tryCatch
+                                                                    , tryCatchDefault
+                                                                    )
+import           Api.Mapper                                         ( signupDtoToUserData
+                                                                    , userToUserDto
+                                                                    )
+import           Api.Resources.Auth                                 ( LoginDto(..)
+                                                                    , SignupDto
+                                                                    )
+import           Api.Resources.User                                 ( UserDto )
+import           App.Auth                                           ( loginUser
+                                                                    , refreshJwtToken
+                                                                    , signupUser
+                                                                    )
+import           Control.Exception.Safe                             ( MonadCatch
+                                                                    , MonadThrow
+                                                                    , throwM
+                                                                    )
+import           Data.String.Conversions                            ( cs )
+import           Domain.App.Class                                   ( Authentication(..)
+                                                                    , MonadLogger(..)
+                                                                    , UserRepository
+                                                                    )
+import           Domain.Auth                                        ( JWT(..) )
+import           Domain.Auth.UserClaims                             ( UserClaims )
+import           Domain.Exception                                   ( DomainException(..) )
+import           Domain.Logger                                      ( LogContext )
+import           Domain.User.UserData                               ( NewUserData(..) )
+import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , (<>)
+                                                                    , (>>=)
+                                                                    , Monad
+                                                                    , Text
+                                                                    , return
+                                                                    )
+import           Servant                                            ( type (:<|>)((:<|>))
+                                                                    , type (:>)
+                                                                    , Header
+                                                                    , Headers
+                                                                    , JSON
+                                                                    , NoContent(..)
+                                                                    , PostCreated
+                                                                    , ReqBody
+                                                                    , ServerT
+                                                                    , StdMethod(..)
+                                                                    , Verb
+                                                                    , addHeader
+                                                                    )
+import           Servant.Auth.Server                                ( Auth
+                                                                    , AuthResult(..)
+                                                                    )
+import           Servant.Exception.Server                           ( Throws )
 
 
 type AuthHeaders = '[Header "X-Access-Token" Text , Header "X-Refresh-Token" Text]

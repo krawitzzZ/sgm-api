@@ -3,59 +3,59 @@ module Api.UserApi
   , UserApi
   ) where
 
-import           Api.ApiVersion                           ( ApiVersion(..) )
-import           Api.Exception                            ( ApiException(..)
-                                                          , throw401
-                                                          , tryCatchDefault
-                                                          )
-import           Api.Mapper                               ( userToUserDto )
-import           Api.Resources.User                       ( UpdateUserDto(..)
-                                                          , UserDto
-                                                          )
-import           App.User                                 ( deleteUser
-                                                          , findUserById
-                                                          , getUsers
-                                                          , updateUserDetails
-                                                          )
-import           Control.Exception.Safe                   ( MonadCatch )
-import           Data.UUID                                ( UUID
-                                                          , toText
-                                                          )
-import           Domain.App.Class                         ( MonadLogger(..)
-                                                          , UserRepository
-                                                          )
-import           Domain.Auth.UserClaims                   ( UserClaims(..) )
-import           Domain.Logger                            ( LogContext
-                                                          , userIdKey
-                                                          )
-import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , (<$>)
-                                                          , (<>)
-                                                          , (>>)
-                                                          , (>>>)
-                                                          , Text
-                                                          , const
-                                                          , map
-                                                          , return
-                                                          )
-import           Servant                                  ( type (:<|>)(..)
-                                                          , type (:>)
-                                                          , Capture
-                                                          , Get
-                                                          , JSON
-                                                          , NoContent(..)
-                                                          , Put
-                                                          , ReqBody
-                                                          , ServerT
-                                                          , StdMethod(..)
-                                                          , Verb
-                                                          )
-import           Servant.Auth.Server                      ( Auth
-                                                          , AuthResult(..)
-                                                          )
-import           Servant.Exception.Server                 ( Throws )
-import           Utils                                    ( biconst )
+import           Api.ApiVersion                                     ( ApiVersion(..) )
+import           Api.Exception                                      ( ApiException(..)
+                                                                    , throw401
+                                                                    , tryCatchDefault
+                                                                    )
+import           Api.Mapper                                         ( userToUserDto )
+import           Api.Resources.User                                 ( UpdateUserDto(..)
+                                                                    , UserDto
+                                                                    )
+import           App.User                                           ( deleteUser
+                                                                    , findUserById
+                                                                    , getUsers
+                                                                    , updateUserDetails
+                                                                    )
+import           Control.Exception.Safe                             ( MonadCatch )
+import           Data.UUID                                          ( UUID
+                                                                    , toText
+                                                                    )
+import           Domain.App.Class                                   ( MonadLogger(..)
+                                                                    , UserRepository
+                                                                    )
+import           Domain.Auth.UserClaims                             ( UserClaims(..) )
+import           Domain.Logger                                      ( LogContext
+                                                                    , userIdKey
+                                                                    )
+import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , (<$>)
+                                                                    , (<>)
+                                                                    , (>>)
+                                                                    , (>>>)
+                                                                    , Text
+                                                                    , const
+                                                                    , map
+                                                                    , return
+                                                                    )
+import           Servant                                            ( type (:<|>)(..)
+                                                                    , type (:>)
+                                                                    , Capture
+                                                                    , Get
+                                                                    , JSON
+                                                                    , NoContent(..)
+                                                                    , Put
+                                                                    , ReqBody
+                                                                    , ServerT
+                                                                    , StdMethod(..)
+                                                                    , Verb
+                                                                    )
+import           Servant.Auth.Server                                ( Auth
+                                                                    , AuthResult(..)
+                                                                    )
+import           Servant.Exception.Server                           ( Throws )
+import           Utils                                              ( biconst )
 
 
 type GetUsers = Get '[JSON] [UserDto]

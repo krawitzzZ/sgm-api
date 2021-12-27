@@ -3,31 +3,31 @@ module Api.Resources.User
   , UpdateUserDto(..)
   ) where
 
-import           Data.Aeson                               ( FromJSON(..)
-                                                          , ToJSON(..)
-                                                          , genericParseJSON
-                                                          , genericToJSON
-                                                          )
-import           Data.UUID                                ( UUID )
-import           Data.Validity                            ( Validity(..)
-                                                          , declare
-                                                          )
-import           Data.Validity.Aeson                      ( parseJSONValid )
-import           Data.Validity.Text                       ( )
-import           Data.Validity.UUID                       ( )
-import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , (<=)
-                                                          , (>)
-                                                          , Bool(..)
-                                                          , Generic
-                                                          , Maybe
-                                                          , Text
-                                                          , maybe
-                                                          , mconcat
-                                                          )
-import           RIO.Text                                 ( length )
-import           Utils                                    ( jsonOptions )
+import           Data.Aeson                                         ( FromJSON(..)
+                                                                    , ToJSON(..)
+                                                                    , genericParseJSON
+                                                                    , genericToJSON
+                                                                    )
+import           Data.UUID                                          ( UUID )
+import           Data.Validity                                      ( Validity(..)
+                                                                    , declare
+                                                                    )
+import           Data.Validity.Aeson                                ( parseJSONValid )
+import           Data.Validity.Text                                 ( )
+import           Data.Validity.UUID                                 ( )
+import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , (<=)
+                                                                    , (>)
+                                                                    , Bool(..)
+                                                                    , Generic
+                                                                    , Maybe
+                                                                    , Text
+                                                                    , maybe
+                                                                    , mconcat
+                                                                    )
+import           RIO.Text                                           ( length )
+import           Utils                                              ( jsonOptions )
 
 
 data UserDto = UserDto

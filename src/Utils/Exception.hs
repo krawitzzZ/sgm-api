@@ -4,12 +4,12 @@ module Utils.Exception
   , mkTryCatchDefault
   ) where
 
-import           Control.Exception.Safe                   ( Exception
-                                                          , Handler(..)
-                                                          , MonadCatch
-                                                          , catches
-                                                          )
-import           RIO                                      ( (<>) )
+import           Control.Exception.Safe                             ( Exception
+                                                                    , Handler(..)
+                                                                    , MonadCatch
+                                                                    , catches
+                                                                    )
+import           RIO                                                ( (<>) )
 
 
 mkTryCatch :: (MonadCatch m, Exception e) => Handler m a -> m a -> (e -> m a) -> m a

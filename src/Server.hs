@@ -2,61 +2,60 @@ module Server
   ( start
   ) where
 
-import           Api                                      ( SGMApi
-                                                          , server
-                                                          )
-import           Data.Default                             ( def )
-import           Data.Map.Strict                          ( fromList )
-import           Data.String.Conversions                  ( cs )
-import           Di.Core                                  ( log )
-import           Domain.App                               ( runAppT )
-import           Domain.App.Config                        ( Config(..) )
-import           Domain.App.Env                           ( Env(..) )
-import           Domain.Logger                            ( LogLevel(..)
-                                                          , LogMessage(..)
-                                                          , Logger(..)
-                                                          )
-import           Network.Wai                              ( Application
-                                                          , Middleware
-                                                          , rawPathInfo
-                                                          )
-import           Network.Wai.Handler.Warp                 ( defaultSettings
-                                                          , runSettings
-                                                          , setPort
-                                                          , setTimeout
-                                                          )
-import           Network.Wai.Middleware.RequestLogger     ( OutputFormat(..)
-                                                          , RequestLoggerSettings(..)
-                                                          , mkRequestLogger
-                                                          )
-import           Network.Wai.Middleware.RequestLogger.JSON
-                                                          ( formatAsJSON )
-import           Network.Wai.Middleware.Servant.Errors    ( errorMwDefJson )
-import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , (<>)
-                                                          , (=<<)
-                                                          , IO
-                                                          , Maybe(..)
-                                                          , liftIO
-                                                          , return
-                                                          , show
-                                                          )
-import           Servant                                  ( Context(..)
-                                                          , ErrorFormatters(..)
-                                                          , NotFoundErrorFormatter
-                                                          , Proxy(..)
-                                                          , defaultErrorFormatters
-                                                          , err404
-                                                          , errBody
-                                                          , hoistServerWithContext
-                                                          , serveWithContext
-                                                          )
-import           Servant.Auth.Server                      ( CookieSettings
-                                                          , JWT
-                                                          , JWTSettings
-                                                          , defaultCookieSettings
-                                                          )
+import           Api                                                ( SGMApi
+                                                                    , server
+                                                                    )
+import           Data.Default                                       ( def )
+import           Data.Map.Strict                                    ( fromList )
+import           Data.String.Conversions                            ( cs )
+import           Di.Core                                            ( log )
+import           Domain.App                                         ( runAppT )
+import           Domain.App.Config                                  ( Config(..) )
+import           Domain.App.Env                                     ( Env(..) )
+import           Domain.Logger                                      ( LogLevel(..)
+                                                                    , LogMessage(..)
+                                                                    , Logger(..)
+                                                                    )
+import           Network.Wai                                        ( Application
+                                                                    , Middleware
+                                                                    , rawPathInfo
+                                                                    )
+import           Network.Wai.Handler.Warp                           ( defaultSettings
+                                                                    , runSettings
+                                                                    , setPort
+                                                                    , setTimeout
+                                                                    )
+import           Network.Wai.Middleware.RequestLogger               ( OutputFormat(..)
+                                                                    , RequestLoggerSettings(..)
+                                                                    , mkRequestLogger
+                                                                    )
+import           Network.Wai.Middleware.RequestLogger.JSON          ( formatAsJSON )
+import           Network.Wai.Middleware.Servant.Errors              ( errorMwDefJson )
+import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , (<>)
+                                                                    , (=<<)
+                                                                    , IO
+                                                                    , Maybe(..)
+                                                                    , liftIO
+                                                                    , return
+                                                                    , show
+                                                                    )
+import           Servant                                            ( Context(..)
+                                                                    , ErrorFormatters(..)
+                                                                    , NotFoundErrorFormatter
+                                                                    , Proxy(..)
+                                                                    , defaultErrorFormatters
+                                                                    , err404
+                                                                    , errBody
+                                                                    , hoistServerWithContext
+                                                                    , serveWithContext
+                                                                    )
+import           Servant.Auth.Server                                ( CookieSettings
+                                                                    , JWT
+                                                                    , JWTSettings
+                                                                    , defaultCookieSettings
+                                                                    )
 
 
 start :: Env -> IO ()
@@ -73,7 +72,7 @@ start env = do
         , ("timeout" , cs . show $ timeout)
         ]
 
-  log di Info LogMessage { lmMessage = "Starting SGM API", lmError = Nothing, lmFields = fields }
+  log di Info LogMessage { lmMessage = "Starting SGM API", lmFields = fields, lmError = Nothing }
 
   let settings   = setPort port . setTimeout timeout $ defaultSettings
   let middleware = requestLoggerMw . errorMwDefJson

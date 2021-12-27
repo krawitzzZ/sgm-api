@@ -1,11 +1,11 @@
-module Main
+module Spec
   ( main
   ) where
 
-import           RIO                                      ( ($)
-                                                          , Bool(..)
-                                                          , IO
-                                                          )
+import           RIO                                                ( ($)
+                                                                    , Bool(..)
+                                                                    , IO
+                                                                    )
 import           Test.Hspec
 -- import           Test.Hspec.Wai
 -- import           Test.Hspec.Wai.JSON

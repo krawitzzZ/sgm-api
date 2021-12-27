@@ -3,15 +3,17 @@ module Infra.Beam.Mapper
   , eventEntityToDomain
   ) where
 
-import           Domain.Event                             ( Event(..) )
-import           Domain.User                              ( User(..) )
-import           Infra.Beam.Schema.Latest                 ( EventEntity
-                                                          , EventEntityT(..)
-                                                          , PrimaryKey(UserEntityId)
-                                                          , UserEntity
-                                                          , UserEntityT(..)
-                                                          )
-import           RIO.Vector                               ( toList )
+import           Domain.Event                                       ( Event(..) )
+import           Domain.User                                        ( User(..) )
+import           Infra.Beam.Schema.Latest                           ( EventEntity
+                                                                    , EventEntityT(..)
+                                                                    , PrimaryKey(..)
+                                                                    , UserEntity
+                                                                    , UserEntityId
+                                                                    , UserEntityT(..)
+                                                                    )
+import           RIO                                                ( map )
+import           RIO.Vector                                         ( toList )
 
 
 userEntityToDomain :: UserEntity -> User
@@ -23,16 +25,14 @@ userEntityToDomain UserEntity {..} = User { uId        = ueId
                                           , uLastName  = ueLastName
                                           }
 
-eventEntityToDomain :: EventEntity -> Event
-eventEntityToDomain EventEntity {..} =
-  let (UserEntityId createdBy    ) = eeCreatedBy
-      (UserEntityId lastUpdatedBy) = eeLastUpdatedBy
-  in  Event { eId            = eeId
-            , eTitle         = eeTitle
-            , eDescription   = eeDescription
-            , eCreatedBy     = createdBy
-            , eLastUpdatedBy = lastUpdatedBy
-            , eAttendees     = [] -- TODO add some attendees
-            , eStart         = eeStart
-            , eEnd           = eeEnd
-            }
+eventEntityToDomain :: EventEntity -> [UserEntityId] -> Event
+eventEntityToDomain EventEntity {..} attendeesIds = Event
+  { eId            = eeId
+  , eTitle         = eeTitle
+  , eDescription   = eeDescription
+  , eCreatedBy     = userEntityId eeCreatedBy
+  , eLastUpdatedBy = userEntityId eeLastUpdatedBy
+  , eAttendees     = map userEntityId attendeesIds
+  , eStart         = eeStart
+  , eEnd           = eeEnd
+  }

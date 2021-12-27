@@ -2,3 +2,4 @@
 *.cabal
 *~
 .env
+jwt-key.local

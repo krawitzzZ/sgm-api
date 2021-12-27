@@ -6,41 +6,43 @@ module Infra.Beam.Schema.V001.User
   , createUsersTable
   ) where
 
-import           Data.UUID                                ( UUID )
-import           Database.Beam                            ( Beamable
-                                                          , C
-                                                          , Table(..)
-                                                          , TableEntity
-                                                          , array
-                                                          , maybeType
-                                                          , timestamp
-                                                          )
-import           Database.Beam.Migrate                    ( CheckedDatabaseEntity
-                                                          , Migration
-                                                          , createTable
-                                                          , defaultTo_
-                                                          , field
-                                                          , notNull
-                                                          , unique
-                                                          )
-import           Database.Beam.Postgres                   ( Postgres
-                                                          , now_
-                                                          , text
-                                                          , uuid
-                                                          )
-import           Domain.Auth.Password                     ( PasswordHash(..) )
-import           Domain.Auth.Role                         ( Role )
-import           Infra.Beam.Schema.Types                  ( passwordType
-                                                          , roleType
-                                                          )
-import           RIO                                      ( (.)
-                                                          , Generic
-                                                          , Identity
-                                                          , Maybe(..)
-                                                          , Text
-                                                          , Vector
-                                                          )
-import           RIO.Time                                 ( LocalTime )
+import           Data.UUID                                          ( UUID )
+import           Database.Beam                                      ( Beamable
+                                                                    , C
+                                                                    , Table(..)
+                                                                    , TableEntity
+                                                                    , array
+                                                                    , maybeType
+                                                                    , timestamp
+                                                                    )
+import           Database.Beam.Migrate                              ( CheckedDatabaseEntity
+                                                                    , Migration
+                                                                    , createTable
+                                                                    , defaultTo_
+                                                                    , field
+                                                                    , notNull
+                                                                    , unique
+                                                                    )
+import           Database.Beam.Postgres                             ( Postgres
+                                                                    , now_
+                                                                    , text
+                                                                    , uuid
+                                                                    )
+import           Domain.Auth.Password                               ( PasswordHash(..) )
+import           Domain.Auth.Role                                   ( Role )
+import           Infra.Beam.Schema.Types                            ( passwordType
+                                                                    , roleType
+                                                                    )
+import           RIO                                                ( (.)
+                                                                    , Eq
+                                                                    , Generic
+                                                                    , Identity
+                                                                    , Maybe(..)
+                                                                    , Show
+                                                                    , Text
+                                                                    , Vector
+                                                                    )
+import           RIO.Time                                           ( LocalTime )
 
 
 data UserEntityT f = UserEntity
@@ -56,13 +58,17 @@ data UserEntityT f = UserEntity
   deriving (Generic, Beamable)
 
 type UserEntity = UserEntityT Identity
+deriving instance Show UserEntity
+deriving instance Eq UserEntity
 
 instance Table UserEntityT where
-  data PrimaryKey UserEntityT f = UserEntityId !(C f UUID)
+  data PrimaryKey UserEntityT f = UserEntityId { userEntityId :: !(C f UUID) }
     deriving (Generic, Beamable)
   primaryKey = UserEntityId . ueId
 
 type UserEntityId = PrimaryKey UserEntityT Identity
+deriving instance Show UserEntityId
+deriving instance Eq UserEntityId
 
 createUsersTable
   :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity UserEntityT))

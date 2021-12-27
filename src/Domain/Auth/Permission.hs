@@ -3,10 +3,10 @@ module Domain.Auth.Permission
   , check
   ) where
 
-import           RIO                                      ( Bool
-                                                          , Monoid(..)
-                                                          , Semigroup(..)
-                                                          )
+import           RIO                                                ( Bool
+                                                                    , Monoid(..)
+                                                                    , Semigroup(..)
+                                                                    )
 
 
 data Permission = Granted | Denied

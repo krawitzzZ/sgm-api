@@ -6,20 +6,20 @@ module Api.Mapper
   , updateEventInfoDtoToEventData
   ) where
 
-import           Api.Resources.Auth                       ( SignupDto(..) )
-import           Api.Resources.Event                      ( EventDto(..)
-                                                          , NewEventDto(..)
-                                                          , UpdateEventInfoDto(..)
-                                                          )
-import           Api.Resources.User                       ( UserDto(..) )
-import           Domain.Auth.Role                         ( Role(..) )
-import           Domain.Auth.UserClaims                   ( UserClaims(..) )
-import           Domain.Event                             ( Event(..) )
-import           Domain.Event.EventData                   ( NewEventData(..)
-                                                          , UpdateEventInfoData(..)
-                                                          )
-import           Domain.User                              ( User(..) )
-import           Domain.User.UserData                     ( NewUserData(..) )
+import           Api.Resources.Auth                                 ( SignupDto(..) )
+import           Api.Resources.Event                                ( EventDto(..)
+                                                                    , NewEventDto(..)
+                                                                    , UpdateEventInfoDto(..)
+                                                                    )
+import           Api.Resources.User                                 ( UserDto(..) )
+import           Domain.Auth.Role                                   ( Role(..) )
+import           Domain.Auth.UserClaims                             ( UserClaims(..) )
+import           Domain.Event                                       ( Event(..) )
+import           Domain.Event.EventData                             ( NewEventData(..)
+                                                                    , UpdateEventInfoData(..)
+                                                                    )
+import           Domain.User                                        ( User(..) )
+import           Domain.User.UserData                               ( NewUserData(..) )
 
 
 userToUserDto :: User -> UserDto
@@ -32,7 +32,7 @@ userToUserDto User {..} = UserDto { uDtoId        = uId
 signupDtoToUserData :: SignupDto -> NewUserData
 signupDtoToUserData SignupDto {..} = NewUserData { nudUsername  = sDtoUsername
                                                  , nudPassword  = sDtoPassword
-                                                 , nudRoles     = [Participant]
+                                                 , nudRoles     = [Participant] -- TODO deal with roles adjustment
                                                  , nudFirstName = sDtoFirstName
                                                  , nudLastName  = sDtoLastName
                                                  }

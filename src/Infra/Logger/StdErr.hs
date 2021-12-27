@@ -2,33 +2,33 @@ module Infra.Logger.StdErr
   ( mkDiLogFunc
   ) where
 
-import           Data.Map.Strict                          ( size )
-import           Data.Sequence                            ( intersperse )
-import           Data.Time.Clock.System                   ( systemToUTCTime )
-import           Di.Core                                  ( Log(..) )
-import qualified Domain.Logger                           as DL
-import           Infra.Logger.LogLine                     ( LogLine(..)
-                                                          , fromDomain
-                                                          )
-import           RIO                                      ( ($)
-                                                          , (<&>)
-                                                          , (==)
-                                                          , (>=)
-                                                          , IO
-                                                          , Maybe(..)
-                                                          , MonadIO
-                                                          , liftIO
-                                                          , mconcat
-                                                          , otherwise
-                                                          , toList
-                                                          , when
-                                                          )
-import           System.Log.FastLogger                    ( LoggerSet
-                                                          , ToLogStr(..)
-                                                          , defaultBufSize
-                                                          , newStderrLoggerSet
-                                                          , pushLogStrLn
-                                                          )
+import           Data.Map.Strict                                    ( size )
+import           Data.Sequence                                      ( intersperse )
+import           Data.Time.Clock.System                             ( systemToUTCTime )
+import           Di.Core                                            ( Log(..) )
+import qualified Domain.Logger                                     as DL
+import           Infra.Logger.LogLine                               ( LogLine(..)
+                                                                    , fromDomain
+                                                                    )
+import           RIO                                                ( ($)
+                                                                    , (<&>)
+                                                                    , (==)
+                                                                    , (>=)
+                                                                    , IO
+                                                                    , Maybe(..)
+                                                                    , MonadIO
+                                                                    , liftIO
+                                                                    , mconcat
+                                                                    , otherwise
+                                                                    , toList
+                                                                    , when
+                                                                    )
+import           System.Log.FastLogger                              ( LoggerSet
+                                                                    , ToLogStr(..)
+                                                                    , defaultBufSize
+                                                                    , newStderrLoggerSet
+                                                                    , pushLogStrLn
+                                                                    )
 
 
 mkDiLogFunc :: MonadIO m => DL.LogLevel -> m (Log DL.LogLevel DL.LogContext DL.LogMessage -> IO ())
@@ -42,7 +42,7 @@ mkDiLogFunc appLogLevel = liftIO $ newStderrLoggerSet defaultBufSize <&> printTo
       let message  = DL.lmMessage log_message
       let error    = DL.lmError log_message
       let fields   = getFields $ DL.lmFields log_message
-      let context  = mconcat $ toList (intersperse " |> " log_path)
+      let context  = mconcat $ toList (intersperse " >>> " log_path)
       let logLine  = LogLine { time, severity, message, fields, error, context }
       liftIO $ pushLogStrLn logger $ toLogStr logLine
 

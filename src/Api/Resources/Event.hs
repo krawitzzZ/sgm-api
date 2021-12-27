@@ -4,33 +4,33 @@ module Api.Resources.Event
   , UpdateEventInfoDto(..)
   ) where
 
-import           Data.Aeson                               ( FromJSON(..)
-                                                          , ToJSON(..)
-                                                          , genericParseJSON
-                                                          , genericToJSON
-                                                          )
-import           Data.UUID                                ( UUID )
-import           Data.Validity                            ( Validity(..)
-                                                          , declare
-                                                          )
-import           Data.Validity.Aeson                      ( parseJSONValid )
-import           Data.Validity.Text                       ( )
-import           Data.Validity.Time.LocalTime             ( )
-import           Data.Validity.UUID                       ( )
-import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , (<=)
-                                                          , (>)
-                                                          , Bool(..)
-                                                          , Generic
-                                                          , Maybe(..)
-                                                          , Text
-                                                          , maybe
-                                                          , mconcat
-                                                          )
-import           RIO.Text                                 ( length )
-import           RIO.Time                                 ( LocalTime )
-import           Utils                                    ( jsonOptions )
+import           Data.Aeson                                         ( FromJSON(..)
+                                                                    , ToJSON(..)
+                                                                    , genericParseJSON
+                                                                    , genericToJSON
+                                                                    )
+import           Data.UUID                                          ( UUID )
+import           Data.Validity                                      ( Validity(..)
+                                                                    , declare
+                                                                    )
+import           Data.Validity.Aeson                                ( parseJSONValid )
+import           Data.Validity.Text                                 ( )
+import           Data.Validity.Time.LocalTime                       ( )
+import           Data.Validity.UUID                                 ( )
+import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , (<=)
+                                                                    , (>)
+                                                                    , Bool(..)
+                                                                    , Generic
+                                                                    , Maybe(..)
+                                                                    , Text
+                                                                    , maybe
+                                                                    , mconcat
+                                                                    )
+import           RIO.Text                                           ( length )
+import           RIO.Time                                           ( LocalTime )
+import           Utils                                              ( jsonOptions )
 
 
 data EventDto = EventDto

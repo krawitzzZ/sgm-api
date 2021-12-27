@@ -3,65 +3,67 @@ module Api.EventApi
   , EventApi
   ) where
 
-import           Api.ApiVersion                           ( ApiVersion(..) )
-import           Api.Exception                            ( ApiException(..)
-                                                          , throw401
-                                                          , tryCatchDefault
-                                                          )
-import           Api.Mapper                               ( eventToEventDto
-                                                          , newEventDtoToEventData
-                                                          , updateEventInfoDtoToEventData
-                                                          )
-import           Api.Resources.Event                      ( EventDto
-                                                          , NewEventDto
-                                                          , UpdateEventInfoDto
-                                                          )
-import           App.Event                                ( createNewEvent
-                                                          , deleteEvent
-                                                          , findEventById
-                                                          , getEvents
-                                                          , updateEventDetails
-                                                          )
-import           Control.Exception.Safe                   ( MonadCatch )
-import           Data.UUID                                ( UUID
-                                                          , toText
-                                                          )
-import           Domain.App.Class                         ( EventRepository
-                                                          , MonadLogger(..)
-                                                          )
-import           Domain.Auth.UserClaims                   ( UserClaims(..) )
-import           Domain.Logger                            ( LogContext
-                                                          , userIdKey
-                                                          )
-import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , (<$>)
-                                                          , (<&>)
-                                                          , (<>)
-                                                          , (>>)
-                                                          , (>>>)
-                                                          , Text
-                                                          , const
-                                                          , map
-                                                          , return
-                                                          )
-import           Servant                                  ( type (:<|>)(..)
-                                                          , type (:>)
-                                                          , Capture
-                                                          , Get
-                                                          , JSON
-                                                          , NoContent(..)
-                                                          , Put
-                                                          , ReqBody
-                                                          , ServerT
-                                                          , StdMethod(..)
-                                                          , Verb
-                                                          )
-import           Servant.Auth.Server                      ( Auth
-                                                          , AuthResult(..)
-                                                          )
-import           Servant.Exception.Server                 ( Throws )
-import           Utils                                    ( biconst )
+import           Api.ApiVersion                                     ( ApiVersion(..) )
+import           Api.Exception                                      ( ApiException(..)
+                                                                    , throw401
+                                                                    , tryCatchDefault
+                                                                    )
+import           Api.Mapper                                         ( eventToEventDto
+                                                                    , newEventDtoToEventData
+                                                                    , updateEventInfoDtoToEventData
+                                                                    )
+import           Api.Resources.Event                                ( EventDto
+                                                                    , NewEventDto
+                                                                    , UpdateEventInfoDto
+                                                                    )
+import           App.Event                                          ( attendEvent
+                                                                    , createNewEvent
+                                                                    , deleteEvent
+                                                                    , findEventById
+                                                                    , getEvents
+                                                                    , updateEventDetails
+                                                                    )
+import           Control.Exception.Safe                             ( MonadCatch )
+import           Data.UUID                                          ( UUID
+                                                                    , toText
+                                                                    )
+import           Domain.App.Class                                   ( EventRepository
+                                                                    , MonadLogger(..)
+                                                                    )
+import           Domain.Auth.UserClaims                             ( UserClaims(..) )
+import           Domain.Logger                                      ( LogContext
+                                                                    , userIdKey
+                                                                    )
+import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , (<$>)
+                                                                    , (<&>)
+                                                                    , (<>)
+                                                                    , (>>)
+                                                                    , (>>>)
+                                                                    , Text
+                                                                    , const
+                                                                    , map
+                                                                    , return
+                                                                    )
+import           Servant                                            ( type (:<|>)(..)
+                                                                    , type (:>)
+                                                                    , Capture
+                                                                    , Get
+                                                                    , JSON
+                                                                    , NoContent(..)
+                                                                    , Post
+                                                                    , Put
+                                                                    , ReqBody
+                                                                    , ServerT
+                                                                    , StdMethod(..)
+                                                                    , Verb
+                                                                    )
+import           Servant.Auth.Server                                ( Auth
+                                                                    , AuthResult(..)
+                                                                    )
+import           Servant.Exception.Server                           ( Throws )
+import           Utils                                              ( biconst )
 
 
 type GetEvents = Get '[JSON] [EventDto]
@@ -69,6 +71,8 @@ type GetEvent = Capture "id" UUID :> Get '[JSON] EventDto
 type CreateEvent = ReqBody '[JSON] NewEventDto :> Verb 'POST 201 '[JSON] EventDto
 type UpdateEvent = Capture "id" UUID :> ReqBody '[JSON] UpdateEventInfoDto :> Put '[JSON] EventDto
 type DeleteEvent = Capture "id" UUID :> Verb 'DELETE 204 '[JSON] NoContent
+type AttendEvent = Capture "id" UUID :> "attend" :> Post '[JSON] NoContent
+-- type UnattendEvent = Capture "id" UUID :> "unattend" :> Post '[JSON] NoContent -- TODO unattend
 
 -- brittany-disable-next-binding
 type EventApi auths = Throws ApiException :> Auth auths UserClaims :>
@@ -77,7 +81,8 @@ type EventApi auths = Throws ApiException :> Auth auths UserClaims :>
     GetEvent :<|>
     CreateEvent :<|>
     UpdateEvent :<|>
-    DeleteEvent
+    DeleteEvent :<|>
+    AttendEvent
   )
 
 eventServer
@@ -85,37 +90,47 @@ eventServer
 eventServer V1 = eventV1Server
 
 eventV1Server :: (EventRepository m, MonadCatch m, MonadLogger m) => ServerT (EventApi auths) m
-eventV1Server (Authenticated u) =
-  allEvents u :<|> eventById u :<|> newEvent u :<|> updateEventInfo u :<|> removeEvent u
+eventV1Server (Authenticated claims) =
+  allEvents claims
+    :<|> eventById claims
+    :<|> newEvent claims
+    :<|> updateEventInfo claims
+    :<|> removeEvent claims
+    :<|> attendAtEvent claims
 eventV1Server _ =
-  throw401 :<|> const throw401 :<|> const throw401 :<|> biconst throw401 :<|> const throw401
+  throw401
+    :<|> const throw401
+    :<|> const throw401
+    :<|> biconst throw401
+    :<|> const throw401
+    :<|> const throw401
 
 
 allEvents :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> m [EventDto]
-allEvents me =
+allEvents claims =
   withContext (mkContext "allEvents")
-    >>> withField (userIdKey, toText . ucId $ me)
+    >>> withField (userIdKey, toText . ucId $ claims)
     $   tryCatchDefault
     $   map eventToEventDto
-    <$> getEvents me
+    <$> getEvents claims
 
 eventById :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m EventDto
-eventById me eventId =
+eventById claims eventId =
   withContext (mkContext "eventById")
-    >>> withFields (logFields me eventId)
+    >>> withFields (logFields claims eventId)
     $   tryCatchDefault
-    $   findEventById me eventId
+    $   findEventById claims eventId
     <&> eventToEventDto
 
 newEvent
   :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> NewEventDto -> m EventDto
-newEvent me newEventDto =
+newEvent claims newEventDto =
   withContext (mkContext "newEvent")
-    >>> withField (userIdKey, toText . ucId $ me)
+    >>> withField (userIdKey, toText . ucId $ claims)
     $   tryCatchDefault
-    $   createNewEvent me newEventData
+    $   createNewEvent claims newEventData
     <&> eventToEventDto
-  where newEventData = newEventDtoToEventData newEventDto me
+  where newEventData = newEventDtoToEventData newEventDto claims
 
 updateEventInfo
   :: (EventRepository m, MonadCatch m, MonadLogger m)
@@ -123,26 +138,35 @@ updateEventInfo
   -> UUID
   -> UpdateEventInfoDto
   -> m EventDto
-updateEventInfo me eventId updateEventInfoDto =
+updateEventInfo claims eventId updateEventInfoDto =
   withContext (mkContext "updateEventInfo")
-    >>> withFields (logFields me eventId)
+    >>> withFields (logFields claims eventId)
     $   tryCatchDefault
-    $   updateEventDetails me eventId updateEventData
+    $   updateEventDetails claims eventId updateEventData
     <&> eventToEventDto
-  where updateEventData = updateEventInfoDtoToEventData updateEventInfoDto me
+  where updateEventData = updateEventInfoDtoToEventData updateEventInfoDto claims
 
 removeEvent
   :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m NoContent
-removeEvent me eventId =
+removeEvent claims eventId =
   withContext (mkContext "removeEvent")
-    >>> withFields (logFields me eventId)
+    >>> withFields (logFields claims eventId)
     $   tryCatchDefault
-    $   deleteEvent me eventId
+    $   deleteEvent claims eventId
+    >>  return NoContent
+
+attendAtEvent
+  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m NoContent
+attendAtEvent claims eventId =
+  withContext (mkContext "attendAtEvent")
+    >>> withFields (logFields claims eventId)
+    $   tryCatchDefault
+    $   attendEvent claims eventId
     >>  return NoContent
 
 
 logFields :: UserClaims -> UUID -> [(Text, Text)]
-logFields me eventId = [(userIdKey, toText . ucId $ me), ("eventId", toText eventId)]
+logFields claims eventId = [(userIdKey, toText . ucId $ claims), ("eventId", toText eventId)]
 
 mkContext :: LogContext -> LogContext
 mkContext = ("Api.EventApi->" <>)

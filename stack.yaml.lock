@@ -12,6 +12,13 @@ packages:
   original:
     hackage: dlist-0.8.0.8
 - completed:
+    hackage: postgresql-simple-migration-0.1.15.0@sha256:123d8f62b0e300aede37e2d6dacc81b9468cb68dc5c3f52fe807085992280aa8,3969
+    pantry-tree:
+      size: 766
+      sha256: 186c759339e91c18b51879a5795f6cf8db2639001eb6b0e7c017d90e5dfa6ab2
+  original:
+    hackage: postgresql-simple-migration-0.1.15.0
+- completed:
     hackage: timezone-detect-0.3.0.1@sha256:bcf13d45886e49f2a86695988295d7381471cc1c620b9cf12db34f52e591f097,2230
     pantry-tree:
       size: 600

@@ -2,30 +2,30 @@
 
 module Infra.Beam.Schema.V001.Role where
 
-import           Database.Beam.Backend                    ( BeamBackend
-                                                          , FromBackendRow(..)
-                                                          , HasSqlValueSyntax(..)
-                                                          , IsSql92DataTypeSyntax(..)
-                                                          , autoSqlValueSyntax
-                                                          )
-import           Database.Beam.Migrate                    ( BeamMigrateSqlBackend
-                                                          , HasDefaultSqlDataType(..)
-                                                          )
-import           Database.PostgreSQL.Simple.FromField     ( FromField(..)
-                                                          , ResultError(..)
-                                                          , returnError
-                                                          )
-import           Database.PostgreSQL.Simple.ToField       ( ToField(..) )
-import           Domain.Auth.Role                         ( Role )
-import           RIO                                      ( (.)
-                                                          , (<$>)
-                                                          , Maybe(..)
-                                                          , String
-                                                          , readMaybe
-                                                          , return
-                                                          , show
-                                                          )
-import           RIO.Partial                              ( read )
+import           Database.Beam.Backend                              ( BeamBackend
+                                                                    , FromBackendRow(..)
+                                                                    , HasSqlValueSyntax(..)
+                                                                    , IsSql92DataTypeSyntax(..)
+                                                                    , autoSqlValueSyntax
+                                                                    )
+import           Database.Beam.Migrate                              ( BeamMigrateSqlBackend
+                                                                    , HasDefaultSqlDataType(..)
+                                                                    )
+import           Database.PostgreSQL.Simple.FromField               ( FromField(..)
+                                                                    , ResultError(..)
+                                                                    , returnError
+                                                                    )
+import           Database.PostgreSQL.Simple.ToField                 ( ToField(..) )
+import           Domain.Auth.Role                                   ( Role )
+import           RIO                                                ( (.)
+                                                                    , (<$>)
+                                                                    , Maybe(..)
+                                                                    , String
+                                                                    , readMaybe
+                                                                    , return
+                                                                    , show
+                                                                    )
+import           RIO.Partial                                        ( read )
 
 
 instance (BeamMigrateSqlBackend be) => HasDefaultSqlDataType be Role where

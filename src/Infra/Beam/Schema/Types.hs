@@ -6,22 +6,22 @@ module Infra.Beam.Schema.Types
   , migrationId
   ) where
 
-import           Data.UUID                                ( UUID
-                                                          , fromText
-                                                          )
-import           Database.Beam                            ( DataType(..) )
-import           Database.Beam.Migrate                    ( CheckedDatabaseSettings
-                                                          , Migration
-                                                          )
-import           Database.Beam.Postgres                   ( Postgres )
-import           Database.Beam.Postgres.Syntax            ( pgTextType )
-import           Domain.Auth.Password                     ( PasswordHash )
-import           Domain.Auth.Role                         ( Role )
-import           RIO                                      ( (.)
-                                                          , Text
-                                                          , error
-                                                          , fromMaybe
-                                                          )
+import           Data.UUID                                          ( UUID
+                                                                    , fromText
+                                                                    )
+import           Database.Beam                                      ( DataType(..) )
+import           Database.Beam.Migrate                              ( CheckedDatabaseSettings
+                                                                    , Migration
+                                                                    )
+import           Database.Beam.Postgres                             ( Postgres )
+import           Database.Beam.Postgres.Syntax                      ( pgTextType )
+import           Domain.Auth.Password                               ( PasswordHash )
+import           Domain.Auth.Role                                   ( Role )
+import           RIO                                                ( (.)
+                                                                    , Text
+                                                                    , error
+                                                                    , fromMaybe
+                                                                    )
 
 
 type TextUUID = Text

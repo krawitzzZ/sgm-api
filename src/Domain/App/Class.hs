@@ -5,21 +5,21 @@ module Domain.App.Class
   , Authentication(..)
   ) where
 
-import           Control.Exception.Safe                   ( MonadThrow )
-import           Data.UUID                                ( UUID )
-import           Domain.Auth                              ( JWT )
-import           Domain.Auth.Password                     ( Password
-                                                          , PasswordHash
-                                                          )
-import           Domain.Auth.UserClaims                   ( UserClaims )
-import           Domain.Event                             ( Event )
-import           Domain.Event.EventData                   ( NewEventData )
-import           Domain.User                              ( User )
-import           Domain.User.UserData                     ( NewUserData )
-import           RIO                                      ( Monad
-                                                          , Show
-                                                          , Text
-                                                          )
+import           Control.Exception.Safe                             ( MonadThrow )
+import           Data.UUID                                          ( UUID )
+import           Domain.Auth                                        ( JWT )
+import           Domain.Auth.Password                               ( Password
+                                                                    , PasswordHash
+                                                                    )
+import           Domain.Auth.UserClaims                             ( UserClaims )
+import           Domain.Event                                       ( Event )
+import           Domain.Event.EventData                             ( NewEventData )
+import           Domain.User                                        ( User )
+import           Domain.User.UserData                               ( NewUserData )
+import           RIO                                                ( Monad
+                                                                    , Show
+                                                                    , Text
+                                                                    )
 
 
 class MonadLogger m where
@@ -46,6 +46,7 @@ class (Monad m) => EventRepository m where
   createEvent :: NewEventData -> m Event
   saveEvent :: Event -> m Event
   deleteEvent :: UUID ->  m ()
+  attendEvent :: Event -> UUID ->  m ()
 
 class (Monad m) => Authentication m where
   validatePassword :: (MonadThrow m) => Password -> m ()

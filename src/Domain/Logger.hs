@@ -6,17 +6,17 @@ module Domain.Logger
   , userIdKey
   ) where
 
-import           Data.Map.Strict                          ( Map )
-import           Di.Core                                  ( Di )
-import           RIO                                      ( Bounded
-                                                          , Enum
-                                                          , Eq
-                                                          , Maybe
-                                                          , Ord
-                                                          , Read
-                                                          , Show
-                                                          , Text
-                                                          )
+import           Data.Map.Strict                                    ( Map )
+import           Di.Core                                            ( Di )
+import           RIO                                                ( Bounded
+                                                                    , Enum
+                                                                    , Eq
+                                                                    , Maybe
+                                                                    , Ord
+                                                                    , Read
+                                                                    , Show
+                                                                    , Text
+                                                                    )
 
 
 data Logger = Logger

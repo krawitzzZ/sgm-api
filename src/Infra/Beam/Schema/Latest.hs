@@ -4,21 +4,23 @@ module Infra.Beam.Schema.Latest
   , V002.SgmDatabase(..)
   , module Infra.Beam.Schema.V002.User
   , module Infra.Beam.Schema.V002.Event
+  , module Infra.Beam.Schema.V002.UserEventAttendance
   ) where
 
-import           Database.Beam                            ( DatabaseSettings )
-import           Database.Beam.Migrate                    ( CheckedDatabaseSettings
-                                                          , MigrationSteps
-                                                          , evaluateDatabase
-                                                          , migrationStep
-                                                          , unCheckDatabase
-                                                          )
-import           Database.Beam.Postgres                   ( Postgres )
-import qualified Infra.Beam.Schema.V001                  as V001
-import qualified Infra.Beam.Schema.V002                  as V002
+import           Database.Beam                                      ( DatabaseSettings )
+import           Database.Beam.Migrate                              ( CheckedDatabaseSettings
+                                                                    , MigrationSteps
+                                                                    , evaluateDatabase
+                                                                    , migrationStep
+                                                                    , unCheckDatabase
+                                                                    )
+import           Database.Beam.Postgres                             ( Postgres )
+import qualified Infra.Beam.Schema.V001                            as V001
+import qualified Infra.Beam.Schema.V002                            as V002
 import           Infra.Beam.Schema.V002.Event
 import           Infra.Beam.Schema.V002.User
-import           RIO                                      ( (>>>) )
+import           Infra.Beam.Schema.V002.UserEventAttendance
+import           RIO                                                ( (>>>) )
 
 
 sgmDb :: DatabaseSettings Postgres V002.SgmDatabase

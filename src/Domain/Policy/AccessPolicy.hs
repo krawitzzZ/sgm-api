@@ -2,13 +2,13 @@ module Domain.Policy.AccessPolicy
   ( AccessPolicy(..)
   ) where
 
-import           Data.Kind                                ( Type )
-import           Domain.Auth.Permission                   ( Permission )
-import           Domain.Auth.UserClaims                   ( UserClaims )
-import           RIO                                      ( ($)
-                                                          , Monad
-                                                          , return
-                                                          )
+import           Data.Kind                                          ( Type )
+import           Domain.Auth.Permission                             ( Permission )
+import           Domain.Auth.UserClaims                             ( UserClaims )
+import           RIO                                                ( ($)
+                                                                    , Monad
+                                                                    , return
+                                                                    )
 
 
 class AccessPolicy entity where

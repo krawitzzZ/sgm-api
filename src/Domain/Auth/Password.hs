@@ -9,37 +9,37 @@ module Domain.Auth.Password
   , validatePassword
   ) where
 
-import           Control.Exception.Safe                   ( MonadThrow
-                                                          , throwM
-                                                          )
-import           Data.Aeson                               ( FromJSON(..)
-                                                          , Options(..)
-                                                          , defaultOptions
-                                                          , genericParseJSON
-                                                          )
-import qualified Data.Password.Argon2                    as P
-import           Data.Password.Instances                  ( )
-import qualified Data.Password.Validate                  as PV
-import           Data.Password.Validate                   ( ValidPasswordPolicy )
-import           Data.String.Conversions                  ( cs )
-import           Data.Validity                            ( Validity(..)
-                                                          , valid
-                                                          )
-import           Data.Validity.Text                       ( )
-import           Domain.Exception                         ( DomainException(..) )
-import           RIO                                      ( ($)
-                                                          , (<&>)
-                                                          , Bool(..)
-                                                          , Eq
-                                                          , Generic
-                                                          , MonadIO
-                                                          , Read
-                                                          , Show
-                                                          , Text
-                                                          , const
-                                                          , return
-                                                          , show
-                                                          )
+import           Control.Exception.Safe                             ( MonadThrow
+                                                                    , throwM
+                                                                    )
+import           Data.Aeson                                         ( FromJSON(..)
+                                                                    , Options(..)
+                                                                    , defaultOptions
+                                                                    , genericParseJSON
+                                                                    )
+import qualified Data.Password.Argon2                              as P
+import           Data.Password.Instances                            ( )
+import qualified Data.Password.Validate                            as PV
+import           Data.Password.Validate                             ( ValidPasswordPolicy )
+import           Data.String.Conversions                            ( cs )
+import           Data.Validity                                      ( Validity(..)
+                                                                    , valid
+                                                                    )
+import           Data.Validity.Text                                 ( )
+import           Domain.Exception                                   ( DomainException(..) )
+import           RIO                                                ( ($)
+                                                                    , (<&>)
+                                                                    , Bool(..)
+                                                                    , Eq
+                                                                    , Generic
+                                                                    , MonadIO
+                                                                    , Read
+                                                                    , Show
+                                                                    , Text
+                                                                    , const
+                                                                    , return
+                                                                    , show
+                                                                    )
 
 
 newtype Password = Password { unPassword :: P.Password }

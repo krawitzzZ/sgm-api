@@ -3,11 +3,11 @@ module Domain.Event.EventData
   , UpdateEventInfoData(..)
   ) where
 
-import           Data.UUID                                ( UUID )
-import           RIO                                      ( Maybe
-                                                          , Text
-                                                          )
-import           RIO.Time                                 ( LocalTime )
+import           Data.UUID                                          ( UUID )
+import           RIO                                                ( Maybe
+                                                                    , Text
+                                                                    )
+import           RIO.Time                                           ( LocalTime )
 
 
 data NewEventData = NewEventData

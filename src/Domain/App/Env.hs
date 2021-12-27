@@ -2,13 +2,13 @@ module Domain.App.Env
   ( Env(..)
   ) where
 
-import           Control.Monad.Reader.Has                 ( Has )
-import           Data.Password.Validate                   ( ValidPasswordPolicy )
-import           Database.Beam.Postgres                   ( Connection )
-import           Domain.App.Config                        ( Config )
-import           Domain.Logger                            ( Logger )
-import           RIO                                      ( Generic )
-import           Servant.Auth.Server                      ( JWTSettings )
+import           Control.Monad.Reader.Has                           ( Has )
+import           Data.Password.Validate                             ( ValidPasswordPolicy )
+import           Database.Beam.Postgres                             ( Connection )
+import           Domain.App.Config                                  ( Config )
+import           Domain.Logger                                      ( Logger )
+import           RIO                                                ( Generic )
+import           Servant.Auth.Server                                ( JWTSettings )
 
 
 data Env = Env

@@ -7,84 +7,67 @@ module Infra.UserRepository
   , deleteOne
   ) where
 
-import           Control.Exception.Safe                   ( MonadCatch
-                                                          , throwM
-                                                          )
-import           Control.Monad.Reader.Has                 ( Has )
-import           Data.String.Conversions                  ( cs )
-import           Data.UUID                                ( UUID )
-import           Database.Beam.Postgres                   ( Connection )
-import           Domain.App.Class                         ( MonadLogger(..) )
-import           Domain.Exception                         ( DomainException(..) )
-import           Domain.Logger                            ( LogContext )
-import           Domain.User                              ( User(..) )
-import           Domain.User.UserData                     ( NewUserData(..) )
-import           Infra.Beam.Mapper                        ( userEntityToDomain )
-import           Infra.Beam.Query.User                    ( allUsers
-                                                          , createAndInsertUser
-                                                          , deleteUser
-                                                          , maybeUserById
-                                                          , maybeUserByUsername
-                                                          , updateUserInfo
-                                                          )
-import           Infra.Exception                          ( tryCatchDefault )
-import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , (<&>)
-                                                          , (<>)
-                                                          , (>>)
-                                                          , (>>=)
-                                                          , Maybe(..)
-                                                          , MonadIO
-                                                          , Text
-                                                          , map
-                                                          , return
-                                                          , show
-                                                          )
+import           Control.Exception.Safe                             ( MonadCatch
+                                                                    , throwM
+                                                                    )
+import           Control.Monad.Reader.Has                           ( Has )
+import           Data.UUID                                          ( UUID
+                                                                    , toText
+                                                                    )
+import           Database.Beam.Postgres                             ( Connection )
+import           Domain.App.Config                                  ( Config )
+import           Domain.Exception                                   ( DomainException(..) )
+import           Domain.User                                        ( User(..) )
+import           Domain.User.UserData                               ( NewUserData(..) )
+import           Infra.Beam.Mapper                                  ( userEntityToDomain )
+import           Infra.Beam.Query.User                              ( allUsers
+                                                                    , createAndInsertUser
+                                                                    , deleteUser
+                                                                    , maybeUserById
+                                                                    , maybeUserByUsername
+                                                                    , updateUserInfo
+                                                                    )
+import           Infra.Exception                                    ( tryCatchBeamDefault )
+import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , (<&>)
+                                                                    , (<>)
+                                                                    , (>>)
+                                                                    , (>>=)
+                                                                    , Maybe(..)
+                                                                    , MonadIO
+                                                                    , Text
+                                                                    , map
+                                                                    , return
+                                                                    )
 
 
-getAll :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> m [User]
-getAll c =
-  withContext (mkContext "getAll") $ tryCatchDefault $ allUsers c <&> map userEntityToDomain
+getAll :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> m [User]
+getAll e = tryCatchBeamDefault $ allUsers e <&> map userEntityToDomain
 
-findOneById :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> UUID -> m User
-findOneById c uId =
-  withContext (mkContext "findOneById") $ tryCatchDefault $ maybeUserById c uId >>= \case
-    Just user -> return $ userEntityToDomain user
-    Nothing   -> throwM . NotFound $ "User with id '" <> cs (show uId) <> "' not found"
+findOneById :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> UUID -> m User
+findOneById e userId = tryCatchBeamDefault $ maybeUserById e userId >>= \case
+  Nothing   -> throwM . NotFound $ "User with id '" <> toText userId <> "' not found"
+  Just user -> return $ userEntityToDomain user
 
 findOneByUsername
-  :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> Text -> m User
-findOneByUsername c username =
-  withContext (mkContext "findOneByUsername")
-    $   tryCatchDefault
-    $   maybeUserByUsername c username
-    >>= \case
-          Nothing   -> throwM . NotFound $ "User with username '" <> username <> "' not found"
-          Just user -> return $ userEntityToDomain user
+  :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> Text -> m User
+findOneByUsername e username = tryCatchBeamDefault $ maybeUserByUsername e username >>= \case
+  Nothing   -> throwM . NotFound $ "User with username '" <> username <> "' not found"
+  Just user -> return $ userEntityToDomain user
 
 createOne
-  :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> NewUserData -> m User
-createOne c user@NewUserData {..} =
-  withContext (mkContext "createOne")
-    $   tryCatchDefault
-    $   maybeUserByUsername c nudUsername
-    >>= \case
-          Just _ ->
-            throwM
-              $  UserNameAlreadyExists
-              $  "User with username '"
-              <> nudUsername
-              <> "' already exists"
-          Nothing -> createAndInsertUser c user <&> userEntityToDomain
+  :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> NewUserData -> m User
+createOne e user@NewUserData {..} =
+  tryCatchBeamDefault $ maybeUserByUsername e nudUsername >>= \case
+    Just _ ->
+      throwM $ UserNameAlreadyExists $ "User with username '" <> nudUsername <> "' already exists"
+    Nothing -> createAndInsertUser e user <&> userEntityToDomain
 
-saveOne :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> User -> m User
-saveOne c user =
-  withContext (mkContext "saveOne") $ tryCatchDefault $ updateUserInfo c user >> return user
+saveOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> User -> m User
+saveOne e user = tryCatchBeamDefault $ updateUserInfo e user >> return user
 
-deleteOne :: (Has Connection c, MonadLogger m, MonadCatch m, MonadIO m) => c -> UUID -> m ()
-deleteOne c = withContext (mkContext "deleteOne") . tryCatchDefault . deleteUser c
-
-
-mkContext :: LogContext -> LogContext
-mkContext = ("Infra.UserRepository->" <>)
+deleteOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> UUID -> m ()
+deleteOne e userId = tryCatchBeamDefault $ maybeUserById e userId >>= \case
+  Nothing -> throwM . NotFound $ "User with id '" <> toText userId <> "' not found"
+  Just _  -> deleteUser e userId

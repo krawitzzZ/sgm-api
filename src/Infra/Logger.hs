@@ -9,33 +9,36 @@ module Infra.Logger
   , withFields
   ) where
 
-import           Control.Monad.Reader.Has                 ( Has(..) )
-import           Data.Map.Strict                          ( fromList
-                                                          , singleton
-                                                          )
-import           Data.String.Conversions                  ( cs )
-import           Di.Monad                                 ( MonadDi
-                                                          , log
-                                                          , push
-                                                          )
-import           Domain.Logger                            ( LogContext
-                                                          , LogLevel(..)
-                                                          , LogMessage(..)
-                                                          , Logger(..)
-                                                          )
-import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , (<>)
-                                                          , (>>=)
-                                                          , Maybe(..)
-                                                          , MonadReader
-                                                          , Show
-                                                          , Text
-                                                          , asks
-                                                          , const
-                                                          , local
-                                                          , show
-                                                          )
+import           Control.Monad.Reader.Has                           ( Has
+                                                                    , extract
+                                                                    , update
+                                                                    )
+import           Data.Map.Strict                                    ( fromList
+                                                                    , singleton
+                                                                    )
+import           Data.String.Conversions                            ( cs )
+import           Di.Monad                                           ( MonadDi
+                                                                    , log
+                                                                    , push
+                                                                    )
+import           Domain.Logger                                      ( LogContext
+                                                                    , LogLevel(..)
+                                                                    , LogMessage(..)
+                                                                    , Logger(..)
+                                                                    )
+import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , (<>)
+                                                                    , (>>=)
+                                                                    , Maybe(..)
+                                                                    , MonadReader
+                                                                    , Show
+                                                                    , Text
+                                                                    , asks
+                                                                    , const
+                                                                    , local
+                                                                    , show
+                                                                    )
 
 
 logDebug

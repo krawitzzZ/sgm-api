@@ -3,28 +3,28 @@ module Api.Resources.Auth
   , LoginDto(..)
   ) where
 
-import           Data.Aeson                               ( FromJSON(..)
-                                                          , genericParseJSON
-                                                          )
-import           Data.Validity                            ( Validity(..)
-                                                          , declare
-                                                          )
-import           Data.Validity.Aeson                      ( parseJSONValid )
-import           Data.Validity.Text                       ( )
-import           Domain.Auth.Password                     ( Password )
-import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , (<=)
-                                                          , (>)
-                                                          , Bool(..)
-                                                          , Generic
-                                                          , Maybe(..)
-                                                          , Text
-                                                          , maybe
-                                                          , mconcat
-                                                          )
-import           RIO.Text                                 ( length )
-import           Utils                                    ( jsonOptions )
+import           Data.Aeson                                         ( FromJSON(..)
+                                                                    , genericParseJSON
+                                                                    )
+import           Data.Validity                                      ( Validity(..)
+                                                                    , declare
+                                                                    )
+import           Data.Validity.Aeson                                ( parseJSONValid )
+import           Data.Validity.Text                                 ( )
+import           Domain.Auth.Password                               ( Password )
+import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , (<=)
+                                                                    , (>)
+                                                                    , Bool(..)
+                                                                    , Generic
+                                                                    , Maybe(..)
+                                                                    , Text
+                                                                    , maybe
+                                                                    , mconcat
+                                                                    )
+import           RIO.Text                                           ( length )
+import           Utils                                              ( jsonOptions )
 
 
 data LoginDto = LoginDto

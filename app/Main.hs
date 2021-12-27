@@ -1,28 +1,24 @@
 module Main where
 
-import           Configuration                            ( loadEnv
-                                                          , mkAppEnv
-                                                          )
-import           Data.Map.Strict                          ( empty )
-import           Data.String.Conversions                  ( cs )
-import           Di.Core                                  ( log
-                                                          , new
-                                                          , push
-                                                          )
-import           Domain.App.Env                           ( Env(..) )
-import           Domain.Logger                            ( LogLevel(..)
-                                                          , LogMessage(..)
-                                                          )
-import           Infra.Beam.Schema                        ( migrateSgmDb )
-import           Infra.Logger.StdErr                      ( mkDiLogFunc )
-import           RIO                                      ( ($)
-                                                          , (=<<)
-                                                          , (>>=)
-                                                          , IO
-                                                          , Maybe(..)
-                                                          )
-import           Server                                   ( start )
-import           Utils                                    ( readEnvDefault )
+import           Configuration                                      ( loadEnv
+                                                                    , mkAppEnv
+                                                                    )
+import           Di.Core                                            ( new
+                                                                    , push
+                                                                    )
+import           Domain.App.Env                                     ( Env(..) )
+import           Domain.Logger                                      ( LogLevel(..) )
+import           Infra.Beam.Schema                                  ( migrateSgmDb )
+import           Infra.Logger.StdErr                                ( mkDiLogFunc )
+import           Prelude                                            ( putStrLn )
+import           RIO                                                ( ($)
+                                                                    , (=<<)
+                                                                    , (>>)
+                                                                    , (>>=)
+                                                                    , IO
+                                                                    )
+import           Server                                             ( start )
+import           Utils                                              ( readEnvDefault )
 
 
 main :: IO ()
@@ -33,7 +29,4 @@ main = do
 
   new loggingFunction $ \di' -> do
     let di = push "SGM-API" di'
-
-    mkAppEnv di >>= \env -> do
-      migrateSgmDb (envDbConn env) $ \msg -> log di Debug $ LogMessage (cs msg) empty Nothing
-      start env
+    mkAppEnv di >>= \env -> migrateSgmDb (envDbConn env) putStrLn >> start env

@@ -2,21 +2,21 @@
 
 module Infra.Beam.Schema.V001.Password where
 
-import qualified Data.Password.Argon2                    as P
-import           Database.Beam.Backend                    ( BeamBackend
-                                                          , FromBackendRow(..)
-                                                          , HasSqlValueSyntax(..)
-                                                          , IsSql92DataTypeSyntax(..)
-                                                          )
-import           Database.Beam.Migrate                    ( BeamMigrateSqlBackend
-                                                          , HasDefaultSqlDataType(..)
-                                                          )
-import           Domain.Auth.Password                     ( PasswordHash(..) )
-import           RIO                                      ( ($)
-                                                          , (<$>)
-                                                          , Maybe(..)
-                                                          , Text
-                                                          )
+import qualified Data.Password.Argon2                              as P
+import           Database.Beam.Backend                              ( BeamBackend
+                                                                    , FromBackendRow(..)
+                                                                    , HasSqlValueSyntax(..)
+                                                                    , IsSql92DataTypeSyntax(..)
+                                                                    )
+import           Database.Beam.Migrate                              ( BeamMigrateSqlBackend
+                                                                    , HasDefaultSqlDataType(..)
+                                                                    )
+import           Domain.Auth.Password                               ( PasswordHash(..) )
+import           RIO                                                ( ($)
+                                                                    , (<$>)
+                                                                    , Maybe(..)
+                                                                    , Text
+                                                                    )
 
 
 type ArgonPasswordHash = P.PasswordHash P.Argon2

@@ -2,13 +2,12 @@ module Domain.Exception
   ( DomainException(..)
   ) where
 
-import           Data.String.Conversions                  ( cs )
-import           RIO                                      ( (<>)
-                                                          , Eq
-                                                          , Exception
-                                                          , Show(..)
-                                                          , Text
-                                                          )
+import           Data.String.Conversions                            ( cs )
+import           RIO                                                ( (<>)
+                                                                    , Exception
+                                                                    , Show(..)
+                                                                    , Text
+                                                                    )
 
 
 data DomainException =
@@ -18,14 +17,13 @@ data DomainException =
   InvalidPassword Text |
   CreateJwtException Text |
   AccessPolicyViolation
-  deriving (Eq)
 
 instance Show DomainException where
-  show (InternalError         msg) = "InternalError |> " <> cs msg
-  show (NotFound              msg) = "NotFound |> " <> cs msg
-  show (UserNameAlreadyExists msg) = "UserNameAlreadyExists |> " <> cs msg
-  show (InvalidPassword       msg) = "InvalidPassword |> " <> cs msg
-  show (CreateJwtException    msg) = "CreateJwtException |> " <> cs msg
+  show (InternalError         msg) = "InternalError =>> " <> cs msg
+  show (NotFound              msg) = "NotFound =>> " <> cs msg
+  show (UserNameAlreadyExists msg) = "UserNameAlreadyExists =>> " <> cs msg
+  show (InvalidPassword       msg) = "InvalidPassword =>> " <> cs msg
+  show (CreateJwtException    msg) = "CreateJwtException =>> " <> cs msg
   show AccessPolicyViolation       = "AccessPolicyViolation"
 
 instance Exception DomainException

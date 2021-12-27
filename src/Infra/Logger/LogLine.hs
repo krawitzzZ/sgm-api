@@ -4,27 +4,27 @@ module Infra.Logger.LogLine
   , fromDomain
   ) where
 
-import           Data.Aeson                               ( Options(..)
-                                                          , ToJSON(..)
-                                                          , defaultOptions
-                                                          , encode
-                                                          , genericToEncoding
-                                                          )
-import           Data.Map.Strict                          ( Map )
-import qualified Domain.Logger                           as DL
-import           RIO                                      ( (.)
-                                                          , Bool(..)
-                                                          , Bounded
-                                                          , Enum
-                                                          , Eq
-                                                          , Generic
-                                                          , Maybe
-                                                          , Ord
-                                                          , Show
-                                                          , Text
-                                                          )
-import           RIO.Time                                 ( UTCTime )
-import           System.Log.FastLogger                    ( ToLogStr(..) )
+import           Data.Aeson                                         ( Options(..)
+                                                                    , ToJSON(..)
+                                                                    , defaultOptions
+                                                                    , encode
+                                                                    , genericToEncoding
+                                                                    )
+import           Data.Map.Strict                                    ( Map )
+import qualified Domain.Logger                                     as DL
+import           RIO                                                ( (.)
+                                                                    , Bool(..)
+                                                                    , Bounded
+                                                                    , Enum
+                                                                    , Eq
+                                                                    , Generic
+                                                                    , Maybe
+                                                                    , Ord
+                                                                    , Show
+                                                                    , Text
+                                                                    )
+import           RIO.Time                                           ( UTCTime )
+import           System.Log.FastLogger                              ( ToLogStr(..) )
 
 
 data LogLine = LogLine

@@ -44,6 +44,7 @@ dependencies:
 - password
 - password-instances
 - postgresql-simple
+- postgresql-simple-migration
 - safe-exceptions
 - servant-auth
 - servant-auth-server

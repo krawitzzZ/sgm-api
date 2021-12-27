@@ -4,39 +4,39 @@ module Domain.Auth
   , refreshJwt
   ) where
 
-import           Control.Exception.Safe                   ( throwM )
-import           Control.Monad.Reader.Has                 ( Has
-                                                          , extract
-                                                          )
-import           Control.Monad.Time                       ( MonadTime(..) )
-import           Data.ByteString.Lazy                     ( ByteString )
-import           Data.String.Conversions                  ( cs )
-import           Data.UUID                                ( UUID )
-import           Domain.Auth.UserClaims                   ( UserClaims(..) )
-import           Domain.Exception                         ( DomainException(..) )
-import           Domain.User                              ( User(..) )
-import           RIO                                      ( ($)
-                                                          , (*)
-                                                          , (<$>)
-                                                          , (<*>)
-                                                          , (<>)
-                                                          , (>>=)
-                                                          , Either(..)
-                                                          , Maybe(..)
-                                                          , MonadIO
-                                                          , liftIO
-                                                          , return
-                                                          , show
-                                                          )
-import           RIO.Time                                 ( NominalDiffTime
-                                                          , UTCTime
-                                                          , addUTCTime
-                                                          , nominalDay
-                                                          )
-import           Servant.Auth.JWT                         ( ToJWT )
-import           Servant.Auth.Server                      ( JWTSettings
-                                                          , makeJWT
-                                                          )
+import           Control.Exception.Safe                             ( throwM )
+import           Control.Monad.Reader.Has                           ( Has
+                                                                    , extract
+                                                                    )
+import           Control.Monad.Time                                 ( MonadTime(..) )
+import           Data.ByteString.Lazy                               ( ByteString )
+import           Data.String.Conversions                            ( cs )
+import           Data.UUID                                          ( UUID )
+import           Domain.Auth.UserClaims                             ( UserClaims(..) )
+import           Domain.Exception                                   ( DomainException(..) )
+import           Domain.User                                        ( User(..) )
+import           RIO                                                ( ($)
+                                                                    , (*)
+                                                                    , (<$>)
+                                                                    , (<*>)
+                                                                    , (<>)
+                                                                    , (>>=)
+                                                                    , Either(..)
+                                                                    , Maybe(..)
+                                                                    , MonadIO
+                                                                    , liftIO
+                                                                    , return
+                                                                    , show
+                                                                    )
+import           RIO.Time                                           ( NominalDiffTime
+                                                                    , UTCTime
+                                                                    , addUTCTime
+                                                                    , nominalDay
+                                                                    )
+import           Servant.Auth.JWT                                   ( ToJWT )
+import           Servant.Auth.Server                                ( JWTSettings
+                                                                    , makeJWT
+                                                                    )
 
 
 data JWT = JWT

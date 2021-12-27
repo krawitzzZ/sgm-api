@@ -9,34 +9,33 @@ module Api.Exception
   , throw500
   ) where
 
-import           Control.Exception.Safe                   ( Handler(..)
-                                                          , MonadCatch
-                                                          , MonadThrow
-                                                          , SomeException(..)
-                                                          , throwM
-                                                          )
-import           Data.Aeson                               ( (.=)
-                                                          , ToJSON(..)
-                                                          , object
-                                                          )
-import           Domain.App.Class                         ( MonadLogger(..) )
-import           Domain.Exception                         ( DomainException(..) )
-import qualified Network.HTTP.Types                      as H
-import           RIO                                      ( ($)
-                                                          , (.)
-                                                          , Eq
-                                                          , Exception(..)
-                                                          , Show(..)
-                                                          , Text
-                                                          )
-import           Servant                                  ( MimeRender(..)
-                                                          , PlainText
-                                                          )
-import           Servant.Exception.Server                 ( ToServantErr(..) )
-import           Utils.Exception                          ( mkTryCatch
-                                                          , mkTryCatchDefault
-                                                          , mkTryCatches
-                                                          )
+import           Control.Exception.Safe                             ( Handler(..)
+                                                                    , MonadCatch
+                                                                    , MonadThrow
+                                                                    , SomeException(..)
+                                                                    , throwM
+                                                                    )
+import           Data.Aeson                                         ( (.=)
+                                                                    , ToJSON(..)
+                                                                    , object
+                                                                    )
+import           Domain.App.Class                                   ( MonadLogger(..) )
+import           Domain.Exception                                   ( DomainException(..) )
+import qualified Network.HTTP.Types                                as H
+import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , Exception(..)
+                                                                    , Show(..)
+                                                                    , Text
+                                                                    )
+import           Servant                                            ( MimeRender(..)
+                                                                    , PlainText
+                                                                    )
+import           Servant.Exception.Server                           ( ToServantErr(..) )
+import           Utils.Exception                                    ( mkTryCatch
+                                                                    , mkTryCatchDefault
+                                                                    , mkTryCatches
+                                                                    )
 
 
 data ApiException =
@@ -46,7 +45,7 @@ data ApiException =
   NotFound404 |
   Conflict409 Text |
   InternalError500
-  deriving (Eq, Show)
+  deriving Show
 
 instance Exception ApiException
 
@@ -106,7 +105,7 @@ handleDomainException e@(CreateJwtException    _  ) = do
 handleDomainException e@(InternalError _) = throw500 e
 
 handleSomeException :: (MonadLogger m, MonadThrow m) => SomeException -> m a
-handleSomeException (SomeException e) = throw500 e
+handleSomeException = throw500
 
 defaultHandlers :: (MonadLogger m, MonadCatch m) => [Handler m a]
 defaultHandlers = [Handler handleDomainException, Handler handleSomeException]

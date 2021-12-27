@@ -2,24 +2,24 @@ module Api.ApiVersion
   ( ApiVersion(..)
   ) where
 
-import           Data.Aeson                               ( FromJSON(..) )
-import           Data.String.Conversions                  ( cs )
-import           GHC.Read                                 ( readsPrec )
-import           RIO                                      ( ($)
-                                                          , (<>)
-                                                          , Bounded
-                                                          , Either(..)
-                                                          , Enum
-                                                          , Eq
-                                                          , Generic
-                                                          , Maybe(..)
-                                                          , Ord
-                                                          , Read
-                                                          , Show(..)
-                                                          , readMaybe
-                                                          , show
-                                                          )
-import           Web.HttpApiData                          ( FromHttpApiData(..) )
+import           Data.Aeson                                         ( FromJSON(..) )
+import           Data.String.Conversions                            ( cs )
+import           GHC.Read                                           ( readsPrec )
+import           RIO                                                ( ($)
+                                                                    , (<>)
+                                                                    , Bounded
+                                                                    , Either(..)
+                                                                    , Enum
+                                                                    , Eq
+                                                                    , Generic
+                                                                    , Maybe(..)
+                                                                    , Ord
+                                                                    , Read
+                                                                    , Show(..)
+                                                                    , readMaybe
+                                                                    , show
+                                                                    )
+import           Web.HttpApiData                                    ( FromHttpApiData(..) )
 
 
 data ApiVersion = V1

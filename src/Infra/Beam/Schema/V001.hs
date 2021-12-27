@@ -3,27 +3,27 @@ module Infra.Beam.Schema.V001
   , migrationMeta
   ) where
 
-import           Database.Beam                            ( Database
-                                                          , Generic
-                                                          , TableEntity
-                                                          )
-import           Database.Beam.Migrate                    ( CheckedDatabaseSettings
-                                                          , Migration
-                                                          )
-import           Database.Beam.Postgres                   ( PgExtensionEntity
-                                                          , Postgres
-                                                          , pgCreateExtension
-                                                          )
-import           Database.Beam.Postgres.PgCrypto          ( PgCrypto )
-import           Infra.Beam.Schema.Types                  ( TextUUID )
-import           Infra.Beam.Schema.V001.Password          ( )
-import           Infra.Beam.Schema.V001.Role              ( )
-import           Infra.Beam.Schema.V001.User              ( UserEntityT
-                                                          , createUsersTable
-                                                          )
-import           RIO                                      ( (<$>)
-                                                          , (<*>)
-                                                          )
+import           Database.Beam                                      ( Database
+                                                                    , Generic
+                                                                    , TableEntity
+                                                                    )
+import           Database.Beam.Migrate                              ( CheckedDatabaseSettings
+                                                                    , Migration
+                                                                    )
+import           Database.Beam.Postgres                             ( PgExtensionEntity
+                                                                    , Postgres
+                                                                    , pgCreateExtension
+                                                                    )
+import           Database.Beam.Postgres.PgCrypto                    ( PgCrypto )
+import           Infra.Beam.Schema.Types                            ( TextUUID )
+import           Infra.Beam.Schema.V001.Password                    ( )
+import           Infra.Beam.Schema.V001.Role                        ( )
+import           Infra.Beam.Schema.V001.User                        ( UserEntityT
+                                                                    , createUsersTable
+                                                                    )
+import           RIO                                                ( (<$>)
+                                                                    , (<*>)
+                                                                    )
 
 
 data SgmDatabase f = SgmDatabase

@@ -3,24 +3,24 @@ module Domain.User
   , Action(..)
   ) where
 
-import           Data.UUID                                ( UUID )
-import           Domain.Auth.Password                     ( PasswordHash )
-import           Domain.Auth.Permission                   ( Permission(..)
-                                                          , check
-                                                          )
-import           Domain.Auth.Role                         ( Role(..) )
-import           Domain.Auth.UserClaims                   ( UserClaims(..) )
-import           Domain.Policy.AccessPolicy               ( AccessPolicy(..) )
-import           RIO                                      ( (<>)
-                                                          , (==)
-                                                          , Eq
-                                                          , Maybe
-                                                          , Semigroup(..)
-                                                          , Text
-                                                          , elem
-                                                          , on
-                                                          )
-import           Utils                                    ( anyElem )
+import           Data.UUID                                          ( UUID )
+import           Domain.Auth.Password                               ( PasswordHash )
+import           Domain.Auth.Permission                             ( Permission(..)
+                                                                    , check
+                                                                    )
+import           Domain.Auth.Role                                   ( Role(..) )
+import           Domain.Auth.UserClaims                             ( UserClaims(..) )
+import           Domain.Policy.AccessPolicy                         ( AccessPolicy(..) )
+import           RIO                                                ( (<>)
+                                                                    , (==)
+                                                                    , Eq
+                                                                    , Maybe
+                                                                    , Semigroup(..)
+                                                                    , Text
+                                                                    , elem
+                                                                    , on
+                                                                    )
+import           Utils                                              ( anyElem )
 
 
 data User = User
