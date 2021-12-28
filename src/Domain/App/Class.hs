@@ -6,7 +6,9 @@ module Domain.App.Class
   ) where
 
 import           Control.Exception.Safe                             ( MonadThrow )
-import           Data.UUID                                          ( UUID )
+import           Domain.App.Types                                   ( EventId
+                                                                    , UserId
+                                                                    )
 import           Domain.Auth                                        ( JWT )
 import           Domain.Auth.Password                               ( Password
                                                                     , PasswordHash
@@ -33,20 +35,20 @@ class MonadLogger m where
   withFields :: [(Text, Text)] -> m a -> m a
 
 class (Monad m) => UserRepository m where
-  getUserById :: UUID -> m User
+  getUserById :: UserId -> m User
   getUserByUsername :: Text -> m User
   getAllUsers :: m [User]
   createUser :: NewUserData -> m User
   saveUser :: User -> m User
-  deleteUser :: UUID -> m ()
+  deleteUser :: UserId -> m ()
 
 class (Monad m) => EventRepository m where
-  getEventById :: UUID -> m Event
+  getEventById :: EventId -> m Event
   getAllEvents :: m [Event]
   createEvent :: NewEventData -> m Event
   saveEvent :: Event -> m Event
-  deleteEvent :: UUID ->  m ()
-  attendEvent :: Event -> UUID ->  m ()
+  deleteEvent :: EventId ->  m ()
+  attendEvent :: Event -> EventId ->  m ()
 
 class (Monad m) => Authentication m where
   validatePassword :: (MonadThrow m) => Password -> m ()

@@ -24,12 +24,11 @@ import           App.Event                                          ( attendEven
                                                                     , updateEventDetails
                                                                     )
 import           Control.Exception.Safe                             ( MonadCatch )
-import           Data.UUID                                          ( UUID
-                                                                    , toText
-                                                                    )
+import           Data.UUID                                          ( toText )
 import           Domain.App.Class                                   ( EventRepository
                                                                     , MonadLogger(..)
                                                                     )
+import           Domain.App.Types                                   ( EventId )
 import           Domain.Auth.UserClaims                             ( UserClaims(..) )
 import           Domain.Logger                                      ( LogContext
                                                                     , userIdKey
@@ -67,12 +66,13 @@ import           Utils                                              ( biconst )
 
 
 type GetEvents = Get '[JSON] [EventDto]
-type GetEvent = Capture "id" UUID :> Get '[JSON] EventDto
+type GetEvent = Capture "id" EventId :> Get '[JSON] EventDto
 type CreateEvent = ReqBody '[JSON] NewEventDto :> Verb 'POST 201 '[JSON] EventDto
-type UpdateEvent = Capture "id" UUID :> ReqBody '[JSON] UpdateEventInfoDto :> Put '[JSON] EventDto
-type DeleteEvent = Capture "id" UUID :> Verb 'DELETE 204 '[JSON] NoContent
-type AttendEvent = Capture "id" UUID :> "attend" :> Post '[JSON] NoContent
--- type UnattendEvent = Capture "id" UUID :> "unattend" :> Post '[JSON] NoContent -- TODO unattend
+type UpdateEvent
+  = Capture "id" EventId :> ReqBody '[JSON] UpdateEventInfoDto :> Put '[JSON] EventDto
+type DeleteEvent = Capture "id" EventId :> Verb 'DELETE 204 '[JSON] NoContent
+type AttendEvent = Capture "id" EventId :> "attend" :> Post '[JSON] NoContent
+-- type UnattendEvent = Capture "id" EventId :> "unattend" :> Post '[JSON] NoContent -- TODO unattend
 
 -- brittany-disable-next-binding
 type EventApi auths = Throws ApiException :> Auth auths UserClaims :>
@@ -114,7 +114,8 @@ allEvents claims =
     $   map eventToEventDto
     <$> getEvents claims
 
-eventById :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m EventDto
+eventById
+  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> EventId -> m EventDto
 eventById claims eventId =
   withContext (mkContext "eventById")
     >>> withFields (logFields claims eventId)
@@ -135,7 +136,7 @@ newEvent claims newEventDto =
 updateEventInfo
   :: (EventRepository m, MonadCatch m, MonadLogger m)
   => UserClaims
-  -> UUID
+  -> EventId
   -> UpdateEventInfoDto
   -> m EventDto
 updateEventInfo claims eventId updateEventInfoDto =
@@ -147,7 +148,7 @@ updateEventInfo claims eventId updateEventInfoDto =
   where updateEventData = updateEventInfoDtoToEventData updateEventInfoDto claims
 
 removeEvent
-  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m NoContent
+  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> EventId -> m NoContent
 removeEvent claims eventId =
   withContext (mkContext "removeEvent")
     >>> withFields (logFields claims eventId)
@@ -156,7 +157,7 @@ removeEvent claims eventId =
     >>  return NoContent
 
 attendAtEvent
-  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m NoContent
+  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> EventId -> m NoContent
 attendAtEvent claims eventId =
   withContext (mkContext "attendAtEvent")
     >>> withFields (logFields claims eventId)
@@ -165,7 +166,7 @@ attendAtEvent claims eventId =
     >>  return NoContent
 
 
-logFields :: UserClaims -> UUID -> [(Text, Text)]
+logFields :: UserClaims -> EventId -> [(Text, Text)]
 logFields claims eventId = [(userIdKey, toText . ucId $ claims), ("eventId", toText eventId)]
 
 mkContext :: LogContext -> LogContext

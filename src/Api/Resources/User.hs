@@ -8,13 +8,13 @@ import           Data.Aeson                                         ( FromJSON(.
                                                                     , genericParseJSON
                                                                     , genericToJSON
                                                                     )
-import           Data.UUID                                          ( UUID )
 import           Data.Validity                                      ( Validity(..)
                                                                     , declare
                                                                     )
 import           Data.Validity.Aeson                                ( parseJSONValid )
 import           Data.Validity.Text                                 ( )
 import           Data.Validity.UUID                                 ( )
+import           Domain.App.Types                                   ( UserId )
 import           RIO                                                ( ($)
                                                                     , (.)
                                                                     , (<=)
@@ -31,7 +31,7 @@ import           Utils                                              ( jsonOption
 
 
 data UserDto = UserDto
-  { uDtoId        :: !UUID
+  { uDtoId        :: !UserId
   , uDtoUsername  :: !Text
   , uDtoFirstName :: !(Maybe Text)
   , uDtoLastName  :: !(Maybe Text)

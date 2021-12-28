@@ -9,7 +9,6 @@ import           Data.Aeson                                         ( FromJSON(.
                                                                     , genericParseJSON
                                                                     , genericToJSON
                                                                     )
-import           Data.UUID                                          ( UUID )
 import           Data.Validity                                      ( Validity(..)
                                                                     , declare
                                                                     )
@@ -17,6 +16,9 @@ import           Data.Validity.Aeson                                ( parseJSONV
 import           Data.Validity.Text                                 ( )
 import           Data.Validity.Time.LocalTime                       ( )
 import           Data.Validity.UUID                                 ( )
+import           Domain.App.Types                                   ( EventId
+                                                                    , UserId
+                                                                    )
 import           RIO                                                ( ($)
                                                                     , (.)
                                                                     , (<=)
@@ -34,12 +36,12 @@ import           Utils                                              ( jsonOption
 
 
 data EventDto = EventDto
-  { eDtoId            :: !UUID
+  { eDtoId            :: !EventId
   , eDtoTitle         :: !Text
   , eDtoDescription   :: !(Maybe Text)
-  , eDtoCreatedBy     :: !UUID
-  , eDtoLastUpdatedBy :: !UUID
-  , eDtoAttendees     :: ![UUID]
+  , eDtoCreatedBy     :: !UserId
+  , eDtoLastUpdatedBy :: !UserId
+  , eDtoAttendees     :: ![UserId]
   , eDtoStart         :: !LocalTime
   , eDtoEnd           :: !LocalTime
   }

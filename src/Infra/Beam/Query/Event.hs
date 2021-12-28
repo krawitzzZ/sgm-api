@@ -8,7 +8,6 @@ module Infra.Beam.Query.Event
   ) where
 
 import           Control.Monad.Reader.Has                           ( Has )
-import           Data.UUID                                          ( UUID )
 import           Database.Beam                                      ( (<-.)
                                                                     , (==.)
                                                                     , all_
@@ -32,6 +31,9 @@ import           Database.Beam.Backend.SQL.BeamExtensions           ( runInsertR
 import           Database.Beam.Postgres                             ( Connection )
 import           Database.Beam.Postgres.PgCrypto                    ( PgCrypto(..) )
 import           Domain.App.Config                                  ( Config )
+import           Domain.App.Types                                   ( EventId
+                                                                    , UserId
+                                                                    )
 import           Domain.Event                                       ( Event(..) )
 import           Domain.Event.EventData                             ( NewEventData(..) )
 import           Infra.Beam.Query                                   ( eventsTable
@@ -81,7 +83,7 @@ allEvents e = runBeam e $ do
 maybeEventById
   :: (Has Connection e, Has Config e, MonadIO m)
   => e
-  -> UUID
+  -> EventId
   -> m (Maybe EventEntity, [UserEntityId])
 maybeEventById e eventId = do
   eventsPivots <- runBeam e $ runSelectReturningList $ select $ do
@@ -128,11 +130,11 @@ updateEventDetails e Event {..} = runBeam e $ runUpdate $ update
   )
   (\EventEntity {..} -> eeId ==. val_ eId)
 
-deleteEvent :: (Has Connection e, Has Config e, MonadIO m) => e -> UUID -> m ()
-deleteEvent e eId =
-  runBeam e $ runDelete $ delete eventsTable (\EventEntity {..} -> eeId ==. val_ eId)
+deleteEvent :: (Has Connection e, Has Config e, MonadIO m) => e -> EventId -> m ()
+deleteEvent e eventId =
+  runBeam e $ runDelete $ delete eventsTable (\EventEntity {..} -> eeId ==. val_ eventId)
 
-attendAtEvent :: (Has Connection e, Has Config e, MonadIO m) => e -> Event -> UUID -> m ()
+attendAtEvent :: (Has Connection e, Has Config e, MonadIO m) => e -> Event -> UserId -> m ()
 attendAtEvent e event userId =
   runBeam e $ runInsert $ insert userEventAttendancePivot $ insertExpressions
     [ UserEventAttendancePivot { ueapUserId    = val_ (UserEntityId userId)

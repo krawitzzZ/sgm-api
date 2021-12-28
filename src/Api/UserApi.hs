@@ -18,12 +18,11 @@ import           App.User                                           ( deleteUser
                                                                     , updateUserDetails
                                                                     )
 import           Control.Exception.Safe                             ( MonadCatch )
-import           Data.UUID                                          ( UUID
-                                                                    , toText
-                                                                    )
+import           Data.UUID                                          ( toText )
 import           Domain.App.Class                                   ( MonadLogger(..)
                                                                     , UserRepository
                                                                     )
+import           Domain.App.Types                                   ( UserId )
 import           Domain.Auth.UserClaims                             ( UserClaims(..) )
 import           Domain.Logger                                      ( LogContext
                                                                     , userIdKey
@@ -59,9 +58,9 @@ import           Utils                                              ( biconst )
 
 
 type GetUsers = Get '[JSON] [UserDto]
-type GetUser = Capture "id" UUID :> Get '[JSON] UserDto
-type UpdateUser = Capture "id" UUID :> ReqBody '[JSON] UpdateUserDto :> Put '[JSON] UserDto
-type DeleteUser = Capture "id" UUID :> Verb 'DELETE 204 '[JSON] NoContent
+type GetUser = Capture "id" UserId :> Get '[JSON] UserDto
+type UpdateUser = Capture "id" UserId :> ReqBody '[JSON] UpdateUserDto :> Put '[JSON] UserDto
+type DeleteUser = Capture "id" UserId :> Verb 'DELETE 204 '[JSON] NoContent
 
 -- brittany-disable-next-binding
 type UserApi auths = Throws ApiException :> Auth auths UserClaims :>
@@ -89,7 +88,7 @@ allUsers me =
     $   map userToUserDto
     <$> getUsers me
 
-userById :: (UserRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m UserDto
+userById :: (UserRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UserId -> m UserDto
 userById me userId =
   withContext (mkContext "userById") >>> withFields (logFields me userId) $ tryCatchDefault
     (userToUserDto <$> findUserById me userId)
@@ -97,14 +96,15 @@ userById me userId =
 updateUserInfo
   :: (UserRepository m, MonadCatch m, MonadLogger m)
   => UserClaims
-  -> UUID
+  -> UserId
   -> UpdateUserDto
   -> m UserDto
 updateUserInfo me userId UpdateUserDto {..} =
   withContext (mkContext "updateUserInfo") >>> withFields (logFields me userId) $ tryCatchDefault
     (userToUserDto <$> updateUserDetails me userId uuDtoFirstName uuDtoLastName)
 
-removeUser :: (UserRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UUID -> m NoContent
+removeUser
+  :: (UserRepository m, MonadCatch m, MonadLogger m) => UserClaims -> UserId -> m NoContent
 removeUser me userId =
   withContext (mkContext "removeUser")
     >>> withFields (logFields me userId)
@@ -112,7 +112,7 @@ removeUser me userId =
     >>  return NoContent
 
 
-logFields :: UserClaims -> UUID -> [(Text, Text)]
+logFields :: UserClaims -> UserId -> [(Text, Text)]
 logFields me userId = [(userIdKey, toText . ucId $ me), ("requestUserId", toText userId)]
 
 mkContext :: LogContext -> LogContext

@@ -3,7 +3,7 @@ module Domain.User
   , Action(..)
   ) where
 
-import           Data.UUID                                          ( UUID )
+import           Domain.App.Types                                   ( UserId )
 import           Domain.Auth.Password                               ( PasswordHash )
 import           Domain.Auth.Permission                             ( Permission(..)
                                                                     , check
@@ -24,7 +24,7 @@ import           Utils                                              ( anyElem )
 
 
 data User = User
-  { uId        :: !UUID
+  { uId        :: !UserId
   , uUsername  :: !Text
   , uPassword  :: !PasswordHash
   , uRoles     :: ![Role]
@@ -40,8 +40,8 @@ instance AccessPolicy User where
     CreateUser |
     GetUser |
     GetAllUsers |
-    UpdateUserInfo UUID |
-    DeleteUser UUID
+    UpdateUserInfo UserId |
+    DeleteUser UserId
 
   checkAccessPolicy UserClaims {..} CreateUser  = check (Superadmin `elem` ucRoles)
   checkAccessPolicy _               GetUser     = Granted

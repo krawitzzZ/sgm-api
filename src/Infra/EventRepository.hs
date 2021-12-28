@@ -12,11 +12,12 @@ import           Control.Exception.Safe                             ( MonadCatch
                                                                     )
 import           Control.Monad.Reader.Has                           ( Has )
 import           Data.String.Conversions                            ( cs )
-import           Data.UUID                                          ( UUID
-                                                                    , toText
-                                                                    )
+import           Data.UUID                                          ( toText )
 import           Database.Beam.Postgres                             ( Connection )
 import           Domain.App.Config                                  ( Config )
+import           Domain.App.Types                                   ( EventId
+                                                                    , UserId
+                                                                    )
 import           Domain.Event                                       ( Event(..) )
 import           Domain.Event.EventData                             ( NewEventData )
 import           Domain.Exception                                   ( DomainException(..) )
@@ -52,7 +53,7 @@ getAll :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> m [E
 getAll c = do
   tryCatchBeamDefault $ allEvents c <&> map (uncurry eventEntityToDomain)
 
-findOneById :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> UUID -> m Event
+findOneById :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> EventId -> m Event
 findOneById e eventId = tryCatchBeamDefault $ maybeEventById e eventId >>= \case
   (Nothing   , _  ) -> throwM . NotFound $ "Event with id '" <> toText eventId <> "' not found"
   (Just event, ids) -> return $ eventEntityToDomain event ids
@@ -65,13 +66,13 @@ createOne e event =
 saveOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> Event -> m Event
 saveOne e event = tryCatchBeamDefault $ updateEventDetails e event >> return event
 
-deleteOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> UUID -> m ()
+deleteOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> EventId -> m ()
 deleteOne e eventId = tryCatchBeamDefault $ maybeEventById e eventId >>= \case
   (Nothing, _) -> throwM . NotFound $ "Event with id '" <> toText eventId <> "' not found"
   (Just _ , _) -> deleteEvent e eventId
 
 attendOne
-  :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> Event -> UUID -> m ()
+  :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> Event -> UserId -> m ()
 attendOne e event userId = tryCatchBeam attend handleBeamException
  where
   attend = maybeEventById e (eId event) >>= \case

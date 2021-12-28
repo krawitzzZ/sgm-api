@@ -11,11 +11,10 @@ import           Control.Exception.Safe                             ( MonadCatch
                                                                     , throwM
                                                                     )
 import           Control.Monad.Reader.Has                           ( Has )
-import           Data.UUID                                          ( UUID
-                                                                    , toText
-                                                                    )
+import           Data.UUID                                          ( toText )
 import           Database.Beam.Postgres                             ( Connection )
 import           Domain.App.Config                                  ( Config )
+import           Domain.App.Types                                   ( UserId )
 import           Domain.Exception                                   ( DomainException(..) )
 import           Domain.User                                        ( User(..) )
 import           Domain.User.UserData                               ( NewUserData(..) )
@@ -45,7 +44,7 @@ import           RIO                                                ( ($)
 getAll :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> m [User]
 getAll e = tryCatchBeamDefault $ allUsers e <&> map userEntityToDomain
 
-findOneById :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> UUID -> m User
+findOneById :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> UserId -> m User
 findOneById e userId = tryCatchBeamDefault $ maybeUserById e userId >>= \case
   Nothing   -> throwM . NotFound $ "User with id '" <> toText userId <> "' not found"
   Just user -> return $ userEntityToDomain user
@@ -67,7 +66,7 @@ createOne e user@NewUserData {..} =
 saveOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> User -> m User
 saveOne e user = tryCatchBeamDefault $ updateUserInfo e user >> return user
 
-deleteOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> UUID -> m ()
+deleteOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> UserId -> m ()
 deleteOne e userId = tryCatchBeamDefault $ maybeUserById e userId >>= \case
   Nothing -> throwM . NotFound $ "User with id '" <> toText userId <> "' not found"
   Just _  -> deleteUser e userId

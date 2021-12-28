@@ -3,7 +3,7 @@ module Domain.Event.EventData
   , UpdateEventInfoData(..)
   ) where
 
-import           Data.UUID                                          ( UUID )
+import           Domain.App.Types                                   ( UserId )
 import           RIO                                                ( Maybe
                                                                     , Text
                                                                     )
@@ -13,8 +13,8 @@ import           RIO.Time                                           ( LocalTime 
 data NewEventData = NewEventData
   { nedTitle         :: !Text
   , nedDescription   :: !(Maybe Text)
-  , nedCreatedBy     :: !UUID
-  , nedLastUpdatedBy :: !UUID
+  , nedCreatedBy     :: !UserId
+  , nedLastUpdatedBy :: !UserId
   , nedStart         :: !LocalTime
   , nedEnd           :: !LocalTime
   }
@@ -22,7 +22,7 @@ data NewEventData = NewEventData
 data UpdateEventInfoData = UpdateEventInfoData
   { ueidTitle         :: !Text
   , ueidDescription   :: !(Maybe Text)
-  , ueidLastUpdatedBy :: !UUID
+  , ueidLastUpdatedBy :: !UserId
   , ueidStart         :: !LocalTime
   , ueidEnd           :: !LocalTime
   }

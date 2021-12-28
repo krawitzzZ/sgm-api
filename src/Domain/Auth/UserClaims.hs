@@ -8,7 +8,7 @@ import           Data.Aeson                                         ( FromJSON(.
                                                                     , genericParseJSON
                                                                     , genericToJSON
                                                                     )
-import           Data.UUID                                          ( UUID )
+import           Domain.App.Types                                   ( UserId )
 import           Domain.Auth.Role                                   ( Role )
 import           RIO                                                ( ($)
                                                                     , Generic
@@ -20,10 +20,10 @@ import           Utils                                              ( jsonOption
 
 
 data UserClaims = UserClaims
-  { ucId    :: !UUID
+  { ucId    :: !UserId
   , ucRoles :: ![Role]
   }
-  deriving (Generic, Has UUID)
+  deriving (Generic, Has UserId)
 
 instance ToJSON UserClaims where
   toJSON = genericToJSON $ jsonOptions "uc"

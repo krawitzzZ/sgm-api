@@ -11,7 +11,7 @@ import           Control.Monad.Reader.Has                           ( Has
 import           Control.Monad.Time                                 ( MonadTime(..) )
 import           Data.ByteString.Lazy                               ( ByteString )
 import           Data.String.Conversions                            ( cs )
-import           Data.UUID                                          ( UUID )
+import           Domain.App.Types                                   ( UserId )
 import           Domain.Auth.UserClaims                             ( UserClaims(..) )
 import           Domain.Exception                                   ( DomainException(..) )
 import           Domain.User                                        ( User(..) )
@@ -57,17 +57,17 @@ mkExpirationTimes :: (MonadTime m) => NominalDiffTime -> m (UTCTime, UTCTime)
 mkExpirationTimes tokenDuration = currentTime >>= \now -> do
   return (addUTCTime tokenDuration now, addUTCTime (nominalDay * 99) now)
 
-mkJwt :: (Has UUID c, ToJWT c, MonadIO m) => JWTSettings -> c -> (UTCTime, UTCTime) -> m JWT
+mkJwt :: (Has UserId c, ToJWT c, MonadIO m) => JWTSettings -> c -> (UTCTime, UTCTime) -> m JWT
 mkJwt jwtSettings user (accessExpire, refreshExpire) =
   JWT <$> mkToken user jwtSettings accessExpire <*> mkToken user jwtSettings refreshExpire
 
-mkToken :: (Has UUID c, ToJWT c, MonadIO m) => c -> JWTSettings -> UTCTime -> m ByteString
+mkToken :: (Has UserId c, ToJWT c, MonadIO m) => c -> JWTSettings -> UTCTime -> m ByteString
 mkToken user jwtSettings expireTime = liftIO $ makeJWT user jwtSettings (Just expireTime) >>= \case
   Right token -> return token
   Left err ->
     throwM
       $  CreateJwtException
       $  "Failed to create JWT for user with id "
-      <> cs (show (extract user :: UUID))
+      <> cs (show (extract user :: UserId))
       <> ": "
       <> cs (show err)

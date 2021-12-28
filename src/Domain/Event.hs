@@ -4,7 +4,10 @@ module Domain.Event
   ) where
 
 import           Data.Time                                          ( LocalTime )
-import           Data.UUID                                          ( UUID )
+import           Domain.App.Types                                   ( CreatedBy
+                                                                    , EventId
+                                                                    , UserId
+                                                                    )
 import           Domain.Auth.Permission                             ( Permission(..)
                                                                     , check
                                                                     )
@@ -24,12 +27,12 @@ import           Utils                                              ( anyElem )
 
 
 data Event = Event
-  { eId            :: !UUID
+  { eId            :: !EventId
   , eTitle         :: !Text
   , eDescription   :: !(Maybe Text)
-  , eCreatedBy     :: !UUID
-  , eLastUpdatedBy :: !UUID
-  , eAttendees     :: ![UUID]
+  , eCreatedBy     :: !UserId
+  , eLastUpdatedBy :: !UserId
+  , eAttendees     :: ![UserId]
   , eStart         :: !LocalTime
   , eEnd           :: !LocalTime
   }
@@ -42,10 +45,10 @@ instance AccessPolicy Event where
     CreateEvent |
     GetEvent |
     GetAllEvents |
-    UpdateEventInfo UUID |
-    DeleteEvent UUID |
-    AttendEvent UUID
--- UnattendEvent UUID
+    UpdateEventInfo CreatedBy |
+    DeleteEvent CreatedBy |
+    AttendEvent EventId
+-- UnattendEvent EventId
 
   checkAccessPolicy _ CreateEvent  = Granted
   checkAccessPolicy _ GetEvent     = Granted
