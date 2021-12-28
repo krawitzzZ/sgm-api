@@ -1,7 +1,7 @@
 module Infra.Beam.Schema.V002.Event
-  ( EventEntity
+  ( EventEntityT(..)
+  , EventEntity
   , EventEntityId
-  , EventEntityT(..)
   , PrimaryKey(..)
   , createEventsTable
   ) where

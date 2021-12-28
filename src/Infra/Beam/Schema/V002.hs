@@ -1,6 +1,8 @@
 module Infra.Beam.Schema.V002
   ( SgmDatabase(..)
+  , checkedSgmDb
   , migrationMeta
+  , migration
   ) where
 
 import           Database.Beam                                      ( Database
@@ -10,25 +12,29 @@ import           Database.Beam                                      ( Database
 import           Database.Beam.Migrate                              ( CheckedDatabaseSettings
                                                                     , Migration
                                                                     , preserve
+                                                                    , runMigrationSilenced
                                                                     )
 import           Database.Beam.Postgres                             ( PgExtensionEntity
                                                                     , Postgres
                                                                     )
 import           Database.Beam.Postgres.PgCrypto                    ( PgCrypto )
-import           Infra.Beam.Schema.Types                            ( MigrationInfo
-                                                                    , TextUUID
+import           Infra.Beam.MigrationUtils                          ( migrationString
+                                                                    , sqlFilename
                                                                     )
+import           Infra.Beam.Schema.Types                            ( MigrationMeta )
 import qualified Infra.Beam.Schema.V001                            as V001
 import           Infra.Beam.Schema.V002.Event                       ( EventEntityT
                                                                     , createEventsTable
                                                                     )
 import           Infra.Beam.Schema.V002.Password                    ( )
+import           Infra.Beam.Schema.V002.Role                        ( )
 import           Infra.Beam.Schema.V002.User                        ( UserEntityT )
 import           Infra.Beam.Schema.V002.UserEventAttendance         ( UserEventAttendancePivotT
                                                                     , createUserEventAttendanceTable
                                                                     )
 import           RIO                                                ( (<$>)
                                                                     , (<*>)
+                                                                    , String
                                                                     )
 
 
@@ -40,18 +46,19 @@ data SgmDatabase f = SgmDatabase
   }
   deriving (Generic, (Database Postgres))
 
-migrationMeta :: MigrationInfo V001.SgmDatabase SgmDatabase
-migrationMeta = (v002, migration)
+checkedSgmDb :: CheckedDatabaseSettings Postgres SgmDatabase
+checkedSgmDb = runMigrationSilenced migration
 
-v002 :: TextUUID
-v002 = "4561e859-47cb-44eb-a10c-5a583827d9a4"
+migrationMeta :: MigrationMeta
+migrationMeta = (sqlFilename migrationFilename, migrationString migration)
 
-migration
-  :: CheckedDatabaseSettings Postgres V001.SgmDatabase
-  -> Migration Postgres (CheckedDatabaseSettings Postgres SgmDatabase)
-migration oldDb =
+migration :: Migration Postgres (CheckedDatabaseSettings Postgres SgmDatabase)
+migration =
   SgmDatabase
-    <$> preserve (V001.dbUsers oldDb)
+    <$> preserve (V001.dbUsers V001.checkedSgmDb)
     <*> createEventsTable
     <*> createUserEventAttendanceTable
-    <*> preserve (V001.dbCryptoExtension oldDb)
+    <*> preserve (V001.dbCryptoExtension V001.checkedSgmDb)
+
+migrationFilename :: String
+migrationFilename = "2021-12-21__V002__add_events_and_user_event_attendance_tables"

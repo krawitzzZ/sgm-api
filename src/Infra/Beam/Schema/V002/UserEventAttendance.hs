@@ -1,7 +1,7 @@
 module Infra.Beam.Schema.V002.UserEventAttendance
-  ( UserEventAttendancePivot
+  ( UserEventAttendancePivotT(..)
+  , UserEventAttendancePivot
   , UserEventAttendancePivotId
-  , UserEventAttendancePivotT(..)
   , PrimaryKey(..)
   , createUserEventAttendanceTable
   ) where

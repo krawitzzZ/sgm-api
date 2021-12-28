@@ -46,7 +46,7 @@ extra-deps:
   - postgresql-simple-migration-0.1.15.0
   - timezone-detect-0.3.0.1
   - git: https://github.com/haskell-beam/beam.git
-    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+    commit: 254d02db7c65e66f4041f7a3a5004e5c8876152c
     subdirs:
       - beam-core
       - beam-migrate

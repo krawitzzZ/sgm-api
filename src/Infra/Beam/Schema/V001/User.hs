@@ -1,7 +1,7 @@
 module Infra.Beam.Schema.V001.User
-  ( UserEntity
+  ( UserEntityT(..)
+  , UserEntity
   , UserEntityId
-  , UserEntityT(..)
   , PrimaryKey(..)
   , createUsersTable
   ) where

@@ -1,6 +1,8 @@
 module Infra.Beam.Schema.V001
   ( SgmDatabase(..)
+  , checkedSgmDb
   , migrationMeta
+  , migration
   ) where
 
 import           Database.Beam                                      ( Database
@@ -9,13 +11,17 @@ import           Database.Beam                                      ( Database
                                                                     )
 import           Database.Beam.Migrate                              ( CheckedDatabaseSettings
                                                                     , Migration
+                                                                    , runMigrationSilenced
                                                                     )
 import           Database.Beam.Postgres                             ( PgExtensionEntity
                                                                     , Postgres
                                                                     , pgCreateExtension
                                                                     )
 import           Database.Beam.Postgres.PgCrypto                    ( PgCrypto )
-import           Infra.Beam.Schema.Types                            ( TextUUID )
+import           Infra.Beam.MigrationUtils                          ( migrationString
+                                                                    , sqlFilename
+                                                                    )
+import           Infra.Beam.Schema.Types                            ( MigrationMeta )
 import           Infra.Beam.Schema.V001.Password                    ( )
 import           Infra.Beam.Schema.V001.Role                        ( )
 import           Infra.Beam.Schema.V001.User                        ( UserEntityT
@@ -23,6 +29,7 @@ import           Infra.Beam.Schema.V001.User                        ( UserEntity
                                                                     )
 import           RIO                                                ( (<$>)
                                                                     , (<*>)
+                                                                    , String
                                                                     )
 
 
@@ -32,14 +39,14 @@ data SgmDatabase f = SgmDatabase
   }
   deriving (Generic, (Database Postgres))
 
--- | migrationMeta :: MigrationInfo () SgmDatabase - first migration, has to be special,
---   because there is no "from" database
-migrationMeta
-  :: (TextUUID, () -> Migration Postgres (CheckedDatabaseSettings Postgres SgmDatabase))
-migrationMeta = (v001, migration)
+checkedSgmDb :: CheckedDatabaseSettings Postgres SgmDatabase
+checkedSgmDb = runMigrationSilenced migration
 
-v001 :: TextUUID
-v001 = "00574d32-a903-49be-ae83-e309945b7075"
+migrationMeta :: MigrationMeta
+migrationMeta = (sqlFilename migrationFilename, migrationString migration)
 
-migration :: () -> Migration Postgres (CheckedDatabaseSettings Postgres SgmDatabase)
-migration () = SgmDatabase <$> createUsersTable <*> pgCreateExtension
+migration :: Migration Postgres (CheckedDatabaseSettings Postgres SgmDatabase)
+migration = SgmDatabase <$> createUsersTable <*> pgCreateExtension
+
+migrationFilename :: String
+migrationFilename = "2021-12-10__V001__initial_migration_add_users_table"

@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Infra.Beam.Schema.V001.Role where
+module Infra.Beam.Schema.V001.Role
+  () where
 
 import           Database.Beam.Backend                              ( BeamBackend
                                                                     , FromBackendRow(..)

@@ -25,5 +25,4 @@
 
 ## Infra
 
-* add executable to generate migrations and user Postgres.Simple and Postgres.Simple.Migration for run them
-* is it possible to have constraints (so removing event without cleaning pivot would fail)?
+* is it possible to have constraints (so removing event without cleaning pivot would fail)? add this if possible

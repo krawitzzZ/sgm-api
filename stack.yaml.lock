@@ -31,13 +31,13 @@ packages:
     version: 0.9.1.0
     git: https://github.com/haskell-beam/beam.git
     pantry-tree:
-      size: 2704
-      sha256: 7137d411ff870f233e682f9889e77e509bb3d3090e7e68e33878fbb34b0b1f8b
-    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+      size: 2705
+      sha256: 525ed5a3152de65ba77e5c57fe8a0a29dffb3659920fc295fd355a3409840a62
+    commit: 254d02db7c65e66f4041f7a3a5004e5c8876152c
   original:
     subdir: beam-core
     git: https://github.com/haskell-beam/beam.git
-    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+    commit: 254d02db7c65e66f4041f7a3a5004e5c8876152c
 - completed:
     subdir: beam-migrate
     name: beam-migrate
@@ -45,25 +45,25 @@ packages:
     git: https://github.com/haskell-beam/beam.git
     pantry-tree:
       size: 1826
-      sha256: d12ac342750c91c6b864ea892616a8aca5a04fba2c457b2a8e5a28a2893fddba
-    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+      sha256: 0b59af412d37ca982aa8d16dbd311c2cf8d46140978f40af521a2f213c9042df
+    commit: 254d02db7c65e66f4041f7a3a5004e5c8876152c
   original:
     subdir: beam-migrate
     git: https://github.com/haskell-beam/beam.git
-    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+    commit: 254d02db7c65e66f4041f7a3a5004e5c8876152c
 - completed:
     subdir: beam-postgres
     name: beam-postgres
     version: 0.5.1.0
     git: https://github.com/haskell-beam/beam.git
     pantry-tree:
-      size: 2596
-      sha256: df9e520e6290071a517a1e96d4762360e8451cc756d012867d66b5bda99f83f3
-    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+      size: 2597
+      sha256: 077678e530d1baf74c02923b8814984a6b5044705a6f0a9e8e331951d9747188
+    commit: 254d02db7c65e66f4041f7a3a5004e5c8876152c
   original:
     subdir: beam-postgres
     git: https://github.com/haskell-beam/beam.git
-    commit: 8a37e63cfe3132c1f2d2da8a5d42b4005b3bac23
+    commit: 254d02db7c65e66f4041f7a3a5004e5c8876152c
 snapshots:
 - completed:
     size: 586103

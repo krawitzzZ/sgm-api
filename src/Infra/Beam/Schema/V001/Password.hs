@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Infra.Beam.Schema.V001.Password where
+module Infra.Beam.Schema.V001.Password
+  () where
 
 import qualified Data.Password.Argon2                              as P
 import           Database.Beam.Backend                              ( BeamBackend

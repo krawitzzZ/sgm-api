@@ -10,7 +10,6 @@ import           Domain.App.Env                                     ( Env(..) )
 import           Domain.Logger                                      ( LogLevel(..) )
 import           Infra.Beam.Schema                                  ( migrateSgmDb )
 import           Infra.Logger.StdErr                                ( mkDiLogFunc )
-import           Prelude                                            ( putStrLn )
 import           RIO                                                ( ($)
                                                                     , (=<<)
                                                                     , (>>)
@@ -29,4 +28,4 @@ main = do
 
   new loggingFunction $ \di' -> do
     let di = push "SGM-API" di'
-    mkAppEnv di >>= \env -> migrateSgmDb (envDbConn env) putStrLn >> start env
+    mkAppEnv di >>= \env -> migrateSgmDb (envDbConn env) >> start env
