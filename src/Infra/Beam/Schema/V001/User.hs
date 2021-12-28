@@ -74,7 +74,7 @@ createUsersTable
   :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity UserEntityT))
 createUsersTable = createTable
   "users"
-  (UserEntity (field "id" uuid notNull)
+  (UserEntity (field "user_id" uuid notNull)
               (field "created_at" timestamp (defaultTo_ now_) notNull)
               (field "last_updated_at" timestamp (defaultTo_ now_) notNull)
               (field "username" text notNull unique)

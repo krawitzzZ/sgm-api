@@ -70,7 +70,7 @@ createEventsTable
   :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity EventEntityT))
 createEventsTable = createTable
   "events"
-  (EventEntity (field "id" uuid notNull)
+  (EventEntity (field "event_id" uuid notNull)
                (field "created_at" timestamp (defaultTo_ now_) notNull)
                (field "last_updated_at" timestamp (defaultTo_ now_) notNull)
                (field "title" text notNull)

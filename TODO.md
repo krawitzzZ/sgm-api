@@ -25,4 +25,5 @@
 
 ## Infra
 
-* is it possible to have constraints (so removing event without cleaning pivot would fail)? add this if possible
+* check that foreign key constraints work
+* wrap migration execution in transaction as suggested in postgres readme

@@ -1,8 +1,7 @@
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = off;
-CREATE EXTENSION "pgcrypto";
 CREATE TABLE "users" (
-  "id" UUID NOT NULL,
+  "user_id" UUID NOT NULL,
   "created_at" TIMESTAMP DEFAULT NOW() NOT NULL,
   "last_updated_at" TIMESTAMP DEFAULT NOW() NOT NULL,
   "username" TEXT NOT NULL UNIQUE,
@@ -10,5 +9,6 @@ CREATE TABLE "users" (
   "roles" TEXT [9] NOT NULL,
   "first_name" TEXT,
   "last_name" TEXT,
-  PRIMARY KEY("id")
+  PRIMARY KEY("user_id")
 );
+CREATE EXTENSION "pgcrypto";
