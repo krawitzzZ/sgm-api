@@ -1,4 +1,4 @@
-module Infra.Beam.Schema.V001
+module Infra.Beam.Schema.Migration.V003
   ( SgmDatabase(..)
   , checkedSgmDb
   , migrationMeta
@@ -11,22 +11,23 @@ import           Database.Beam                                      ( Database
                                                                     )
 import           Database.Beam.Migrate                              ( CheckedDatabaseSettings
                                                                     , Migration
+                                                                    , preserve
                                                                     , runMigrationSilenced
                                                                     )
 import           Database.Beam.Postgres                             ( PgExtensionEntity
                                                                     , Postgres
-                                                                    , pgCreateExtension
                                                                     )
 import           Database.Beam.Postgres.PgCrypto                    ( PgCrypto )
 import           Infra.Beam.MigrationUtils                          ( migrationString
                                                                     , sqlFilename
                                                                     )
-import           Infra.Beam.Schema.Types                            ( MigrationMeta )
-import           Infra.Beam.Schema.V001.Password                    ( )
-import           Infra.Beam.Schema.V001.Role                        ( )
-import           Infra.Beam.Schema.V001.User                        ( UserEntityT
-                                                                    , createUsersTable
+import           Infra.Beam.Schema.Entity.Event.V1                  ( EventEntityT )
+import           Infra.Beam.Schema.Entity.User.V2                   ( UserEntityT
+                                                                    , mkUsersTable
                                                                     )
+import           Infra.Beam.Schema.Entity.UserEventAttendance       ( UserEventAttendancePivotT )
+import qualified Infra.Beam.Schema.Migration.V002                  as V002
+import           Infra.Beam.Schema.Types                            ( MigrationMeta )
 import           RIO                                                ( (<$>)
                                                                     , (<*>)
                                                                     , String
@@ -34,8 +35,10 @@ import           RIO                                                ( (<$>)
 
 
 data SgmDatabase f = SgmDatabase
-  { dbUsers           :: f (TableEntity UserEntityT)
-  , dbCryptoExtension :: f (PgExtensionEntity PgCrypto)
+  { dbUsers               :: f (TableEntity UserEntityT)
+  , dbEvents              :: f (TableEntity EventEntityT)
+  , dbUserEventAttendance :: f (TableEntity UserEventAttendancePivotT)
+  , dbCryptoExtension     :: f (PgExtensionEntity PgCrypto)
   }
   deriving (Generic, (Database Postgres))
 
@@ -46,7 +49,12 @@ migrationMeta :: MigrationMeta
 migrationMeta = (sqlFilename migrationFilename, migrationString migration)
 
 migration :: Migration Postgres (CheckedDatabaseSettings Postgres SgmDatabase)
-migration = SgmDatabase <$> createUsersTable <*> pgCreateExtension
+migration =
+  SgmDatabase
+    <$> mkUsersTable (V002.dbUsers V002.checkedSgmDb)
+    <*> preserve (V002.dbEvents V002.checkedSgmDb)
+    <*> preserve (V002.dbUserEventAttendance V002.checkedSgmDb)
+    <*> preserve (V002.dbCryptoExtension V002.checkedSgmDb)
 
 migrationFilename :: String
-migrationFilename = "2021-12-10__V001__initial_migration_add_users_table"
+migrationFilename = "2021-12-28__V003__add_user_profile_picture_to_users_table"

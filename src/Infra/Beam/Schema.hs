@@ -6,7 +6,7 @@ import           Database.Beam.Postgres                             ( Connection
 import           Infra.Beam.MigrationUtils                          ( applyMigrations
                                                                     , writeMigration
                                                                     )
-import           Infra.Beam.Schema.Latest                           ( migrations )
+import           Infra.Beam.Schema.Migration                        ( migrations )
 import           RIO                                                ( (.)
                                                                     , (>>)
                                                                     , MonadIO

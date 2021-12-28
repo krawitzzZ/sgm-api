@@ -1,9 +1,9 @@
-module Infra.Beam.Schema.V002.UserEventAttendance
+module Infra.Beam.Schema.Entity.UserEventAttendance
   ( UserEventAttendancePivotT(..)
   , UserEventAttendancePivot
   , UserEventAttendancePivotId
-  , PrimaryKey(..)
-  , createUserEventAttendanceTable
+  , PrimaryKey(UserEventAttendancePivotId)
+  , mkUserEventAttendancePivot
   ) where
 
 import           Database.Beam                                      ( Beamable
@@ -23,10 +23,10 @@ import           Database.Beam.Postgres                             ( Postgres
                                                                     , now_
                                                                     , uuid
                                                                     )
-import           Infra.Beam.Schema.V002.Event                       ( EventEntityT
-                                                                    , PrimaryKey(EventEntityId)
+import           Infra.Beam.Schema.Entity.Event                     ( EventEntityT
+                                                                    , PrimaryKey(..)
                                                                     )
-import           Infra.Beam.Schema.V002.User                        ( PrimaryKey(UserEntityId)
+import           Infra.Beam.Schema.Entity.User                      ( PrimaryKey(..)
                                                                     , UserEntityT
                                                                     )
 import           RIO                                                ( (<$>)
@@ -60,9 +60,9 @@ type UserEventAttendancePivotId = PrimaryKey UserEventAttendancePivotT Identity
 deriving instance Show UserEventAttendancePivotId
 deriving instance Eq UserEventAttendancePivotId
 
-createUserEventAttendanceTable
+mkUserEventAttendancePivot
   :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity UserEventAttendancePivotT))
-createUserEventAttendanceTable = createTable
+mkUserEventAttendancePivot = createTable
   "user_event_attendance_pivot"
   (UserEventAttendancePivot (UserEntityId (field "user_id" uuid notNull))
                             (EventEntityId (field "event_id" uuid notNull))

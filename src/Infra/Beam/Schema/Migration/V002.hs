@@ -1,4 +1,4 @@
-module Infra.Beam.Schema.V002
+module Infra.Beam.Schema.Migration.V002
   ( SgmDatabase(..)
   , checkedSgmDb
   , migrationMeta
@@ -21,17 +21,15 @@ import           Database.Beam.Postgres.PgCrypto                    ( PgCrypto )
 import           Infra.Beam.MigrationUtils                          ( migrationString
                                                                     , sqlFilename
                                                                     )
+import           Infra.Beam.Schema.Entity.Event.V1                  ( EventEntityT
+                                                                    , mkEventsTable
+                                                                    )
+import           Infra.Beam.Schema.Entity.User.V1                   ( UserEntityT )
+import           Infra.Beam.Schema.Entity.UserEventAttendance       ( UserEventAttendancePivotT
+                                                                    , mkUserEventAttendancePivot
+                                                                    )
+import qualified Infra.Beam.Schema.Migration.V001                  as V001
 import           Infra.Beam.Schema.Types                            ( MigrationMeta )
-import qualified Infra.Beam.Schema.V001                            as V001
-import           Infra.Beam.Schema.V002.Event                       ( EventEntityT
-                                                                    , createEventsTable
-                                                                    )
-import           Infra.Beam.Schema.V002.Password                    ( )
-import           Infra.Beam.Schema.V002.Role                        ( )
-import           Infra.Beam.Schema.V002.User                        ( UserEntityT )
-import           Infra.Beam.Schema.V002.UserEventAttendance         ( UserEventAttendancePivotT
-                                                                    , createUserEventAttendanceTable
-                                                                    )
 import           RIO                                                ( (<$>)
                                                                     , (<*>)
                                                                     , String
@@ -56,8 +54,8 @@ migration :: Migration Postgres (CheckedDatabaseSettings Postgres SgmDatabase)
 migration =
   SgmDatabase
     <$> preserve (V001.dbUsers V001.checkedSgmDb)
-    <*> createEventsTable
-    <*> createUserEventAttendanceTable
+    <*> mkEventsTable
+    <*> mkUserEventAttendancePivot
     <*> preserve (V001.dbCryptoExtension V001.checkedSgmDb)
 
 migrationFilename :: String

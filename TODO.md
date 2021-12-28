@@ -2,6 +2,7 @@
 
 ## General
 
+* add lenses?
 * check if LocalTime validation (Validity) works correctly
 
 ## Auth

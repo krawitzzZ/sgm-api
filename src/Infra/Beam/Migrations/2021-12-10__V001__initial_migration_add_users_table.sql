@@ -1,5 +1,4 @@
 SET client_encoding = 'UTF8';
-SET standard_conforming_strings = off;
 CREATE TABLE "users" (
   "user_id" UUID NOT NULL,
   "created_at" TIMESTAMP DEFAULT NOW() NOT NULL,

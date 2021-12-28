@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Infra.Beam.Schema.V001.Password
+module Infra.Beam.Schema.Orphans.Password
   () where
 
 import qualified Data.Password.Argon2                              as P

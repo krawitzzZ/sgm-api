@@ -1,15 +1,16 @@
-module Infra.Beam.Schema.V002.Event
-  ( EventEntityT(..)
-  , EventEntity
-  , EventEntityId
-  , PrimaryKey(..)
-  , createEventsTable
+module Infra.Beam.Schema.Entity.User.V1
+  ( UserEntityT(..)
+  , UserEntity
+  , UserEntityId
+  , PrimaryKey(UserEntityId, userEntityId)
+  , mkUsersTable
   ) where
 
 import           Database.Beam                                      ( Beamable
                                                                     , C
                                                                     , Table(..)
                                                                     , TableEntity
+                                                                    , array
                                                                     , maybeType
                                                                     , timestamp
                                                                     )
@@ -19,64 +20,65 @@ import           Database.Beam.Migrate                              ( CheckedDat
                                                                     , defaultTo_
                                                                     , field
                                                                     , notNull
+                                                                    , unique
                                                                     )
 import           Database.Beam.Postgres                             ( Postgres
                                                                     , now_
                                                                     , text
                                                                     , uuid
                                                                     )
-import           Domain.App.Types                                   ( EventId )
-import           Infra.Beam.Schema.V002.User                        ( PrimaryKey(..)
-                                                                    , UserEntityT
+import           Domain.App.Types                                   ( UserId )
+import           Domain.Auth.Password                               ( PasswordHash(..) )
+import           Domain.Auth.Role                                   ( Role )
+import           Infra.Beam.Schema.Types                            ( passwordType
+                                                                    , roleType
                                                                     )
 import           RIO                                                ( (.)
                                                                     , Eq
                                                                     , Generic
                                                                     , Identity
-                                                                    , Maybe
+                                                                    , Maybe(..)
                                                                     , Show
                                                                     , Text
+                                                                    , Vector
                                                                     )
 import           RIO.Time                                           ( LocalTime )
 
 
-data EventEntityT f = EventEntity
-  { eeId            :: !(C f EventId)
-  , eeCreatedAt     :: !(C f LocalTime)
-  , eeLastUpdatedAt :: !(C f LocalTime)
-  , eeTitle         :: !(C f Text)
-  , eeDescription   :: !(C f (Maybe Text))
-  , eeCreatedBy     :: !(PrimaryKey UserEntityT f)
-  , eeLastUpdatedBy :: !(PrimaryKey UserEntityT f)
-  , eeStart         :: !(C f LocalTime)
-  , eeEnd           :: !(C f LocalTime)
+data UserEntityT f = UserEntity
+  { ueId            :: !(C f UserId)
+  , ueCreatedAt     :: !(C f LocalTime)
+  , ueLastUpdatedAt :: !(C f LocalTime)
+  , ueUsername      :: !(C f Text)
+  , uePassword      :: !(C f PasswordHash)
+  , ueRoles         :: !(C f (Vector Role))
+  , ueFirstName     :: !(C f (Maybe Text))
+  , ueLastName      :: !(C f (Maybe Text))
   }
   deriving (Generic, Beamable)
 
-type EventEntity = EventEntityT Identity
-deriving instance Show EventEntity
-deriving instance Eq EventEntity
+type UserEntity = UserEntityT Identity
+deriving instance Show UserEntity
+deriving instance Eq UserEntity
 
-instance Table EventEntityT where
-  data PrimaryKey EventEntityT f = EventEntityId { eventEntityId :: !(C f EventId) }
+instance Table UserEntityT where
+  data PrimaryKey UserEntityT f = UserEntityId { userEntityId :: !(C f UserId) }
     deriving (Generic, Beamable)
-  primaryKey = EventEntityId . eeId
+  primaryKey = UserEntityId . ueId
 
-type EventEntityId = PrimaryKey EventEntityT Identity
-deriving instance Show EventEntityId
-deriving instance Eq EventEntityId
+type UserEntityId = PrimaryKey UserEntityT Identity
+deriving instance Show UserEntityId
+deriving instance Eq UserEntityId
 
-createEventsTable
-  :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity EventEntityT))
-createEventsTable = createTable
-  "events"
-  (EventEntity (field "event_id" uuid notNull)
-               (field "created_at" timestamp (defaultTo_ now_) notNull)
-               (field "last_updated_at" timestamp (defaultTo_ now_) notNull)
-               (field "title" text notNull)
-               (field "description" (maybeType text))
-               (UserEntityId (field "created_by" uuid notNull))
-               (UserEntityId (field "last_updated_by" uuid notNull))
-               (field "start" timestamp notNull)
-               (field "end" timestamp notNull)
+mkUsersTable :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity UserEntityT))
+mkUsersTable = createTable
+  "users"
+  (UserEntity (field "user_id" uuid notNull)
+              (field "created_at" timestamp (defaultTo_ now_) notNull)
+              (field "last_updated_at" timestamp (defaultTo_ now_) notNull)
+              (field "username" text notNull unique)
+              (field "password" passwordType notNull)
+              (field "roles" (array roleType 9) notNull)
+              (field "first_name" (maybeType text))
+              (field "last_name" (maybeType text))
   )

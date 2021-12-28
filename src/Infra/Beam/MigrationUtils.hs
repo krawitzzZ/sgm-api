@@ -63,10 +63,11 @@ sqlFilename :: FilePath -> FilePath
 sqlFilename migrationName = migrationName -<.> ".sql"
 
 migrationString :: Migration Postgres (CheckedDatabaseSettings Postgres db) -> String
-migrationString migration = do
+migrationString migration =
   let BeamMigrationBackend { backendRenderSyntax } = migrationBackend
-  let renderedMigration = backendMigrationScript backendRenderSyntax migration
-  unlines . tail . lines $ renderedMigration
+      renderedMigration = backendMigrationScript backendRenderSyntax migration
+      sanitizedMigration = unlines . tail . lines $ renderedMigration
+  in  setEncodingDirective <> sanitizedMigration
 
 writeMigration :: FilePath -> String -> IO ()
 writeMigration filename migration = do
@@ -79,6 +80,9 @@ writeMigration filename migration = do
 
 migrationsDirectory :: IO FilePath
 migrationsDirectory = getCurrentDirectory <&> (</> "src" </> "Infra" </> "Beam" </> "Migrations")
+
+setEncodingDirective :: String
+setEncodingDirective = "SET client_encoding = 'UTF8';\n"
 
 
 newtype MigrationException = MigrationException String deriving Show

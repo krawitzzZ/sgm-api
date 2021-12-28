@@ -43,7 +43,7 @@ import           Infra.Beam.Schema.Latest                           ( PrimaryKey
                                                                     )
 import           RIO                                                ( ($)
                                                                     , (<>)
-                                                                    , Maybe
+                                                                    , Maybe(..)
                                                                     , MonadIO
                                                                     , Text
                                                                     , return
@@ -70,14 +70,15 @@ createAndInsertUser e NewUserData {..} = runBeam e $ do
   let PgCrypto {..} = pgCrypto
   pwd          <- hashPassword nudPassword
   [userEntity] <- runInsertReturningList $ insert usersTable $ insertExpressions
-    [ UserEntity { ueId            = pgCryptoGenRandomUUID
-                 , ueCreatedAt     = currentTimestamp_
-                 , ueLastUpdatedAt = currentTimestamp_
-                 , ueUsername      = val_ nudUsername
-                 , uePassword      = val_ pwd
-                 , ueRoles         = val_ (fromList nudRoles)
-                 , ueFirstName     = val_ nudFirstName
-                 , ueLastName      = val_ nudLastName
+    [ UserEntity { ueId             = pgCryptoGenRandomUUID
+                 , ueCreatedAt      = currentTimestamp_
+                 , ueLastUpdatedAt  = currentTimestamp_
+                 , ueUsername       = val_ nudUsername
+                 , ueProfilePicture = val_ Nothing
+                 , uePassword       = val_ pwd
+                 , ueRoles          = val_ (fromList nudRoles)
+                 , ueFirstName      = val_ nudFirstName
+                 , ueLastName       = val_ nudLastName
                  }
     ]
   return userEntity

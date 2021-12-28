@@ -1,16 +1,15 @@
-module Infra.Beam.Schema.V001.User
-  ( UserEntityT(..)
-  , UserEntity
-  , UserEntityId
-  , PrimaryKey(..)
-  , createUsersTable
+module Infra.Beam.Schema.Entity.Event.V1
+  ( EventEntityT(..)
+  , EventEntity
+  , EventEntityId
+  , PrimaryKey(EventEntityId, eventEntityId)
+  , mkEventsTable
   ) where
 
 import           Database.Beam                                      ( Beamable
                                                                     , C
                                                                     , Table(..)
                                                                     , TableEntity
-                                                                    , array
                                                                     , maybeType
                                                                     , timestamp
                                                                     )
@@ -20,66 +19,63 @@ import           Database.Beam.Migrate                              ( CheckedDat
                                                                     , defaultTo_
                                                                     , field
                                                                     , notNull
-                                                                    , unique
                                                                     )
 import           Database.Beam.Postgres                             ( Postgres
                                                                     , now_
                                                                     , text
                                                                     , uuid
                                                                     )
-import           Domain.App.Types                                   ( UserId )
-import           Domain.Auth.Password                               ( PasswordHash(..) )
-import           Domain.Auth.Role                                   ( Role )
-import           Infra.Beam.Schema.Types                            ( passwordType
-                                                                    , roleType
+import           Domain.App.Types                                   ( EventId )
+import           Infra.Beam.Schema.Entity.User                      ( PrimaryKey(..)
+                                                                    , UserEntityT
                                                                     )
 import           RIO                                                ( (.)
                                                                     , Eq
                                                                     , Generic
                                                                     , Identity
-                                                                    , Maybe(..)
+                                                                    , Maybe
                                                                     , Show
                                                                     , Text
-                                                                    , Vector
                                                                     )
 import           RIO.Time                                           ( LocalTime )
 
 
-data UserEntityT f = UserEntity
-  { ueId            :: !(C f UserId)
-  , ueCreatedAt     :: !(C f LocalTime)
-  , ueLastUpdatedAt :: !(C f LocalTime)
-  , ueUsername      :: !(C f Text)
-  , uePassword      :: !(C f PasswordHash)
-  , ueRoles         :: !(C f (Vector Role))
-  , ueFirstName     :: !(C f (Maybe Text))
-  , ueLastName      :: !(C f (Maybe Text))
+data EventEntityT f = EventEntity
+  { eeId            :: !(C f EventId)
+  , eeCreatedAt     :: !(C f LocalTime)
+  , eeLastUpdatedAt :: !(C f LocalTime)
+  , eeTitle         :: !(C f Text)
+  , eeDescription   :: !(C f (Maybe Text))
+  , eeCreatedBy     :: !(PrimaryKey UserEntityT f)
+  , eeLastUpdatedBy :: !(PrimaryKey UserEntityT f)
+  , eeStart         :: !(C f LocalTime)
+  , eeEnd           :: !(C f LocalTime)
   }
   deriving (Generic, Beamable)
 
-type UserEntity = UserEntityT Identity
-deriving instance Show UserEntity
-deriving instance Eq UserEntity
+type EventEntity = EventEntityT Identity
+deriving instance Show EventEntity
+deriving instance Eq EventEntity
 
-instance Table UserEntityT where
-  data PrimaryKey UserEntityT f = UserEntityId { userEntityId :: !(C f UserId) }
+instance Table EventEntityT where
+  data PrimaryKey EventEntityT f = EventEntityId { eventEntityId :: !(C f EventId) }
     deriving (Generic, Beamable)
-  primaryKey = UserEntityId . ueId
+  primaryKey = EventEntityId . eeId
 
-type UserEntityId = PrimaryKey UserEntityT Identity
-deriving instance Show UserEntityId
-deriving instance Eq UserEntityId
+type EventEntityId = PrimaryKey EventEntityT Identity
+deriving instance Show EventEntityId
+deriving instance Eq EventEntityId
 
-createUsersTable
-  :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity UserEntityT))
-createUsersTable = createTable
-  "users"
-  (UserEntity (field "user_id" uuid notNull)
-              (field "created_at" timestamp (defaultTo_ now_) notNull)
-              (field "last_updated_at" timestamp (defaultTo_ now_) notNull)
-              (field "username" text notNull unique)
-              (field "password" passwordType notNull)
-              (field "roles" (array roleType 9) notNull)
-              (field "first_name" (maybeType text))
-              (field "last_name" (maybeType text))
+mkEventsTable :: Migration Postgres (CheckedDatabaseEntity Postgres db (TableEntity EventEntityT))
+mkEventsTable = createTable
+  "events"
+  (EventEntity (field "event_id" uuid notNull)
+               (field "created_at" timestamp (defaultTo_ now_) notNull)
+               (field "last_updated_at" timestamp (defaultTo_ now_) notNull)
+               (field "title" text notNull)
+               (field "description" (maybeType text))
+               (UserEntityId (field "created_by" uuid notNull))
+               (UserEntityId (field "last_updated_by" uuid notNull))
+               (field "start" timestamp notNull)
+               (field "end" timestamp notNull)
   )
