@@ -128,7 +128,6 @@ updateEventDetails e Event {..} = runBeam e $ runUpdate $ update
   )
   (\EventEntity {..} -> eeId ==. val_ eId)
 
--- TODO do I need to remove stuff from pivot table?
 deleteEvent :: (Has Connection e, Has Config e, MonadIO m) => e -> UUID -> m ()
 deleteEvent e eId =
   runBeam e $ runDelete $ delete eventsTable (\EventEntity {..} -> eeId ==. val_ eId)

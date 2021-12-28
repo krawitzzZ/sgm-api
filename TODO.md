@@ -18,11 +18,8 @@
 
 ## Event
 
-* check if pivot table needs to be updated on event/user removal or if this can be done via ON DELETE CASCADE in migration
 * unattend an event
 * add query params to `allEvents` -> get only those in the future, with sorting, title or description including, etc
 * add location to events
 
 ## Infra
-
-* check that foreign key constraints work

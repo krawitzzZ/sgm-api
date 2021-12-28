@@ -65,8 +65,6 @@ createOne e event =
 saveOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> Event -> m Event
 saveOne e event = tryCatchBeamDefault $ updateEventDetails e event >> return event
 
--- TODO remove the stuff from pivot table
--- TODO probably can be done via migration file by writing ON DELETE CASCADE
 deleteOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> UUID -> m ()
 deleteOne e eventId = tryCatchBeamDefault $ maybeEventById e eventId >>= \case
   (Nothing, _) -> throwM . NotFound $ "Event with id '" <> toText eventId <> "' not found"
