@@ -3,12 +3,10 @@
 ## General
 
 * check if LocalTime validation (Validity) works correctly
-* refresh token on every request cuz access token is short living?
 
 ## Auth
 
 * handle roles manadgement (add, revoke, adjust, etc)
-* return 404 if user not found on login
 
 ## User
 

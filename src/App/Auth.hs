@@ -21,7 +21,7 @@ import           RIO                                                ( (<&>)
 
 
 loginUser :: (UserRepository m, Authentication m, MonadThrow m) => Text -> Password -> m JWT
-loginUser username pwd = getUserByUsername username >>= \u -> do -- TODO handle properly -> return 404 if not found
+loginUser username pwd = getUserByUsername username >>= \u -> do
   checkPassword pwd (uPassword u) >> createJwt u
 
 refreshJwtToken :: (Authentication m) => UserClaims -> m JWT

@@ -6,6 +6,7 @@ module Api.Exception
   , throw400
   , throw401
   , throw403
+  , throw404
   , throw500
   ) where
 
@@ -87,6 +88,9 @@ throw401 = throwM Unauthorized401
 
 throw403 :: (MonadThrow m) => m a
 throw403 = throwM Forbidden403
+
+throw404 :: (MonadThrow m) => m a
+throw404 = throwM NotFound404
 
 throw500 :: (MonadLogger m, MonadThrow m, Show err) => err -> m b
 throw500 e = do

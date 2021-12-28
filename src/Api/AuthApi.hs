@@ -7,6 +7,7 @@ import           Api.ApiVersion                                     ( ApiVersion
 import           Api.Exception                                      ( ApiException(..)
                                                                     , throw400
                                                                     , throw401
+                                                                    , throw404
                                                                     , throw500
                                                                     , tryCatch
                                                                     , tryCatchDefault
@@ -130,10 +131,11 @@ responseWithJwtHeaders response (JWT accessTok refreshTok) =
   return $ addHeader (cs accessTok) $ addHeader (cs refreshTok) response
 
 handleJwtException :: (MonadLogger m, MonadThrow m) => DomainException -> m b
+handleJwtException (    NotFound           _) = throw404
 handleJwtException err@(CreateJwtException _) = do
   withError err $ logWarn "Failed to create JWT"
   throwM InternalError500
-handleJwtException _ = throwM Unauthorized401
+handleJwtException _ = throw401
 
 
 mkContext :: LogContext -> LogContext
