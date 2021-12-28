@@ -26,4 +26,3 @@
 ## Infra
 
 * check that foreign key constraints work
-* wrap migration execution in transaction as suggested in postgres readme

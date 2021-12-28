@@ -15,6 +15,7 @@ import           Database.Beam.Postgres                             ( Connection
                                                                     , Postgres
                                                                     )
 import           Database.Beam.Postgres.Migrate                     ( migrationBackend )
+import           Database.PostgreSQL.Simple                         ( withTransaction )
 import           Database.PostgreSQL.Simple.Migration               ( MigrationCommand(..)
                                                                     , MigrationResult(..)
                                                                     , runMigrations
@@ -54,8 +55,7 @@ applyMigrations conn = do
   migrationsDirectoyPath <- liftIO migrationsDirectory
   let migrationCommands = [MigrationInitialization, MigrationDirectory migrationsDirectoyPath]
 
-  -- TODO wrap in transaction
-  liftIO $ runMigrations True conn migrationCommands >>= \case
+  liftIO $ withTransaction conn $ runMigrations True conn migrationCommands >>= \case
     MigrationSuccess         -> putStrLn "Migration successful"
     MigrationError migration -> throwM . MigrationException $ "Migration failed: " <> migration
 
