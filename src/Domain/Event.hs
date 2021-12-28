@@ -47,8 +47,8 @@ instance AccessPolicy Event where
     GetAllEvents |
     UpdateEventInfo CreatedBy |
     DeleteEvent CreatedBy |
-    AttendEvent EventId
--- UnattendEvent EventId
+    AttendEvent EventId |
+    UnattendEvent EventId
 
   checkAccessPolicy _ CreateEvent  = Granted
   checkAccessPolicy _ GetEvent     = Granted
@@ -57,5 +57,5 @@ instance AccessPolicy Event where
     check (ucId == createdBy) <> check ([Moderator, Admin, Superadmin] `anyElem` ucRoles)
   checkAccessPolicy UserClaims {..} (DeleteEvent createdBy) =
     check (ucId == createdBy) <> check ([Moderator, Admin, Superadmin] `anyElem` ucRoles)
-  checkAccessPolicy _ (AttendEvent _) = Granted
-  -- checkAccessPolicy _ (UnattendEvent _) = Granted
+  checkAccessPolicy _ (AttendEvent   _) = Granted
+  checkAccessPolicy _ (UnattendEvent _) = Granted

@@ -49,6 +49,7 @@ class (Monad m) => EventRepository m where
   saveEvent :: Event -> m Event
   deleteEvent :: EventId ->  m ()
   attendEvent :: Event -> EventId ->  m ()
+  unattendEvent :: Event -> EventId ->  m ()
 
 class (Monad m) => Authentication m where
   validatePassword :: (MonadThrow m) => Password -> m ()

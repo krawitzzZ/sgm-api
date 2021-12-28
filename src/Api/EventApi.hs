@@ -21,6 +21,7 @@ import           App.Event                                          ( attendEven
                                                                     , deleteEvent
                                                                     , findEventById
                                                                     , getEvents
+                                                                    , unattendEvent
                                                                     , updateEventDetails
                                                                     )
 import           Control.Exception.Safe                             ( MonadCatch )
@@ -72,7 +73,7 @@ type UpdateEvent
   = Capture "id" EventId :> ReqBody '[JSON] UpdateEventInfoDto :> Put '[JSON] EventDto
 type DeleteEvent = Capture "id" EventId :> Verb 'DELETE 204 '[JSON] NoContent
 type AttendEvent = Capture "id" EventId :> "attend" :> Post '[JSON] NoContent
--- type UnattendEvent = Capture "id" EventId :> "unattend" :> Post '[JSON] NoContent -- TODO unattend
+type UnattendEvent = Capture "id" EventId :> "unattend" :> Post '[JSON] NoContent
 
 -- brittany-disable-next-binding
 type EventApi auths = Throws ApiException :> Auth auths UserClaims :>
@@ -82,7 +83,8 @@ type EventApi auths = Throws ApiException :> Auth auths UserClaims :>
     CreateEvent :<|>
     UpdateEvent :<|>
     DeleteEvent :<|>
-    AttendEvent
+    AttendEvent :<|>
+    UnattendEvent
   )
 
 eventServer
@@ -97,11 +99,13 @@ eventV1Server (Authenticated claims) =
     :<|> updateEventInfo claims
     :<|> removeEvent claims
     :<|> attendAtEvent claims
+    :<|> unattendAtEvent claims
 eventV1Server _ =
   throw401
     :<|> const throw401
     :<|> const throw401
     :<|> biconst throw401
+    :<|> const throw401
     :<|> const throw401
     :<|> const throw401
 
@@ -163,6 +167,15 @@ attendAtEvent claims eventId =
     >>> withFields (logFields claims eventId)
     $   tryCatchDefault
     $   attendEvent claims eventId
+    >>  return NoContent
+
+unattendAtEvent
+  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> EventId -> m NoContent
+unattendAtEvent claims eventId =
+  withContext (mkContext "unattendAtEvent")
+    >>> withFields (logFields claims eventId)
+    $   tryCatchDefault
+    $   unattendEvent claims eventId
     >>  return NoContent
 
 

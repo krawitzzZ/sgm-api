@@ -5,6 +5,7 @@ module Infra.Beam.Query.Event
   , updateEventDetails
   , deleteEvent
   , attendAtEvent
+  , unattendAtEvent
   ) where
 
 import           Control.Monad.Reader.Has                           ( Has )
@@ -142,3 +143,10 @@ attendAtEvent e event userId =
                                , ueapCreatedAt = currentTimestamp_
                                }
     ]
+
+unattendAtEvent :: (Has Connection e, Has Config e, MonadIO m) => e -> Event -> UserId -> m ()
+unattendAtEvent e event userId = runBeam e $ runDelete $ delete
+  userEventAttendancePivot
+  (\p ->
+    pk p ==. val_ (UserEventAttendancePivotId (UserEntityId userId) (EventEntityId (eId event)))
+  )

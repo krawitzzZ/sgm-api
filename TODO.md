@@ -17,7 +17,6 @@
 
 ## Event
 
-* unattend an event
 * add query params to `allEvents` -> get only those in the future, with sorting, title or description including, etc
 * add location to events
 

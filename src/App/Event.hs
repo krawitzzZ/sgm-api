@@ -5,6 +5,7 @@ module App.Event
   , updateEventDetails
   , deleteEvent
   , attendEvent
+  , unattendEvent
   ) where
 
 import           Control.Exception.Safe                             ( MonadThrow )
@@ -50,3 +51,7 @@ deleteEvent claims eventId = C.getEventById eventId >>= \event -> do
 attendEvent :: (C.EventRepository m, MonadThrow m) => UserClaims -> EventId -> m ()
 attendEvent claims eventId = C.getEventById eventId >>= \event -> do
   accessPolicyGuard claims (AttendEvent eventId) >> C.attendEvent event (ucId claims)
+
+unattendEvent :: (C.EventRepository m, MonadThrow m) => UserClaims -> EventId -> m ()
+unattendEvent claims eventId = C.getEventById eventId >>= \event -> do
+  accessPolicyGuard claims (UnattendEvent eventId) >> C.unattendEvent event (ucId claims)

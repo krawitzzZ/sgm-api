@@ -94,6 +94,7 @@ instance (MonadIO m, MonadCatch m) => EventRepository (AppT m) where
   saveEvent e = ask >>= flip EventRepo.saveOne e
   deleteEvent id = ask >>= flip EventRepo.deleteOne id
   attendEvent e userId = ask >>= \c -> EventRepo.attendOne c e userId
+  unattendEvent e userId = ask >>= \c -> EventRepo.unattendOne c e userId
 
 instance (MonadIO m, MonadTime m) => Authentication (AppT m) where
   validatePassword pass = asks extract >>= Password.validatePassword pass

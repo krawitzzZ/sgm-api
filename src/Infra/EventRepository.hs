@@ -5,6 +5,7 @@ module Infra.EventRepository
   , saveOne
   , deleteOne
   , attendOne
+  , unattendOne
   ) where
 
 import           Control.Exception.Safe                             ( MonadCatch
@@ -28,6 +29,7 @@ import           Infra.Beam.Query.Event                             ( allEvents
                                                                     , createAndInsertEvent
                                                                     , deleteEvent
                                                                     , maybeEventById
+                                                                    , unattendAtEvent
                                                                     , updateEventDetails
                                                                     )
 import           Infra.Exception                                    ( tryCatchBeam
@@ -73,11 +75,12 @@ deleteOne e eventId = tryCatchBeamDefault $ maybeEventById e eventId >>= \case
 
 attendOne
   :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> Event -> UserId -> m ()
-attendOne e event userId = tryCatchBeam attend handleBeamException
+attendOne e event userId = tryCatchBeam (attendAtEvent e event userId) handleBeamException
  where
-  attend = maybeEventById e (eId event) >>= \case
-    (Nothing, _) -> throwM . NotFound $ "Event with id '" <> toText (eId event) <> "' not found"
-    (Just _ , _) -> attendAtEvent e event userId
   handleBeamException = \case
     (Conflict _) -> return ()
     err          -> throwM . InternalError . cs . show $ err
+
+unattendOne
+  :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> Event -> UserId -> m ()
+unattendOne e event userId = tryCatchBeamDefault (unattendAtEvent e event userId)
