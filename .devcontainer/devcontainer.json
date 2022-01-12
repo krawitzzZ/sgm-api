@@ -34,11 +34,14 @@
     "s0kil.vscode-hsx",
     "mtxr.sqltools",
     "mtxr.sqltools-driver-pg",
-    "ezzak.current-path"
+    "ezzak.current-path",
+    "pascalsenn.keyboard-quickfix",
+    "dominicvonk.auto-toggle-sidebar",
+    "ryuta46.multi-command"
   ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [
-    5432,
+    5444,
     3009,
     8080
   ],
