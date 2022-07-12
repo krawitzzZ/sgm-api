@@ -1,6 +1,5 @@
 module Utils
-  ( toUTC
-  , toMaybe
+  ( toMaybe
   , jsonOptions
   , readEnvDefault
   , readEnvText
@@ -14,9 +13,6 @@ import           Data.Aeson                                         ( Options(..
                                                                     , defaultOptions
                                                                     )
 import           Data.String.Conversions                            ( cs )
-import           Data.Time.LocalTime.TimeZone.Detect                ( TimeZoneName
-                                                                    , timeInTimeZoneToUTC
-                                                                    )
 import           RIO                                                ( ($)
                                                                     , (.)
                                                                     , (<>)
@@ -40,20 +36,12 @@ import           RIO                                                ( ($)
                                                                     , return
                                                                     )
 import           RIO.Char                                           ( toLower )
-import           RIO.Time                                           ( LocalTime
-                                                                    , UTCTime
-                                                                    )
 import           System.Environment                                 ( lookupEnv )
+
 
 toMaybe :: Bool -> a -> Maybe a
 toMaybe False _ = Nothing
 toMaybe True  x = Just x
-
-toUTC :: MonadIO m => LocalTime -> m UTCTime
-toUTC time = liftIO $ timeInTimeZoneToUTC sgmTZ time
-
-sgmTZ :: TimeZoneName
-sgmTZ = "Europe/Berlin"
 
 jsonOptions :: String -> Options
 jsonOptions prefix = defaultOptions { fieldLabelModifier = dropPrefix >>> firstToLower }

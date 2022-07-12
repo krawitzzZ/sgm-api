@@ -3,3 +3,4 @@
 *~
 .env
 jwt-key.local
+.hspec-failures

@@ -4,6 +4,7 @@ module Domain.Exception
 
 import           Data.String.Conversions                            ( cs )
 import           RIO                                                ( (<>)
+                                                                    , Eq
                                                                     , Exception
                                                                     , Show(..)
                                                                     , Text
@@ -17,6 +18,7 @@ data DomainException =
   InvalidPassword Text |
   CreateJwtException Text |
   AccessPolicyViolation
+  deriving Eq
 
 instance Show DomainException where
   show (InternalError         msg) = "InternalError =>> " <> cs msg
