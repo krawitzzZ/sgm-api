@@ -9,7 +9,7 @@
       "*.hs": "haskell"
     },
     "[haskell]": {
-      "editor.defaultFormatter": "MaxGabriel.brittany",
+      "editor.defaultFormatter": "MaxGabriel.brittany"
     },
     "currentPath.hideFileIcon": true,
     "brittany.keepCRLF": false,
@@ -48,5 +48,5 @@
   // Comment out connect as root instead. To add a non-root user, see: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "sgm-api",
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "stack install data-tree-print brittany-0.13.1.2 hlint hoogle implicit-hie",
+  "postCreateCommand": "stack install data-tree-print brittany-0.13.1.2 hlint hoogle implicit-hie"
 }

@@ -10,5 +10,10 @@
       "username": "postgres",
       "password": "password"
     }
-  ]
+  ],
+  "[haskell]": {
+    "editor.defaultFormatter": "MaxGabriel.brittany",
+  },
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "haskell.ghcupExecutablePath": "/home/sgm-api/.ghcup/bin/ghcup"
 }
