@@ -3,11 +3,11 @@ module Unit.Domain.PolicySpec
   ) where
 
 import           Data.UUID                                          ( nil )
-import           Domain.Auth.Role                                   ( Role(Participant) )
-import           Domain.Auth.UserClaims                             ( UserClaims(UserClaims) )
+import           Domain.Auth.Role                                   ( Role(..) )
+import           Domain.Auth.UserClaims                             ( UserClaims(..) )
 import           Domain.Exception                                   ( DomainException(..) )
 import           Domain.Policy                                      ( accessPolicyGuard )
-import           Domain.User                                        ( Action(DeleteUser) )
+import           Domain.User                                        ( Action(..) )
 import           RIO                                                ( ($)
                                                                     , (==)
                                                                     , IO
