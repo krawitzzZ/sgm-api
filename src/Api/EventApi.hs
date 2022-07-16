@@ -26,10 +26,13 @@ import           App.Event                                          ( attendEven
                                                                     )
 import           Control.Exception.Safe                             ( MonadCatch )
 import           Data.UUID                                          ( toText )
-import           Domain.App.Class                                   ( EventRepository
+import           Domain.App.Class                                   ( AccessPolicyGuard
+                                                                    , EventRepository
                                                                     , MonadLogger(..)
                                                                     )
-import           Domain.App.Types                                   ( EventId )
+import           Domain.App.Types                                   ( EventId(..)
+                                                                    , UserId(..)
+                                                                    )
 import           Domain.Auth.UserClaims                             ( UserClaims(..) )
 import           Domain.Logger                                      ( LogContext
                                                                     , userIdKey
@@ -88,10 +91,14 @@ type EventApi auths = Throws ApiException :> Auth auths UserClaims :>
   )
 
 eventServer
-  :: (EventRepository m, MonadCatch m, MonadLogger m) => ApiVersion -> ServerT (EventApi auths) m
+  :: (AccessPolicyGuard m, EventRepository m, MonadCatch m, MonadLogger m)
+  => ApiVersion
+  -> ServerT (EventApi auths) m
 eventServer V1 = eventV1Server
 
-eventV1Server :: (EventRepository m, MonadCatch m, MonadLogger m) => ServerT (EventApi auths) m
+eventV1Server
+  :: (AccessPolicyGuard m, EventRepository m, MonadCatch m, MonadLogger m)
+  => ServerT (EventApi auths) m
 eventV1Server (Authenticated claims) =
   allEvents claims
     :<|> eventById claims
@@ -110,16 +117,22 @@ eventV1Server _ =
     :<|> const throw401
 
 
-allEvents :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> m [EventDto]
+allEvents
+  :: (AccessPolicyGuard m, EventRepository m, MonadCatch m, MonadLogger m)
+  => UserClaims
+  -> m [EventDto]
 allEvents claims =
   withContext (mkContext "allEvents")
-    >>> withField (userIdKey, toText . ucId $ claims)
+    >>> withField (userIdKey, toText . unUserId . ucId $ claims)
     $   tryCatchDefault
     $   map eventToEventDto
     <$> getEvents claims
 
 eventById
-  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> EventId -> m EventDto
+  :: (AccessPolicyGuard m, EventRepository m, MonadCatch m, MonadLogger m)
+  => UserClaims
+  -> EventId
+  -> m EventDto
 eventById claims eventId =
   withContext (mkContext "eventById")
     >>> withFields (logFields claims eventId)
@@ -128,17 +141,20 @@ eventById claims eventId =
     <&> eventToEventDto
 
 newEvent
-  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> NewEventDto -> m EventDto
+  :: (AccessPolicyGuard m, EventRepository m, MonadCatch m, MonadLogger m)
+  => UserClaims
+  -> NewEventDto
+  -> m EventDto
 newEvent claims newEventDto =
   withContext (mkContext "newEvent")
-    >>> withField (userIdKey, toText . ucId $ claims)
+    >>> withField (userIdKey, toText . unUserId . ucId $ claims)
     $   tryCatchDefault
     $   createNewEvent claims newEventData
     <&> eventToEventDto
   where newEventData = newEventDtoToEventData newEventDto claims
 
 updateEventInfo
-  :: (EventRepository m, MonadCatch m, MonadLogger m)
+  :: (AccessPolicyGuard m, EventRepository m, MonadCatch m, MonadLogger m)
   => UserClaims
   -> EventId
   -> UpdateEventInfoDto
@@ -152,7 +168,10 @@ updateEventInfo claims eventId updateEventInfoDto =
   where updateEventData = updateEventInfoDtoToEventData updateEventInfoDto claims
 
 removeEvent
-  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> EventId -> m NoContent
+  :: (AccessPolicyGuard m, EventRepository m, MonadCatch m, MonadLogger m)
+  => UserClaims
+  -> EventId
+  -> m NoContent
 removeEvent claims eventId =
   withContext (mkContext "removeEvent")
     >>> withFields (logFields claims eventId)
@@ -161,7 +180,10 @@ removeEvent claims eventId =
     >>  return NoContent
 
 attendAtEvent
-  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> EventId -> m NoContent
+  :: (AccessPolicyGuard m, EventRepository m, MonadCatch m, MonadLogger m)
+  => UserClaims
+  -> EventId
+  -> m NoContent
 attendAtEvent claims eventId =
   withContext (mkContext "attendAtEvent")
     >>> withFields (logFields claims eventId)
@@ -170,7 +192,10 @@ attendAtEvent claims eventId =
     >>  return NoContent
 
 unattendAtEvent
-  :: (EventRepository m, MonadCatch m, MonadLogger m) => UserClaims -> EventId -> m NoContent
+  :: (AccessPolicyGuard m, EventRepository m, MonadCatch m, MonadLogger m)
+  => UserClaims
+  -> EventId
+  -> m NoContent
 unattendAtEvent claims eventId =
   withContext (mkContext "unattendAtEvent")
     >>> withFields (logFields claims eventId)
@@ -180,7 +205,8 @@ unattendAtEvent claims eventId =
 
 
 logFields :: UserClaims -> EventId -> [(Text, Text)]
-logFields claims eventId = [(userIdKey, toText . ucId $ claims), ("eventId", toText eventId)]
+logFields claims (EventId eventId) =
+  [(userIdKey, toText . unUserId . ucId $ claims), ("eventId", toText eventId)]
 
 mkContext :: LogContext -> LogContext
 mkContext = ("Api.EventApi->" <>)

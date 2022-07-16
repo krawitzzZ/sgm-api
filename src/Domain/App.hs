@@ -5,6 +5,7 @@ module Domain.App
 
 import           Control.Exception.Safe                             ( MonadCatch
                                                                     , MonadThrow
+                                                                    , throwM
                                                                     )
 import           Control.Monad.Reader.Has                           ( Has
                                                                     , extract
@@ -14,7 +15,8 @@ import           Di.Monad                                           ( DiT
                                                                     , MonadDi
                                                                     , runDiT
                                                                     )
-import           Domain.App.Class                                   ( Authentication(..)
+import           Domain.App.Class                                   ( AccessPolicyGuard(..)
+                                                                    , Authentication(..)
                                                                     , EventRepository(..)
                                                                     , MonadLogger(..)
                                                                     , UserRepository(..)
@@ -23,15 +25,19 @@ import           Domain.App.Config                                  ( Config(..)
 import           Domain.App.Env                                     ( Env(..) )
 import qualified Domain.Auth                                       as Auth
 import qualified Domain.Auth.Password                              as Password
+import           Domain.Auth.Permission                             ( isPermitted )
+import           Domain.Exception                                   ( DomainException(..) )
 import           Domain.Logger                                      ( LogContext
                                                                     , LogLevel
                                                                     , LogMessage
                                                                     , Logger(..)
                                                                     )
+import           Domain.Policy                                      ( HasActionPolicy(..) )
 import qualified Infra.EventRepository                             as EventRepo
 import qualified Infra.Logger                                      as Logger
 import qualified Infra.UserRepository                              as UserRepo
-import           RIO                                                ( (.)
+import           RIO                                                ( ($)
+                                                                    , (.)
                                                                     , (<$>)
                                                                     , (>>=)
                                                                     , Applicative
@@ -45,6 +51,7 @@ import           RIO                                                ( (.)
                                                                     , ask
                                                                     , asks
                                                                     , flip
+                                                                    , unless
                                                                     )
 
 
@@ -79,6 +86,21 @@ instance Monad m => MonadLogger (AppT m) where
   withField   = Logger.withField
   withFields  = Logger.withFields
 
+instance (MonadIO m, MonadTime m) => Authentication (AppT m) where
+  validatePassword pass = asks extract >>= Password.validatePassword pass
+  checkPassword = Password.checkPassword
+  refreshJwt authUser = do
+    tokenDuration <- cJwtDuration <$> asks extract
+    jwtSettings   <- asks extract
+    Auth.refreshJwt tokenDuration jwtSettings authUser
+  createJwt user = do
+    tokenDuration <- cJwtDuration <$> asks extract
+    jwtSettings   <- asks extract
+    Auth.createJwt tokenDuration jwtSettings user
+
+instance (MonadThrow m) => AccessPolicyGuard (AppT m) where
+  checkPolicy uc a = unless (isPermitted $ actionPermission uc a) $ throwM AccessPolicyViolation
+
 instance (MonadIO m, MonadCatch m) => UserRepository (AppT m) where
   getUserById id = ask >>= flip UserRepo.findOneById id
   getUserByUsername username = ask >>= flip UserRepo.findOneByUsername username
@@ -95,15 +117,3 @@ instance (MonadIO m, MonadCatch m) => EventRepository (AppT m) where
   deleteEvent id = ask >>= flip EventRepo.deleteOne id
   attendEvent e userId = ask >>= \c -> EventRepo.attendOne c e userId
   unattendEvent e userId = ask >>= \c -> EventRepo.unattendOne c e userId
-
-instance (MonadIO m, MonadTime m) => Authentication (AppT m) where
-  validatePassword pass = asks extract >>= Password.validatePassword pass
-  checkPassword = Password.checkPassword
-  refreshJwt authUser = do
-    tokenDuration <- cJwtDuration <$> asks extract
-    jwtSettings   <- asks extract
-    Auth.refreshJwt tokenDuration jwtSettings authUser
-  createJwt user = do
-    tokenDuration <- cJwtDuration <$> asks extract
-    jwtSettings   <- asks extract
-    Auth.createJwt tokenDuration jwtSettings user

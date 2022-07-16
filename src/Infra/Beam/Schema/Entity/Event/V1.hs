@@ -6,6 +6,7 @@ module Infra.Beam.Schema.Entity.Event.V1
   , mkEventsTable
   ) where
 
+import           Data.UUID                                          ( UUID )
 import           Database.Beam                                      ( Beamable
                                                                     , C
                                                                     , Table(..)
@@ -25,7 +26,6 @@ import           Database.Beam.Postgres                             ( Postgres
                                                                     , text
                                                                     , uuid
                                                                     )
-import           Domain.App.Types                                   ( EventId )
 import           Infra.Beam.Schema.Entity.User                      ( PrimaryKey(..)
                                                                     , UserEntityT
                                                                     )
@@ -41,7 +41,7 @@ import           RIO.Time                                           ( LocalTime 
 
 
 data EventEntityT f = EventEntity
-  { eeId            :: !(C f EventId)
+  { eeId            :: !(C f UUID)
   , eeCreatedAt     :: !(C f LocalTime)
   , eeLastUpdatedAt :: !(C f LocalTime)
   , eeTitle         :: !(C f Text)
@@ -58,7 +58,7 @@ deriving instance Show EventEntity
 deriving instance Eq EventEntity
 
 instance Table EventEntityT where
-  data PrimaryKey EventEntityT f = EventEntityId { eventEntityId :: !(C f EventId) }
+  data PrimaryKey EventEntityT f = EventEntityId { eventEntityId :: !(C f UUID) }
     deriving (Generic, Beamable)
   primaryKey = EventEntityId . eeId
 

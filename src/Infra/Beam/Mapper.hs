@@ -3,6 +3,9 @@ module Infra.Beam.Mapper
   , eventEntityToDomain
   ) where
 
+import           Domain.App.Types                                   ( EventId(..)
+                                                                    , UserId(..)
+                                                                    )
 import           Domain.Event                                       ( Event(..) )
 import           Domain.User                                        ( User(..) )
 import           Infra.Beam.Schema.Latest                           ( EventEntity
@@ -12,12 +15,15 @@ import           Infra.Beam.Schema.Latest                           ( EventEntit
                                                                     , UserEntityId
                                                                     , UserEntityT(..)
                                                                     )
-import           RIO                                                ( map )
+import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , map
+                                                                    )
 import           RIO.Vector                                         ( toList )
 
 
 userEntityToDomain :: UserEntity -> User
-userEntityToDomain UserEntity {..} = User { uId        = ueId
+userEntityToDomain UserEntity {..} = User { uId        = UserId ueId
                                           , uUsername  = ueUsername
                                           , uPassword  = uePassword
                                           , uRoles     = toList ueRoles
@@ -27,12 +33,12 @@ userEntityToDomain UserEntity {..} = User { uId        = ueId
 
 eventEntityToDomain :: EventEntity -> [UserEntityId] -> Event
 eventEntityToDomain EventEntity {..} attendeesIds = Event
-  { eId            = eeId
+  { eId            = EventId eeId
   , eTitle         = eeTitle
   , eDescription   = eeDescription
-  , eCreatedBy     = userEntityId eeCreatedBy
-  , eLastUpdatedBy = userEntityId eeLastUpdatedBy
-  , eAttendees     = map userEntityId attendeesIds
+  , eCreatedBy     = UserId $ userEntityId eeCreatedBy
+  , eLastUpdatedBy = UserId $ userEntityId eeLastUpdatedBy
+  , eAttendees     = map (UserId . userEntityId) attendeesIds
   , eStart         = eeStart
   , eEnd           = eeEnd
   }

@@ -8,7 +8,6 @@ module App.Event
   , unattendEvent
   ) where
 
-import           Control.Exception.Safe                             ( MonadThrow )
 import qualified Domain.App.Class                                  as C
 import           Domain.App.Types                                   ( EventId )
 import           Domain.Auth.UserClaims                             ( UserClaims(..) )
@@ -18,25 +17,29 @@ import           Domain.Event                                       ( Action(..)
 import           Domain.Event.EventData                             ( NewEventData
                                                                     , UpdateEventInfoData(..)
                                                                     )
-import           Domain.Policy                                      ( accessPolicyGuard )
 import           RIO                                                ( (>>)
                                                                     , (>>=)
                                                                     )
 
 
-getEvents :: (C.EventRepository m, MonadThrow m) => UserClaims -> m [Event]
-getEvents claims = accessPolicyGuard claims GetAllEvents >> C.getAllEvents
+getEvents :: (C.AccessPolicyGuard m, C.EventRepository m) => UserClaims -> m [Event]
+getEvents uc = C.checkPolicy uc GetAllEvents >> C.getAllEvents
 
-createNewEvent :: (C.EventRepository m, MonadThrow m) => UserClaims -> NewEventData -> m Event
-createNewEvent claims eventData = accessPolicyGuard claims CreateEvent >> C.createEvent eventData
+createNewEvent
+  :: (C.AccessPolicyGuard m, C.EventRepository m) => UserClaims -> NewEventData -> m Event
+createNewEvent uc eData = C.checkPolicy uc CreateEvent >> C.createEvent eData
 
-findEventById :: (C.EventRepository m, MonadThrow m) => UserClaims -> EventId -> m Event
-findEventById claims eventId = accessPolicyGuard claims GetEvent >> C.getEventById eventId
+findEventById :: (C.AccessPolicyGuard m, C.EventRepository m) => UserClaims -> EventId -> m Event
+findEventById uc eid = C.checkPolicy uc GetEvent >> C.getEventById eid
 
 updateEventDetails
-  :: (C.EventRepository m, MonadThrow m) => UserClaims -> EventId -> UpdateEventInfoData -> m Event
-updateEventDetails claims eventId UpdateEventInfoData {..} = C.getEventById eventId >>= \event ->
-  accessPolicyGuard claims (UpdateEventInfo (eCreatedBy event)) >> C.saveEvent event
+  :: (C.AccessPolicyGuard m, C.EventRepository m)
+  => UserClaims
+  -> EventId
+  -> UpdateEventInfoData
+  -> m Event
+updateEventDetails uc eid UpdateEventInfoData {..} = C.getEventById eid >>= \e ->
+  C.checkPolicy uc (UpdateEventInfo (eCreatedBy e)) >> C.saveEvent e
     { eTitle         = ueidTitle
     , eDescription   = ueidDescription
     , eLastUpdatedBy = ueidLastUpdatedBy
@@ -44,14 +47,14 @@ updateEventDetails claims eventId UpdateEventInfoData {..} = C.getEventById even
     , eEnd           = ueidEnd
     }
 
-deleteEvent :: (C.EventRepository m, MonadThrow m) => UserClaims -> EventId -> m ()
-deleteEvent claims eventId = C.getEventById eventId >>= \event -> do
-  accessPolicyGuard claims (DeleteEvent (eCreatedBy event)) >> C.deleteEvent eventId
+deleteEvent :: (C.AccessPolicyGuard m, C.EventRepository m) => UserClaims -> EventId -> m ()
+deleteEvent uc eid = C.getEventById eid >>= \e -> do
+  C.checkPolicy uc (DeleteEvent (eCreatedBy e)) >> C.deleteEvent eid
 
-attendEvent :: (C.EventRepository m, MonadThrow m) => UserClaims -> EventId -> m ()
-attendEvent claims eventId = C.getEventById eventId >>= \event -> do
-  accessPolicyGuard claims (AttendEvent eventId) >> C.attendEvent event (ucId claims)
+attendEvent :: (C.AccessPolicyGuard m, C.EventRepository m) => UserClaims -> EventId -> m ()
+attendEvent uc eid = C.getEventById eid >>= \e -> do
+  C.checkPolicy uc (AttendEvent (ucId uc)) >> C.attendEvent e (ucId uc)
 
-unattendEvent :: (C.EventRepository m, MonadThrow m) => UserClaims -> EventId -> m ()
-unattendEvent claims eventId = C.getEventById eventId >>= \event -> do
-  accessPolicyGuard claims (UnattendEvent eventId) >> C.unattendEvent event (ucId claims)
+unattendEvent :: (C.AccessPolicyGuard m, C.EventRepository m) => UserClaims -> EventId -> m ()
+unattendEvent uc eid = C.getEventById eid >>= \e -> do
+  C.checkPolicy uc (UnattendEvent (ucId uc)) >> C.unattendEvent e (ucId uc)

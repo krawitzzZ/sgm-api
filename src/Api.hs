@@ -14,7 +14,8 @@ import           Api.UserApi                                        ( UserApi
                                                                     , userServer
                                                                     )
 import           Control.Exception.Safe                             ( MonadCatch )
-import           Domain.App.Class                                   ( Authentication
+import           Domain.App.Class                                   ( AccessPolicyGuard
+                                                                    , Authentication
                                                                     , EventRepository
                                                                     , MonadLogger
                                                                     , UserRepository
@@ -35,6 +36,12 @@ type SGMApi auths = "api" :> Capture "version" ApiVersion :>
   )
 
 server
-  :: (Authentication m, UserRepository m, EventRepository m, MonadLogger m, MonadCatch m)
+  :: ( Authentication m
+     , AccessPolicyGuard m
+     , UserRepository m
+     , EventRepository m
+     , MonadLogger m
+     , MonadCatch m
+     )
   => ServerT (SGMApi auths) m
 server apiVersion = authServer apiVersion :<|> userServer apiVersion :<|> eventServer apiVersion

@@ -43,6 +43,8 @@ packages:
 # extra-deps: []
 extra-deps:
   - dlist-0.8.0.8
+  - explainable-predicates-0.1.2.1
+  - HMock-0.5.1.0
   - postgresql-simple-migration-0.1.15.0
   - timezone-detect-0.3.0.1
   - git: https://github.com/haskell-beam/beam.git

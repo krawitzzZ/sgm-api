@@ -29,7 +29,7 @@ import           Database.Beam.Backend.SQL.BeamExtensions           ( runInsertR
 import           Database.Beam.Postgres                             ( Connection )
 import           Database.Beam.Postgres.PgCrypto                    ( PgCrypto(..) )
 import           Domain.App.Config                                  ( Config )
-import           Domain.App.Types                                   ( UserId )
+import           Domain.App.Types                                   ( UserId(..) )
 import           Domain.Auth.Password                               ( hashPassword )
 import           Domain.User                                        ( User(..) )
 import           Domain.User.UserData                               ( NewUserData(..) )
@@ -55,7 +55,7 @@ allUsers :: (Has Connection e, Has Config e, MonadIO m) => e -> m [UserEntity]
 allUsers e = runBeam e (runSelectReturningList $ select $ all_ usersTable)
 
 maybeUserById :: (Has Connection e, Has Config e, MonadIO m) => e -> UserId -> m (Maybe UserEntity)
-maybeUserById e userId =
+maybeUserById e (UserId userId) =
   runBeam e $ runSelectReturningOne $ lookup_ usersTable (UserEntityId userId)
 
 maybeUserByUsername
@@ -91,8 +91,8 @@ updateUserInfo e User {..} = runBeam e $ runUpdate $ update
       <> (ueFirstName <-. val_ uFirstName)
       <> (ueLastName <-. val_ uLastName)
   )
-  (\UserEntity {..} -> ueId ==. val_ uId)
+  (\UserEntity {..} -> ueId ==. val_ (unUserId uId))
 
 deleteUser :: (Has Connection e, Has Config e, MonadIO m) => e -> UserId -> m ()
-deleteUser e userId =
+deleteUser e (UserId userId) =
   runBeam e $ runDelete $ delete usersTable (\UserEntity {..} -> ueId ==. val_ userId)

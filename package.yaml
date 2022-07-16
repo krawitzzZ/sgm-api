@@ -154,3 +154,6 @@ tests:
     - hspec-wai
     - hspec-wai-json
     - aeson
+    - HMock
+    - explainable-predicates
+    - mock-time

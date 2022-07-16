@@ -12,6 +12,20 @@ packages:
   original:
     hackage: dlist-0.8.0.8
 - completed:
+    hackage: explainable-predicates-0.1.2.1@sha256:1b8d9c98a0eea7782bf129313dbf174b46733aa13a09f2c010423e9a7a9ee57f,3749
+    pantry-tree:
+      size: 818
+      sha256: 95fbff55e26fb5cf7a27e473e38f285aef31ec6aa399ae3968fbc6dc81a4d77c
+  original:
+    hackage: explainable-predicates-0.1.2.1
+- completed:
+    hackage: HMock-0.5.1.0@sha256:64f25f8885ac45ee7b0e61e180ba9c6fb87f49138062bcad3a21d423565b67f8,3793
+    pantry-tree:
+      size: 1912
+      sha256: 2e5ca552638e66c0a725810b84192cdbf2d880624a3dbd4ba867e1bc336dba85
+  original:
+    hackage: HMock-0.5.1.0
+- completed:
     hackage: postgresql-simple-migration-0.1.15.0@sha256:123d8f62b0e300aede37e2d6dacc81b9468cb68dc5c3f52fe807085992280aa8,3969
     pantry-tree:
       size: 766

@@ -1,15 +1,23 @@
 module Domain.App.Types
-  ( UserId
-  , EventId
-  , CreatedBy
-  , UpdatedBy
+  ( UserId(..)
+  , EventId(..)
   ) where
 
+import           Data.Aeson                                         ( FromJSON
+                                                                    , ToJSON
+                                                                    )
 import           Data.UUID                                          ( UUID )
+import           RIO                                                ( Eq
+                                                                    , Generic
+                                                                    , Show
+                                                                    )
+import           Web.HttpApiData                                    ( FromHttpApiData(..) )
 
 
-type UserId = UUID
+newtype UserId = UserId { unUserId :: UUID }
+  deriving (Eq, Show, Generic)
+  deriving newtype (ToJSON, FromJSON, FromHttpApiData)
 
-type EventId = UUID
-type CreatedBy = UserId
-type UpdatedBy = UserId
+newtype EventId = EventId { unEventId :: UUID }
+  deriving (Eq, Show, Generic)
+  deriving newtype (ToJSON, FromJSON, FromHttpApiData)

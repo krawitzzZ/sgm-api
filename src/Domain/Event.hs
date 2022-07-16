@@ -4,23 +4,27 @@ module Domain.Event
   ) where
 
 import           Data.Time                                          ( LocalTime )
-import           Domain.App.Types                                   ( CreatedBy
-                                                                    , EventId
+import           Domain.App.Types                                   ( EventId
                                                                     , UserId
                                                                     )
 import           Domain.Auth.Permission                             ( Permission(..)
                                                                     , check
+                                                                    , isPermitted
                                                                     )
 import           Domain.Auth.Role                                   ( Role(..) )
 import           Domain.Auth.UserClaims                             ( UserClaims(..) )
-import           Domain.Policy.AccessPolicy                         ( AccessPolicy(..)
-                                                                    , Action
+import           Domain.Policy                                      ( Action
+                                                                    , HasActionPolicy(..)
                                                                     )
-import           RIO                                                ( (<>)
+import           RIO                                                ( (.)
+                                                                    , (<>)
                                                                     , (==)
                                                                     , Eq
                                                                     , Maybe
+                                                                    , Show
                                                                     , Text
+                                                                    , filter
+                                                                    , map
                                                                     , on
                                                                     )
 import           Utils                                              ( anyElem )
@@ -36,26 +40,36 @@ data Event = Event
   , eStart         :: !LocalTime
   , eEnd           :: !LocalTime
   }
+  deriving Show
 
 instance Eq Event where
   (==) = (==) `on` eId
 
-instance AccessPolicy Event where
+instance HasActionPolicy Event where
   data Action Event =
     CreateEvent |
     GetEvent |
     GetAllEvents |
-    UpdateEventInfo CreatedBy |
-    DeleteEvent CreatedBy |
-    AttendEvent EventId |
-    UnattendEvent EventId
+    UpdateEventInfo UserId |
+    DeleteEvent UserId |
+    AttendEvent UserId |
+    UnattendEvent UserId
+    deriving (Eq, Show)
 
-  checkAccessPolicy _ CreateEvent  = Granted
-  checkAccessPolicy _ GetEvent     = Granted
-  checkAccessPolicy _ GetAllEvents = Granted
-  checkAccessPolicy UserClaims {..} (UpdateEventInfo createdBy) =
+  actionPermission _ CreateEvent  = Granted
+  actionPermission _ GetEvent     = Granted
+  actionPermission _ GetAllEvents = Granted
+  actionPermission UserClaims {..} (UpdateEventInfo createdBy) =
     check (ucId == createdBy) <> check ([Moderator, Admin, Superadmin] `anyElem` ucRoles)
-  checkAccessPolicy UserClaims {..} (DeleteEvent createdBy) =
+  actionPermission UserClaims {..} (DeleteEvent createdBy) =
     check (ucId == createdBy) <> check ([Moderator, Admin, Superadmin] `anyElem` ucRoles)
-  checkAccessPolicy _ (AttendEvent   _) = Granted
-  checkAccessPolicy _ (UnattendEvent _) = Granted
+  actionPermission _ (AttendEvent   _) = Granted
+  actionPermission _ (UnattendEvent _) = Granted
+
+  permittedActions uc Event {..} = filter (permitted uc) allActions
+   where
+    permitted c = isPermitted . actionPermission c
+    allActions =
+      [CreateEvent, GetEvent, GetAllEvents, UpdateEventInfo eCreatedBy, DeleteEvent eCreatedBy]
+        <> map AttendEvent   eAttendees
+        <> map UnattendEvent eAttendees

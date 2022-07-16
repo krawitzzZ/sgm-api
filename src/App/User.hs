@@ -5,11 +5,9 @@ module App.User
   , deleteUser
   ) where
 
-import           Control.Exception.Safe                             ( MonadThrow )
 import qualified Domain.App.Class                                  as C
 import           Domain.App.Types                                   ( UserId )
 import           Domain.Auth.UserClaims                             ( UserClaims )
-import           Domain.Policy                                      ( accessPolicyGuard )
 import           Domain.User                                        ( Action(..)
                                                                     , User(..)
                                                                     )
@@ -20,22 +18,22 @@ import           RIO                                                ( (>>)
                                                                     )
 
 
-getUsers :: (C.UserRepository m, MonadThrow m) => UserClaims -> m [User]
-getUsers claims = accessPolicyGuard claims GetAllUsers >> C.getAllUsers
+getUsers :: (C.AccessPolicyGuard m, C.UserRepository m) => UserClaims -> m [User]
+getUsers uc = C.checkPolicy uc GetAllUsers >> C.getAllUsers
 
-findUserById :: (C.UserRepository m, MonadThrow m) => UserClaims -> UserId -> m User
-findUserById claims userId = accessPolicyGuard claims GetUser >> C.getUserById userId
+findUserById :: (C.AccessPolicyGuard m, C.UserRepository m) => UserClaims -> UserId -> m User
+findUserById uc uid = C.checkPolicy uc GetUser >> C.getUserById uid
 
 updateUserDetails
-  :: (C.UserRepository m, MonadThrow m)
+  :: (C.AccessPolicyGuard m, C.UserRepository m)
   => UserClaims
   -> UserId
   -> Maybe Text
   -> Maybe Text
   -> m User
-updateUserDetails claims userId uFirstName uLastName =
-  accessPolicyGuard claims (UpdateUserInfo userId) >> C.getUserById userId >>= \user ->
+updateUserDetails uc uid uFirstName uLastName =
+  C.checkPolicy uc (UpdateUserInfo uid) >> C.getUserById uid >>= \user ->
     C.saveUser user { uFirstName, uLastName }
 
-deleteUser :: (C.UserRepository m, MonadThrow m) => UserClaims -> UserId -> m ()
-deleteUser claims userId = accessPolicyGuard claims (DeleteUser userId) >> C.deleteUser userId
+deleteUser :: (C.AccessPolicyGuard m, C.UserRepository m) => UserClaims -> UserId -> m ()
+deleteUser uc uid = C.checkPolicy uc (DeleteUser uid) >> C.deleteUser uid

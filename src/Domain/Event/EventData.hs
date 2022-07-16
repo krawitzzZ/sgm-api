@@ -4,7 +4,9 @@ module Domain.Event.EventData
   ) where
 
 import           Domain.App.Types                                   ( UserId )
-import           RIO                                                ( Maybe
+import           RIO                                                ( Eq
+                                                                    , Maybe
+                                                                    , Show
                                                                     , Text
                                                                     )
 import           RIO.Time                                           ( LocalTime )
@@ -18,6 +20,7 @@ data NewEventData = NewEventData
   , nedStart         :: !LocalTime
   , nedEnd           :: !LocalTime
   }
+  deriving (Eq, Show)
 
 data UpdateEventInfoData = UpdateEventInfoData
   { ueidTitle         :: !Text
@@ -26,3 +29,4 @@ data UpdateEventInfoData = UpdateEventInfoData
   , ueidStart         :: !LocalTime
   , ueidEnd           :: !LocalTime
   }
+  deriving (Eq, Show)

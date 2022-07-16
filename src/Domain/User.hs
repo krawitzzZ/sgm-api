@@ -7,17 +7,21 @@ import           Domain.App.Types                                   ( UserId )
 import           Domain.Auth.Password                               ( PasswordHash )
 import           Domain.Auth.Permission                             ( Permission(..)
                                                                     , check
+                                                                    , isPermitted
                                                                     )
 import           Domain.Auth.Role                                   ( Role(..) )
 import           Domain.Auth.UserClaims                             ( UserClaims(..) )
-import           Domain.Policy.AccessPolicy                         ( AccessPolicy(..) )
-import           RIO                                                ( (<>)
+import           Domain.Policy                                      ( HasActionPolicy(..) )
+import           RIO                                                ( (.)
+                                                                    , (<>)
                                                                     , (==)
                                                                     , Eq
                                                                     , Maybe
                                                                     , Semigroup(..)
+                                                                    , Show
                                                                     , Text
                                                                     , elem
+                                                                    , filter
                                                                     , on
                                                                     )
 import           Utils                                              ( anyElem )
@@ -31,22 +35,29 @@ data User = User
   , uFirstName :: !(Maybe Text)
   , uLastName  :: !(Maybe Text)
   }
+  deriving Show
 
 instance Eq User where
   (==) = (==) `on` uId
 
-instance AccessPolicy User where
+instance HasActionPolicy User where
   data Action User =
     CreateUser |
     GetUser |
     GetAllUsers |
     UpdateUserInfo UserId |
     DeleteUser UserId
+    deriving (Eq, Show)
 
-  checkAccessPolicy UserClaims {..} CreateUser  = check (Superadmin `elem` ucRoles)
-  checkAccessPolicy _               GetUser     = Granted
-  checkAccessPolicy _               GetAllUsers = Granted
-  checkAccessPolicy UserClaims {..} (UpdateUserInfo userId) =
+  actionPermission UserClaims {..} CreateUser  = check (Superadmin `elem` ucRoles)
+  actionPermission _               GetUser     = Granted
+  actionPermission _               GetAllUsers = Granted
+  actionPermission UserClaims {..} (UpdateUserInfo userId) =
     check (ucId == userId) <> check ([Admin, Superadmin] `anyElem` ucRoles)
-  checkAccessPolicy UserClaims {..} (DeleteUser userId) =
+  actionPermission UserClaims {..} (DeleteUser userId) =
     check (ucId == userId) <> check (Superadmin `elem` ucRoles)
+
+  permittedActions uc User {..} = filter (permitted uc) allActions
+   where
+    permitted c = isPermitted . actionPermission c
+    allActions = [CreateUser, GetUser, GetAllUsers, UpdateUserInfo uId, DeleteUser uId]

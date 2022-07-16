@@ -1,8 +1,9 @@
 module Domain.App.Class
   ( MonadLogger(..)
+  , Authentication(..)
+  , AccessPolicyGuard(..)
   , UserRepository(..)
   , EventRepository(..)
-  , Authentication(..)
   ) where
 
 import           Control.Exception.Safe                             ( MonadThrow )
@@ -16,11 +17,13 @@ import           Domain.Auth.Password                               ( Password
 import           Domain.Auth.UserClaims                             ( UserClaims )
 import           Domain.Event                                       ( Event )
 import           Domain.Event.EventData                             ( NewEventData )
+import           Domain.Policy                                      ( HasActionPolicy(..) )
 import           Domain.User                                        ( User )
 import           Domain.User.UserData                               ( NewUserData )
 import           RIO                                                ( Monad
                                                                     , Show
                                                                     , Text
+                                                                    , Typeable
                                                                     )
 
 
@@ -33,6 +36,15 @@ class MonadLogger m where
   withError :: Show err => err -> m a -> m a
   withField :: (Text, Text) -> m a -> m a
   withFields :: [(Text, Text)] -> m a -> m a
+
+class (Monad m) => Authentication m where
+  validatePassword :: (MonadThrow m) => Password -> m ()
+  checkPassword :: (MonadThrow m) => Password -> PasswordHash -> m ()
+  refreshJwt :: UserClaims -> m JWT
+  createJwt :: User -> m JWT
+
+class (Monad m) => AccessPolicyGuard m where
+  checkPolicy :: (Typeable e, HasActionPolicy e) => UserClaims -> Action e -> m ()
 
 class (Monad m) => UserRepository m where
   getUserById :: UserId -> m User
@@ -47,12 +59,6 @@ class (Monad m) => EventRepository m where
   getAllEvents :: m [Event]
   createEvent :: NewEventData -> m Event
   saveEvent :: Event -> m Event
-  deleteEvent :: EventId ->  m ()
-  attendEvent :: Event -> EventId ->  m ()
-  unattendEvent :: Event -> EventId ->  m ()
-
-class (Monad m) => Authentication m where
-  validatePassword :: (MonadThrow m) => Password -> m ()
-  checkPassword :: (MonadThrow m) => Password -> PasswordHash -> m ()
-  refreshJwt :: UserClaims -> m JWT
-  createJwt :: User -> m JWT
+  deleteEvent :: EventId -> m ()
+  attendEvent :: Event -> UserId -> m ()
+  unattendEvent :: Event -> UserId -> m ()

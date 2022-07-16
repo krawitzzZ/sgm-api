@@ -32,8 +32,8 @@ import           Database.Beam.Backend.SQL.BeamExtensions           ( runInsertR
 import           Database.Beam.Postgres                             ( Connection )
 import           Database.Beam.Postgres.PgCrypto                    ( PgCrypto(..) )
 import           Domain.App.Config                                  ( Config )
-import           Domain.App.Types                                   ( EventId
-                                                                    , UserId
+import           Domain.App.Types                                   ( EventId(..)
+                                                                    , UserId(..)
                                                                     )
 import           Domain.Event                                       ( Event(..) )
 import           Domain.Event.EventData                             ( NewEventData(..) )
@@ -86,7 +86,7 @@ maybeEventById
   => e
   -> EventId
   -> m (Maybe EventEntity, [UserEntityId])
-maybeEventById e eventId = do
+maybeEventById e (EventId eventId) = do
   eventsPivots <- runBeam e $ runSelectReturningList $ select $ do
     event <- filter_ (\ev -> pk ev ==. val_ (EventEntityId eventId)) (all_ eventsTable)
     pivot <- leftJoin_ (all_ userEventAttendancePivot)
@@ -110,8 +110,8 @@ createAndInsertEvent e NewEventData {..} = runBeam e $ do
                   , eeLastUpdatedAt = currentTimestamp_
                   , eeTitle         = val_ nedTitle
                   , eeDescription   = val_ nedDescription
-                  , eeCreatedBy     = val_ (UserEntityId nedCreatedBy)
-                  , eeLastUpdatedBy = val_ (UserEntityId nedCreatedBy)
+                  , eeCreatedBy     = val_ (UserEntityId $ unUserId nedCreatedBy)
+                  , eeLastUpdatedBy = val_ (UserEntityId $ unUserId nedCreatedBy)
                   , eeStart         = val_ nedStart
                   , eeEnd           = val_ nedEnd
                   }
@@ -125,28 +125,28 @@ updateEventDetails e Event {..} = runBeam e $ runUpdate $ update
     (eeLastUpdatedAt <-. currentTimestamp_)
       <> (eeTitle <-. val_ eTitle)
       <> (eeDescription <-. val_ eDescription)
-      <> (eeLastUpdatedBy <-. val_ (UserEntityId eLastUpdatedBy))
+      <> (eeLastUpdatedBy <-. val_ (UserEntityId $ unUserId eLastUpdatedBy))
       <> (eeStart <-. val_ eStart)
       <> (eeEnd <-. val_ eEnd)
   )
-  (\EventEntity {..} -> eeId ==. val_ eId)
+  (\EventEntity {..} -> eeId ==. val_ (unEventId eId))
 
 deleteEvent :: (Has Connection e, Has Config e, MonadIO m) => e -> EventId -> m ()
-deleteEvent e eventId =
+deleteEvent e (EventId eventId) =
   runBeam e $ runDelete $ delete eventsTable (\EventEntity {..} -> eeId ==. val_ eventId)
 
 attendAtEvent :: (Has Connection e, Has Config e, MonadIO m) => e -> Event -> UserId -> m ()
-attendAtEvent e event userId =
+attendAtEvent e event (UserId userId) =
   runBeam e $ runInsert $ insert userEventAttendancePivot $ insertExpressions
     [ UserEventAttendancePivot { ueapUserId    = val_ (UserEntityId userId)
-                               , ueapEventId   = val_ (EventEntityId (eId event))
+                               , ueapEventId   = val_ (EventEntityId (unEventId $ eId event))
                                , ueapCreatedAt = currentTimestamp_
                                }
     ]
 
 unattendAtEvent :: (Has Connection e, Has Config e, MonadIO m) => e -> Event -> UserId -> m ()
-unattendAtEvent e event userId = runBeam e $ runDelete $ delete
+unattendAtEvent e event (UserId userId) = runBeam e $ runDelete $ delete
   userEventAttendancePivot
-  (\p ->
-    pk p ==. val_ (UserEventAttendancePivotId (UserEntityId userId) (EventEntityId (eId event)))
+  (\p -> pk p ==. val_
+    (UserEventAttendancePivotId (UserEntityId userId) (EventEntityId (unEventId $ eId event)))
   )

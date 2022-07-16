@@ -16,7 +16,7 @@ import           Data.String.Conversions                            ( cs )
 import           Data.UUID                                          ( toText )
 import           Database.Beam.Postgres                             ( Connection )
 import           Domain.App.Config                                  ( Config )
-import           Domain.App.Types                                   ( EventId
+import           Domain.App.Types                                   ( EventId(..)
                                                                     , UserId
                                                                     )
 import           Domain.Event                                       ( Event(..) )
@@ -56,8 +56,9 @@ getAll c = tryCatchBeamDefault $ allEvents c <&> map (uncurry eventEntityToDomai
 
 findOneById :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> EventId -> m Event
 findOneById e eventId = tryCatchBeamDefault $ maybeEventById e eventId >>= \case
-  (Nothing   , _  ) -> throwM . NotFound $ "Event with id '" <> toText eventId <> "' not found"
   (Just event, ids) -> return $ eventEntityToDomain event ids
+  (Nothing, _) ->
+    throwM . NotFound $ "Event with id '" <> toText (unEventId eventId) <> "' not found"
 
 createOne
   :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> NewEventData -> m Event
@@ -69,8 +70,9 @@ saveOne e event = tryCatchBeamDefault $ updateEventDetails e event >> return eve
 
 deleteOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> EventId -> m ()
 deleteOne e eventId = tryCatchBeamDefault $ maybeEventById e eventId >>= \case
-  (Nothing, _) -> throwM . NotFound $ "Event with id '" <> toText eventId <> "' not found"
-  (Just _ , _) -> deleteEvent e eventId
+  (Just _, _) -> deleteEvent e eventId
+  (Nothing, _) ->
+    throwM . NotFound $ "Event with id '" <> toText (unEventId eventId) <> "' not found"
 
 attendOne
   :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> Event -> UserId -> m ()

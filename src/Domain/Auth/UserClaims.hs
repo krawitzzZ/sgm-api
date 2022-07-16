@@ -11,7 +11,9 @@ import           Data.Aeson                                         ( FromJSON(.
 import           Domain.App.Types                                   ( UserId )
 import           Domain.Auth.Role                                   ( Role )
 import           RIO                                                ( ($)
+                                                                    , Eq
                                                                     , Generic
+                                                                    , Show
                                                                     )
 import           Servant.Auth.JWT                                   ( FromJWT
                                                                     , ToJWT
@@ -23,7 +25,7 @@ data UserClaims = UserClaims
   { ucId    :: !UserId
   , ucRoles :: ![Role]
   }
-  deriving (Generic, Has UserId)
+  deriving (Eq, Show, Generic, Has UserId)
 
 instance ToJSON UserClaims where
   toJSON = genericToJSON $ jsonOptions "uc"

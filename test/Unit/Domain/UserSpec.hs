@@ -2,13 +2,10 @@ module Unit.Domain.UserSpec
   ( spec
   ) where
 
-import           Data.UUID                                          ( UUID
-                                                                    , nil
-                                                                    )
+import           Domain.App.Types                                   ( UserId(..) )
 import           Domain.Auth.Permission                             ( Permission(..) )
-import           Domain.Auth.Role                                   ( Role(..) )
 import           Domain.Auth.UserClaims                             ( UserClaims(..) )
-import           Domain.Policy.AccessPolicy                         ( checkAccessPolicy )
+import           Domain.Policy                                      ( actionPermission )
 import           Domain.User                                        ( Action(..) )
 import           RIO                                                ( ($) )
 import           Test.Hspec                                         ( Spec
@@ -19,6 +16,11 @@ import           Test.Hspec                                         ( Spec
                                                                     , shouldBe
                                                                     )
 import           Test.Hspec.QuickCheck                              ( prop )
+import           TestConstants                                      ( adminClaims
+                                                                    , moderatorClaims
+                                                                    , participantClaims
+                                                                    , superadminClaims
+                                                                    )
 
 
 spec :: Spec
@@ -29,9 +31,9 @@ spec = parallel $ do
       it "should be able to create new users" $ do
         createUser superadminClaims `shouldBe` Granted
       prop "should be able to update any user"
-        $ \uid -> updateUser superadminClaims uid `shouldBe` Granted
+        $ \uid -> updateUser superadminClaims (UserId uid) `shouldBe` Granted
       prop "should be able to delete any user"
-        $ \uid -> deleteUser superadminClaims uid `shouldBe` Granted
+        $ \uid -> deleteUser superadminClaims (UserId uid) `shouldBe` Granted
       it "should be able to get all users" $ do
         getUsers superadminClaims `shouldBe` Granted
       it "should be able to get a user" $ do
@@ -41,9 +43,9 @@ spec = parallel $ do
       it "should not be able to create new users" $ do
         createUser adminClaims `shouldBe` Denied
       prop "should be able to update any user"
-        $ \uid -> updateUser adminClaims uid `shouldBe` Granted
+        $ \uid -> updateUser adminClaims (UserId uid) `shouldBe` Granted
       prop "should not be able to delete any user"
-        $ \uid -> deleteUser adminClaims uid `shouldBe` Denied
+        $ \uid -> deleteUser adminClaims (UserId uid) `shouldBe` Denied
       it "should only be able to delete himself" $ do
         deleteUser adminClaims (ucId adminClaims) `shouldBe` Granted
       it "should be able to get all users" $ do
@@ -55,11 +57,11 @@ spec = parallel $ do
       it "should not be able to create new users" $ do
         createUser moderatorClaims `shouldBe` Denied
       prop "should not be able to update any user"
-        $ \uid -> updateUser moderatorClaims uid `shouldBe` Denied
+        $ \uid -> updateUser moderatorClaims (UserId uid) `shouldBe` Denied
       it "should only be able to update himself" $ do
         updateUser moderatorClaims (ucId moderatorClaims) `shouldBe` Granted
       prop "should not be able to delete any user"
-        $ \uid -> deleteUser moderatorClaims uid `shouldBe` Denied
+        $ \uid -> deleteUser moderatorClaims (UserId uid) `shouldBe` Denied
       it "should only be able to delete himself" $ do
         deleteUser moderatorClaims (ucId moderatorClaims) `shouldBe` Granted
       it "should be able to get all users" $ do
@@ -71,11 +73,11 @@ spec = parallel $ do
       it "should not be able to create new users" $ do
         createUser participantClaims `shouldBe` Denied
       prop "should not be able to update any user"
-        $ \uid -> updateUser participantClaims uid `shouldBe` Denied
+        $ \uid -> updateUser participantClaims (UserId uid) `shouldBe` Denied
       it "should only be able to update himself" $ do
         updateUser participantClaims (ucId participantClaims) `shouldBe` Granted
       prop "should not be able to delete any user"
-        $ \uid -> deleteUser participantClaims uid `shouldBe` Denied
+        $ \uid -> deleteUser participantClaims (UserId uid) `shouldBe` Denied
       it "should only be able to delete himself" $ do
         deleteUser participantClaims (ucId participantClaims) `shouldBe` Granted
       it "should be able to get all users" $ do
@@ -85,28 +87,16 @@ spec = parallel $ do
 
 
 createUser :: UserClaims -> Permission
-createUser c = checkAccessPolicy c CreateUser
+createUser c = actionPermission c CreateUser
 
-updateUser :: UserClaims -> UUID -> Permission
-updateUser c uid = checkAccessPolicy c (UpdateUserInfo uid)
+updateUser :: UserClaims -> UserId -> Permission
+updateUser c uid = actionPermission c (UpdateUserInfo uid)
 
-deleteUser :: UserClaims -> UUID -> Permission
-deleteUser c uid = checkAccessPolicy c (DeleteUser uid)
+deleteUser :: UserClaims -> UserId -> Permission
+deleteUser c uid = actionPermission c (DeleteUser uid)
 
 getUsers :: UserClaims -> Permission
-getUsers c = checkAccessPolicy c GetAllUsers
+getUsers c = actionPermission c GetAllUsers
 
 getUser :: UserClaims -> Permission
-getUser c = checkAccessPolicy c GetUser
-
-superadminClaims :: UserClaims
-superadminClaims = UserClaims nil [Superadmin]
-
-adminClaims :: UserClaims
-adminClaims = UserClaims nil [Admin]
-
-moderatorClaims :: UserClaims
-moderatorClaims = UserClaims nil [Moderator]
-
-participantClaims :: UserClaims
-participantClaims = UserClaims nil [Participant]
+getUser c = actionPermission c GetUser

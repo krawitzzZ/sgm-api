@@ -6,6 +6,7 @@ module Infra.Beam.Schema.Entity.User.V1
   , mkUsersTable
   ) where
 
+import           Data.UUID                                          ( UUID )
 import           Database.Beam                                      ( Beamable
                                                                     , C
                                                                     , Table(..)
@@ -27,7 +28,6 @@ import           Database.Beam.Postgres                             ( Postgres
                                                                     , text
                                                                     , uuid
                                                                     )
-import           Domain.App.Types                                   ( UserId )
 import           Domain.Auth.Password                               ( PasswordHash(..) )
 import           Domain.Auth.Role                                   ( Role )
 import           Infra.Beam.Schema.Types                            ( passwordType
@@ -46,7 +46,7 @@ import           RIO.Time                                           ( LocalTime 
 
 
 data UserEntityT f = UserEntity
-  { ueId            :: !(C f UserId)
+  { ueId            :: !(C f UUID)
   , ueCreatedAt     :: !(C f LocalTime)
   , ueLastUpdatedAt :: !(C f LocalTime)
   , ueUsername      :: !(C f Text)
@@ -62,7 +62,7 @@ deriving instance Show UserEntity
 deriving instance Eq UserEntity
 
 instance Table UserEntityT where
-  data PrimaryKey UserEntityT f = UserEntityId { userEntityId :: !(C f UserId) }
+  data PrimaryKey UserEntityT f = UserEntityId { userEntityId :: !(C f UUID) }
     deriving (Generic, Beamable)
   primaryKey = UserEntityId . ueId
 

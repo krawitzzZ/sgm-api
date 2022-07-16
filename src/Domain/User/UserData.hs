@@ -5,6 +5,7 @@ module Domain.User.UserData
 import           Domain.Auth.Password                               ( Password )
 import           Domain.Auth.Role                                   ( Role )
 import           RIO                                                ( Maybe
+                                                                    , Show
                                                                     , Text
                                                                     )
 
@@ -16,3 +17,4 @@ data NewUserData = NewUserData
   , nudFirstName :: !(Maybe Text)
   , nudLastName  :: !(Maybe Text)
   }
+  deriving Show
