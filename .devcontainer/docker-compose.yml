@@ -25,6 +25,17 @@ services:
         ports:
             - 5444:5432
 
+    postgres-test:
+        image: postgres:10
+        container_name: sgm-api-postgres-test
+        environment:
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: sgm-api-test
+        networks:
+            - sgm-api-db
+        ports:
+            - 5445:5432
+
 networks:
     sgm-api-gateway:
         driver: bridge
