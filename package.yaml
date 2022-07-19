@@ -154,6 +154,8 @@ tests:
     - hspec-wai
     - hspec-wai-json
     - aeson
+    - QuickCheck
+    - servant-quickcheck
     - HMock
     - explainable-predicates
     - mock-time
