@@ -6,7 +6,6 @@ module Domain.App.Class
   , EventRepository(..)
   ) where
 
-import           Control.Exception.Safe                             ( MonadThrow )
 import           Domain.App.Types                                   ( EventId
                                                                     , UserId
                                                                     )
@@ -38,8 +37,8 @@ class MonadLogger m where
   withFields :: [(Text, Text)] -> m a -> m a
 
 class (Monad m) => Authentication m where
-  validatePassword :: (MonadThrow m) => Password -> m ()
-  checkPassword :: (MonadThrow m) => Password -> PasswordHash -> m ()
+  validatePassword :: Password -> m ()
+  checkPassword :: Password -> PasswordHash -> m ()
   refreshJwt :: UserClaims -> m JWT
   createJwt :: User -> m JWT
 

@@ -86,7 +86,7 @@ instance Monad m => MonadLogger (AppT m) where
   withField   = Logger.withField
   withFields  = Logger.withFields
 
-instance (MonadIO m, MonadTime m) => Authentication (AppT m) where
+instance (MonadIO m, MonadTime m, MonadThrow m) => Authentication (AppT m) where
   validatePassword pass = asks extract >>= Password.validatePassword pass
   checkPassword = Password.checkPassword
   refreshJwt authUser = do

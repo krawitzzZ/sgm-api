@@ -4,7 +4,6 @@ module App.Auth
   , refreshJwtToken
   ) where
 
-import           Control.Exception.Safe                             ( MonadThrow )
 import           Domain.App.Class                                   ( Authentication(..)
                                                                     , UserRepository(..)
                                                                     )
@@ -20,7 +19,7 @@ import           RIO                                                ( (<&>)
                                                                     )
 
 
-loginUser :: (UserRepository m, Authentication m, MonadThrow m) => Text -> Password -> m JWT
+loginUser :: (UserRepository m, Authentication m) => Text -> Password -> m JWT
 loginUser username pwd = getUserByUsername username >>= \u -> do
   checkPassword pwd (uPassword u) >> createJwt u
 
