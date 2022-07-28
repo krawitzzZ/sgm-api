@@ -52,7 +52,7 @@ import           RIO                                                ( ($)
 
 -- TODO get by sorting, time, etc
 getAll :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> m [Event]
-getAll c = tryCatchBeamDefault $ allEvents c <&> map (uncurry eventEntityToDomain)
+getAll e = tryCatchBeamDefault $ allEvents e <&> map (uncurry eventEntityToDomain)
 
 findOneById :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> EventId -> m Event
 findOneById e eventId = tryCatchBeamDefault $ maybeEventById e eventId >>= \case
