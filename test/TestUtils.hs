@@ -4,9 +4,14 @@ module TestUtils
   , mkEvent
   , mkNewEventData
   , mkUpdateEventInfoData
+  , mkJwtToken
   ) where
 
+import           Control.Exception.Safe                             ( Exception
+                                                                    , throwIO
+                                                                    )
 import qualified Data.Password.Argon2                              as P
+import           Data.String.Conversions                            ( cs )
 import           Data.UUID                                          ( UUID
                                                                     , fromString
                                                                     , nil
@@ -22,14 +27,29 @@ import           Domain.Event.EventData                             ( NewEventDa
                                                                     )
 import           Domain.User                                        ( User(..) )
 import           RIO                                                ( ($)
+                                                                    , (.)
+                                                                    , (<&>)
+                                                                    , (>>=)
+                                                                    , Eq
+                                                                    , Generic
+                                                                    , IO
                                                                     , Maybe(..)
+                                                                    , Show
                                                                     , Text
+                                                                    , const
+                                                                    , either
                                                                     , fromMaybe
+                                                                    , return
                                                                     )
 import           RIO.Text                                           ( unpack )
 import           RIO.Time                                           ( UTCTime
                                                                     , utc
                                                                     , utcToLocalTime
+                                                                    )
+import           Servant.Auth.Client                                ( Token(..) )
+import           Servant.Auth.Server                                ( JWTSettings
+                                                                    , ToJWT
+                                                                    , makeJWT
                                                                     )
 
 
@@ -41,8 +61,8 @@ mkUser uid roles = User { uId        = uid
                         , uUsername  = "user"
                         , uPassword  = PasswordHash (P.PasswordHash "password")
                         , uRoles     = roles
-                        , uFirstName = Just "name"
-                        , uLastName  = Just "surname"
+                        , uFirstName = Nothing
+                        , uLastName  = Nothing
                         }
 
 mkEvent :: EventId -> UserId -> UTCTime -> Event
@@ -65,7 +85,6 @@ mkNewEventData nedTitle uid time = NewEventData { nedTitle
                                                 , nedEnd           = utcToLocalTime utc time
                                                 }
 
-
 mkUpdateEventInfoData :: Text -> UserId -> UTCTime -> UpdateEventInfoData
 mkUpdateEventInfoData ueidTitle uid time = UpdateEventInfoData
   { ueidTitle
@@ -74,3 +93,14 @@ mkUpdateEventInfoData ueidTitle uid time = UpdateEventInfoData
   , ueidStart         = utcToLocalTime utc time
   , ueidEnd           = utcToLocalTime utc time
   }
+
+mkJwtToken :: ToJWT a => a -> JWTSettings -> IO Token
+mkJwtToken claims jwtConf =
+  makeJWT claims jwtConf Nothing
+    >>= either (const $ throwIO CreateTokenException) return
+    <&> Token
+    .   cs
+
+data CreateTokenException = CreateTokenException
+  deriving (Eq, Show, Generic)
+instance Exception CreateTokenException

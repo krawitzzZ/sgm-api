@@ -11,13 +11,15 @@ import           RIO                                                ( Eq
                                                                     , Generic
                                                                     , Show
                                                                     )
-import           Web.HttpApiData                                    ( FromHttpApiData(..) )
+import           Web.HttpApiData                                    ( FromHttpApiData
+                                                                    , ToHttpApiData
+                                                                    )
 
 
 newtype UserId = UserId { unUserId :: UUID }
   deriving (Eq, Show, Generic)
-  deriving newtype (ToJSON, FromJSON, FromHttpApiData)
+  deriving newtype (ToJSON, FromJSON, ToHttpApiData, FromHttpApiData)
 
 newtype EventId = EventId { unEventId :: UUID }
   deriving (Eq, Show, Generic)
-  deriving newtype (ToJSON, FromJSON, FromHttpApiData)
+  deriving newtype (ToJSON, FromJSON, ToHttpApiData, FromHttpApiData)

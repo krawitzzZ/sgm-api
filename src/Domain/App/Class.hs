@@ -6,6 +6,9 @@ module Domain.App.Class
   , EventRepository(..)
   ) where
 
+import           Control.Exception.Safe                             ( MonadThrow
+                                                                    , throwM
+                                                                    )
 import           Domain.App.Types                                   ( EventId
                                                                     , UserId
                                                                     )
@@ -13,20 +16,24 @@ import           Domain.Auth                                        ( JWT )
 import           Domain.Auth.Password                               ( Password
                                                                     , PasswordHash
                                                                     )
+import           Domain.Auth.Permission                             ( isPermitted )
 import           Domain.Auth.UserClaims                             ( UserClaims )
 import           Domain.Event                                       ( Event )
 import           Domain.Event.EventData                             ( NewEventData )
+import           Domain.Exception                                   ( DomainException(..) )
 import           Domain.Policy                                      ( HasActionPolicy(..) )
 import           Domain.User                                        ( User )
 import           Domain.User.UserData                               ( NewUserData )
-import           RIO                                                ( Monad
+import           RIO                                                ( ($)
+                                                                    , Monad
                                                                     , Show
                                                                     , Text
                                                                     , Typeable
+                                                                    , unless
                                                                     )
 
 
-class MonadLogger m where
+class (Monad m) => MonadLogger m where
   logDebug :: Text -> m ()
   logInfo :: Text -> m ()
   logWarn :: Text -> m ()
@@ -42,8 +49,9 @@ class (Monad m) => Authentication m where
   refreshJwt :: UserClaims -> m JWT
   createJwt :: User -> m JWT
 
-class (Monad m) => AccessPolicyGuard m where
+class (MonadThrow m) => AccessPolicyGuard m where
   checkPolicy :: (Typeable e, HasActionPolicy e) => UserClaims -> Action e -> m ()
+  checkPolicy uc a = unless (isPermitted $ actionPermission uc a) $ throwM AccessPolicyViolation
 
 class (Monad m) => UserRepository m where
   getUserById :: UserId -> m User

@@ -67,14 +67,14 @@ newtype AppT m a = AppT { unAppT :: ReaderT Env (DiT LogLevel LogContext LogMess
                    , MonadDi LogLevel LogContext LogMessage
                    )
 
-instance MonadTrans AppT where
-  lift = AppT . lift . lift
-
 runAppT :: (Has Env e, MonadIO m) => e -> AppT m a -> m a
 runAppT env =
   let appEnv         = extract env
       Logger { lDi } = extract appEnv
   in  runDiT lDi . flip runReaderT appEnv . unAppT
+
+instance MonadTrans AppT where
+  lift = AppT . lift . lift
 
 instance Monad m => MonadLogger (AppT m) where
   logDebug    = Logger.logDebug

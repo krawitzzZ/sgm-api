@@ -20,8 +20,10 @@ import           RIO                                                ( ($)
                                                                     , (<=)
                                                                     , (>)
                                                                     , Bool(..)
+                                                                    , Eq
                                                                     , Generic
                                                                     , Maybe
+                                                                    , Show
                                                                     , Text
                                                                     , maybe
                                                                     , mconcat
@@ -36,17 +38,21 @@ data UserDto = UserDto
   , uDtoFirstName :: !(Maybe Text)
   , uDtoLastName  :: !(Maybe Text)
   }
-  deriving Generic
+  deriving (Generic, Eq, Show)
 
 instance ToJSON UserDto where
   toJSON = genericToJSON $ jsonOptions "uDto"
+instance FromJSON UserDto where
+  parseJSON = genericParseJSON $ jsonOptions "uDto"
 
 data UpdateUserDto = UpdateUserDto
   { uuDtoFirstName :: !(Maybe Text)
   , uuDtoLastName  :: !(Maybe Text)
   }
-  deriving Generic
+  deriving (Generic, Eq, Show)
 
+instance ToJSON UpdateUserDto where
+  toJSON = genericToJSON $ jsonOptions "uuDto"
 instance FromJSON UpdateUserDto where
   parseJSON v = parseJSONValid $ genericParseJSON (jsonOptions "uuDto") v
 

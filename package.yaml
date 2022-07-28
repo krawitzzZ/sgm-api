@@ -47,6 +47,7 @@ dependencies:
 - postgresql-simple-migration
 - safe-exceptions
 - servant-auth
+- servant-auth-client
 - servant-auth-server
 - servant-server
 - servant-exceptions
@@ -150,11 +151,13 @@ tests:
     dependencies:
     - base
     - sgm-api
+    - http-client
     - hspec
     - hspec-wai
     - hspec-wai-json
     - aeson
     - QuickCheck
+    - servant-client
     - servant-quickcheck
     - HMock
     - explainable-predicates

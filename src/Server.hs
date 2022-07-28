@@ -1,5 +1,8 @@
 module Server
   ( start
+  , serverApi
+  , contextApi
+  , customFormatters
   ) where
 
 import           Api                                                ( SGMApi
@@ -43,7 +46,6 @@ import           RIO                                                ( ($)
                                                                     )
 import           Servant                                            ( Context(..)
                                                                     , ErrorFormatters(..)
-                                                                    , NotFoundErrorFormatter
                                                                     , Proxy(..)
                                                                     , defaultErrorFormatters
                                                                     , err404
@@ -93,11 +95,9 @@ mkApp env = return $ serve $ hoistServer server
   cookieConf  = defaultCookieSettings
   jwtConf     = envJwtSettings env
 
-notFoundFormatter :: NotFoundErrorFormatter
-notFoundFormatter req = err404 { errBody = cs $ "Not found path: " <> rawPathInfo req }
-
 customFormatters :: ErrorFormatters
 customFormatters = defaultErrorFormatters { notFoundErrorFormatter = notFoundFormatter }
+  where notFoundFormatter req = err404 { errBody = cs $ "Not found path: " <> rawPathInfo req }
 
 mkJSONRequestLoggerMiddleware :: IO Middleware
 mkJSONRequestLoggerMiddleware =

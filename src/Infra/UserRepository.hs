@@ -60,7 +60,7 @@ createOne
 createOne e user@NewUserData {..} =
   tryCatchBeamDefault $ maybeUserByUsername e nudUsername >>= \case
     Just _ ->
-      throwM $ UserNameAlreadyExists $ "User with username '" <> nudUsername <> "' already exists"
+      throwM . UserNameAlreadyExists $ "User with username '" <> nudUsername <> "' already exists"
     Nothing -> createAndInsertUser e user <&> userEntityToDomain
 
 saveOne :: (Has Connection e, Has Config e, MonadCatch m, MonadIO m) => e -> User -> m User
