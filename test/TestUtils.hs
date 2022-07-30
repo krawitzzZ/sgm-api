@@ -15,7 +15,6 @@ import qualified Data.Password.Argon2                              as P
 import           Data.String.Conversions                            ( cs )
 import           Data.UUID                                          ( UUID
                                                                     , fromString
-                                                                    , nil
                                                                     )
 import           Data.UUID.V4                                       ( nextRandom )
 import           Domain.App.Types                                   ( EventId(..)
@@ -42,6 +41,7 @@ import           RIO                                                ( ($)
                                                                     , Text
                                                                     , const
                                                                     , either
+                                                                    , error
                                                                     , fromMaybe
                                                                     , mapM
                                                                     , return
@@ -60,7 +60,7 @@ import           Servant.Auth.Server                                ( JWTSetting
 
 
 mkUUID :: Text -> UUID
-mkUUID t = fromMaybe nil $ fromString (unpack t)
+mkUUID t = fromMaybe (error "Invalid UUID string provided") $ fromString (unpack t)
 
 mkUser :: UserId -> [Role] -> User
 mkUser uid roles = User { uId        = uid
