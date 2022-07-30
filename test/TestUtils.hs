@@ -1,6 +1,7 @@
 module TestUtils
   ( mkUUID
   , mkUser
+  , mkUsers
   , mkEvent
   , mkNewEventData
   , mkUpdateEventInfoData
@@ -16,11 +17,12 @@ import           Data.UUID                                          ( UUID
                                                                     , fromString
                                                                     , nil
                                                                     )
+import           Data.UUID.V4                                       ( nextRandom )
 import           Domain.App.Types                                   ( EventId(..)
                                                                     , UserId(..)
                                                                     )
 import           Domain.Auth.Password                               ( PasswordHash(..) )
-import           Domain.Auth.Role                                   ( Role )
+import           Domain.Auth.Role                                   ( Role(Participant) )
 import           Domain.Event                                       ( Event(..) )
 import           Domain.Event.EventData                             ( NewEventData(..)
                                                                     , UpdateEventInfoData(..)
@@ -29,17 +31,21 @@ import           Domain.User                                        ( User(..) )
 import           RIO                                                ( ($)
                                                                     , (.)
                                                                     , (<&>)
+                                                                    , (<>)
                                                                     , (>>=)
                                                                     , Eq
                                                                     , Generic
                                                                     , IO
+                                                                    , Int
                                                                     , Maybe(..)
                                                                     , Show
                                                                     , Text
                                                                     , const
                                                                     , either
                                                                     , fromMaybe
+                                                                    , mapM
                                                                     , return
+                                                                    , show
                                                                     )
 import           RIO.Text                                           ( unpack )
 import           RIO.Time                                           ( UTCTime
@@ -64,6 +70,19 @@ mkUser uid roles = User { uId        = uid
                         , uFirstName = Nothing
                         , uLastName  = Nothing
                         }
+
+mkUsers :: Int -> IO [User]
+mkUsers n = mapM newUser [1 .. n]
+ where
+  newUser n' = do
+    uid <- nextRandom
+    return User { uId        = UserId uid
+                , uUsername  = "user" <> cs (show n')
+                , uPassword  = PasswordHash (P.PasswordHash "password")
+                , uRoles     = [Participant]
+                , uFirstName = Just $ "first name: " <> cs (show n')
+                , uLastName  = Just $ "last name: " <> cs (show n')
+                }
 
 mkEvent :: EventId -> UserId -> UTCTime -> Event
 mkEvent eid uid time = Event { eId            = eid

@@ -1,4 +1,4 @@
-module Infra.InMemory.UserRepository
+module Infra.InMemory.Query.User
   ( InMemoryUsers(..)
   , getAllUsers
   , getUserById
@@ -34,6 +34,7 @@ import           RIO                                                ( ($)
                                                                     , otherwise
                                                                     , readTVarIO
                                                                     , return
+                                                                    , when
                                                                     , writeTVar
                                                                     )
 import           RIO.List                                           ( filter
@@ -89,8 +90,9 @@ saveUser InMemoryUsers {..} user = do
   replaceWithNewUser u | uId u == uId user = user
                        | otherwise         = u
 
-deleteUser :: (MonadIO m) => InMemoryUsers -> UserId -> m ()
+deleteUser :: (MonadIO m, MonadThrow m) => InMemoryUsers -> UserId -> m ()
 deleteUser InMemoryUsers {..} uid = do
   us <- readTVarIO imUsers
   let us' = filter (\u -> uId u /= uid) us
+  when (us == us') $ throwM . NotFound $ "User with id '" <> toText (unUserId uid) <> "' not found"
   atomically $ writeTVar imUsers us'

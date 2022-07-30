@@ -19,22 +19,13 @@ services:
         container_name: sgm-api-postgres
         environment:
             POSTGRES_PASSWORD: password
-            POSTGRES_DB: sgm-api
+            POSTGRES_MULTIPLE_DATABASES: sgm_api,sgm_api_test
         networks:
             - sgm-api-db
         ports:
             - 5444:5432
-
-    postgres-test:
-        image: postgres:10
-        container_name: sgm-api-postgres-test
-        environment:
-            POSTGRES_PASSWORD: password
-            POSTGRES_DB: sgm-api-test
-        networks:
-            - sgm-api-db
-        ports:
-            - 5445:5432
+        volumes:
+            - ./pg-init-scripts:/docker-entrypoint-initdb.d
 
 networks:
     sgm-api-gateway:
@@ -43,7 +34,3 @@ networks:
     sgm-api-db:
         driver: bridge
         name: sgm-api-db
-
-secrets:
-    git_ssh_key:
-        file: ~/.ssh/git_rsa

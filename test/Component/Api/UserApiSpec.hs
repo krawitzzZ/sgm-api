@@ -20,7 +20,7 @@ import qualified Domain.App.Class                                  as C
 import           Domain.App.Types                                   ( UserId(..) )
 import           Domain.Auth.Role                                   ( Role(..) )
 import           Domain.User                                        ( User(..) )
-import qualified Infra.InMemory.UserRepository                     as UR
+import qualified Infra.InMemory.Query.User                         as UR
 import           Network.HTTP.Client                                ( defaultManagerSettings
                                                                     , newManager
                                                                     )
@@ -171,9 +171,9 @@ spec = parallel $ do
         withUsers imu [] $ do
           runClientM (deleteOne401 uid3) (mkEnv port) `shouldFailWithStatus` status401
 
-      it "should return NoContent even if user does not exist" $ \port -> do
+      it "should return 404 if user does not exist" $ \port -> do
         withUsers imu [] $ do
-          runClientM (deleteOne uid1) (mkEnv port) `shouldReturn` Right NoContent
+          runClientM (deleteOne uid1) (mkEnv port) `shouldFailWithStatus` status404
 
 
 userApp :: JWTSettings -> UR.InMemoryUsers -> ApiVersion -> Application

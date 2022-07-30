@@ -6,7 +6,17 @@
       "port": 5432,
       "driver": "PostgreSQL",
       "name": "sgm-api",
-      "database": "sgm-api",
+      "database": "sgm_api",
+      "username": "postgres",
+      "password": "password"
+    },
+    {
+      "previewLimit": 50,
+      "server": "postgres",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "sgm-api-test",
+      "database": "sgm_api_test",
       "username": "postgres",
       "password": "password"
     }
