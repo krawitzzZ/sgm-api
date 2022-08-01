@@ -6,10 +6,9 @@ module Configuration
 import           Configuration.Dotenv                               ( defaultConfig
                                                                     , defaultValidatorMap
                                                                     , loadSafeFile
+                                                                    , onMissingFile
                                                                     )
-import           Control.Exception.Safe                             ( SomeException(..)
-                                                                    , try
-                                                                    )
+import           Control.Exception.Safe                             ( MonadCatch )
 import           Data.Map.Strict                                    ( empty )
 import           Data.Password.Validate                             ( PasswordPolicy(..)
                                                                     , ValidPasswordPolicy
@@ -48,16 +47,16 @@ import           RIO                                                ( ($)
 import           RIO.Time                                           ( secondsToNominalDiffTime )
 import           Servant.Auth.Server                                ( JWTSettings
                                                                     , defaultJWTSettings
-                                                                    , generateKey
-                                                                    , readKey
+                                                                    , fromSecret
                                                                     )
 import           Utils                                              ( readEnvDefault
                                                                     , readEnvText
                                                                     )
 
 
-loadEnv :: MonadIO m => m ()
-loadEnv = void $ loadSafeFile defaultValidatorMap "env.schema.yaml" defaultConfig
+loadEnv :: (MonadIO m, MonadCatch m) => m ()
+loadEnv = readFile `onMissingFile` return ()
+  where readFile = void $ loadSafeFile defaultValidatorMap "env.schema.yaml" defaultConfig
 
 mkAppEnv :: MonadIO m => Di LogLevel LogContext LogMessage -> m Env
 mkAppEnv di =
@@ -76,12 +75,7 @@ mkLogger :: MonadIO m => Di LogLevel LogContext LogMessage -> m Logger
 mkLogger lDi = return Logger { lDi, lFields = empty, lError = Nothing }
 
 mkJwtSettings :: MonadIO m => m JWTSettings
-mkJwtSettings = do
-  jwtKeyFilename <- cs <$> readEnvText "JWT_SECRET_FILENAME"
-  eitherKey      <- liftIO $ try $ readKey jwtKeyFilename
-  case eitherKey of
-    Left  (SomeException _) -> liftIO generateKey <&> defaultJWTSettings
-    Right key               -> return $ defaultJWTSettings key
+mkJwtSettings = readEnvText "JWT_SECRET" <&> cs <&> defaultJWTSettings . fromSecret
 
 mkConnection :: MonadIO m => m Connection
 mkConnection = liftIO $ mkAppConfig >>= connectPostgreSQL . cs . cDbUrl
